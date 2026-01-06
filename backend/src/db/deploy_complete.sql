@@ -242,9 +242,9 @@ CREATE TABLE IF NOT EXISTS user_program_progress (
 -- =====================================================
 
 INSERT INTO users (email, password, first_name, last_name, is_admin) VALUES
-('demo@fitflow.com', '$2a$10$WFh/4NDxbZy8.2IxIOjc/uaqtbYThDJ6twMjRRHkhNPNQ1gkdMBgu', 'Demo', 'User', FALSE),
-('admin@fitflow.com', '$2a$10$WFh/4NDxbZy8.2IxIOjc/uaqtbYThDJ6twMjRRHkhNPNQ1gkdMBgu', 'Admin', 'User', TRUE),
-('system@fitflow.app', '$2a$10$WFh/4NDxbZy8.2IxIOjc/uaqtbYThDJ6twMjRRHkhNPNQ1gkdMBgu', 'FitFlow', 'System', FALSE);
+('demo@fitflow.com', '$2a$10$kuAUne/YpLTKrpeIVs6rqeZH333rMm9oEwEdZSyr8Eonp11tovOCa', 'Demo', 'User', FALSE),
+('admin@fitflow.com', '$2a$10$ylX0rsdHRyetUA/8ZhNBJe3/sv3PajogzId7ls7oFQZg81qtV62/q', 'Admin', 'User', TRUE),
+('system@fitflow.app', '$2a$10$ylX0rsdHRyetUA/8ZhNBJe3/sv3PajogzId7ls7oFQZg81qtV62/q', 'FitFlow', 'System', FALSE);
 
 -- =====================================================
 -- EQUIPMENT
