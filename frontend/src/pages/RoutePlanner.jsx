@@ -1141,6 +1141,9 @@ const RoutePlanner = () => {
             zoom={13}
             className="w-full h-full"
             style={{ height: '100%', width: '100%', zIndex: 0, display: 'block' }}
+            dragging={true}
+            touchZoom={true}
+            scrollWheelZoom={false}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -1168,18 +1171,24 @@ const RoutePlanner = () => {
                     key={`waypoint-${index}`}
                     position={[wp.lat, wp.lng]}
                     draggable={true}
+                    autoPan={true}
                     eventHandlers={{
+                      dragstart: (e) => {
+                        const marker = e.target;
+                        marker.getElement()?.classList.add('dragging');
+                      },
                       dragend: (e) => {
                         const marker = e.target;
+                        marker.getElement()?.classList.remove('dragging');
                         const position = marker.getLatLng();
                         handleMarkerDrag(index, position);
                       }
                     }}
                     icon={new L.DivIcon({
                       className: 'waypoint-marker',
-                      html: `<div style="width: 16px; height: 16px; background: #3b82f6; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: grab;"><span style="position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: bold; color: #3b82f6; background: white; padding: 1px 4px; border-radius: 4px; white-space: nowrap;">${index}</span></div>`,
-                      iconSize: [16, 16],
-                      iconAnchor: [8, 8]
+                      html: `<div style="width: 24px; height: 24px; background: #3b82f6; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: grab; display: flex; align-items: center; justify-content: center; touch-action: none;"><span style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: bold; color: #3b82f6; background: white; padding: 2px 5px; border-radius: 4px; white-space: nowrap;">${index}</span></div>`,
+                      iconSize: [24, 24],
+                      iconAnchor: [12, 12]
                     })}
                   />
                 );
@@ -1193,6 +1202,7 @@ const RoutePlanner = () => {
                 position={[formData.waypoints[0].lat, formData.waypoints[0].lng]}
                 icon={startIcon}
                 draggable={true}
+                autoPan={true}
                 eventHandlers={{
                   dragend: (e) => {
                     const marker = e.target;
@@ -1212,6 +1222,7 @@ const RoutePlanner = () => {
                 ]}
                 icon={endIcon}
                 draggable={true}
+                autoPan={true}
                 eventHandlers={{
                   dragend: (e) => {
                     const marker = e.target;

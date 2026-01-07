@@ -199,3 +199,28 @@
 .overflow-anchor {
   overflow-anchor: auto;
 }
+
+/* Leaflet marker dragging improvements for mobile */
+.leaflet-marker-draggable {
+  touch-action: none !important;
+}
+
+.waypoint-marker {
+  touch-action: none !important;
+  cursor: grab;
+}
+
+.waypoint-marker.dragging {
+  cursor: grabbing;
+  z-index: 1000 !important;
+}
+
+/* Ensure map doesn't interfere with marker dragging */
+.leaflet-container.leaflet-touch-drag {
+  -ms-touch-action: pan-x pan-y;
+  touch-action: pan-x pan-y;
+}
+
+.leaflet-marker-pane {
+  z-index: 600 !important;
+}
