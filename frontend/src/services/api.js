@@ -117,6 +117,9 @@ export const statisticsAPI = {
   getExercisesProgress: (params) => api.get('/statistics/exercises/progress', { params }),
   getVolume: (params) => api.get('/statistics/volume', { params }),
   getMuscleGroups: (params) => api.get('/statistics/muscle-groups', { params }),
+  getWorkoutTypes: (params) => api.get('/statistics/workout-types', { params }),
+  getRecords: () => api.get('/statistics/records'),
+  getTimeDistribution: (params) => api.get('/statistics/time-distribution', { params }),
 };
 
 // Equipment API

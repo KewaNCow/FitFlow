@@ -41,6 +41,9 @@ const Statistics = () => {
   const [exercisesProgress, setExercisesProgress] = useState([]);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [exerciseProgress, setExerciseProgress] = useState(null);
+  const [workoutTypes, setWorkoutTypes] = useState([]);
+  const [timeDistribution, setTimeDistribution] = useState([]);
+  const [records, setRecords] = useState(null);
 
   useEffect(() => {
     fetchAllStats();
@@ -49,17 +52,31 @@ const Statistics = () => {
   const fetchAllStats = async () => {
     setLoading(true);
     try {
-      const [overviewRes, volumeRes, muscleRes, exercisesRes] = await Promise.all([
+      const [
+        overviewRes, 
+        volumeRes, 
+        muscleRes, 
+        exercisesRes,
+        typesRes,
+        timeRes,
+        recordsRes
+      ] = await Promise.all([
         statisticsAPI.getOverview({ period }),
         statisticsAPI.getVolume({ period }),
         statisticsAPI.getMuscleGroups({ period }),
-        statisticsAPI.getExercisesProgress({ period })
+        statisticsAPI.getExercisesProgress({ period }),
+        statisticsAPI.getWorkoutTypes({ period }),
+        statisticsAPI.getTimeDistribution({ period }),
+        statisticsAPI.getRecords()
       ]);
 
       setOverview(overviewRes.data.data);
       setVolume(volumeRes.data.data);
       setMuscleGroups(muscleRes.data.data);
       setExercisesProgress(exercisesRes.data.data);
+      setWorkoutTypes(typesRes.data.data);
+      setTimeDistribution(timeRes.data.data);
+      setRecords(recordsRes.data.data);
     } catch (error) {
       console.error('Error fetching statistics:', error);
     } finally {
@@ -332,6 +349,168 @@ const Statistics = () => {
           )}
         </div>
       </div>
+
+      {/* New Charts Row */}
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        {/* Workout Types Distribution */}
+        <div className="card p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Workout Types</h2>
+          {workoutTypes?.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={workoutTypes} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis type="number" tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                <YAxis 
+                  dataKey="workout_type" 
+                  type="category" 
+                  tick={{ fontSize: 12 }}
+                  stroke="#9ca3af"
+                  width={100}
+                />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                />
+                <Bar 
+                  dataKey="count" 
+                  fill="#3b82f6" 
+                  radius={[0, 4, 4, 0]}
+                  name="Workouts"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-64 flex items-center justify-center text-gray-400">
+              No workout type data
+            </div>
+          )}
+        </div>
+
+        {/* Time of Day Distribution */}
+        <div className="card p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Workout Times</h2>
+          {timeDistribution?.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={timeDistribution}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="count"
+                  nameKey="time_of_day"
+                  label={({ time_of_day, percent }) => 
+                    `${time_of_day} (${(percent * 100).toFixed(0)}%)`
+                  }
+                >
+                  {timeDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value) => [`${value} workouts`]}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-64 flex items-center justify-center text-gray-400">
+              No workout time data
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Personal Records Section */}
+      {records && (
+        <div className="card p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Award className="w-5 h-5 text-yellow-600" />
+            Personal Records
+          </h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 border border-yellow-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Dumbbell className="w-5 h-5 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-900">Total Volume</span>
+              </div>
+              <p className="text-2xl font-bold text-yellow-900">
+                {formatVolume(records.total_volume || 0)} kg
+              </p>
+              <p className="text-xs text-yellow-700 mt-1">All time</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">Longest Workout</span>
+              </div>
+              <p className="text-2xl font-bold text-blue-900">
+                {records.longest_workout?.duration_minutes || 0}m
+              </p>
+              <p className="text-xs text-blue-700 mt-1 truncate">
+                {records.longest_workout?.workout_name || 'N/A'}
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-5 h-5 text-green-600" />
+                <span className="text-sm font-medium text-green-900">Heaviest Lift</span>
+              </div>
+              <p className="text-2xl font-bold text-green-900">
+                {records.heaviest_lifts?.[0]?.max_weight || 0} kg
+              </p>
+              <p className="text-xs text-green-700 mt-1 truncate">
+                {records.heaviest_lifts?.[0]?.exercise_name || 'N/A'}
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-5 h-5 text-purple-600" />
+                <span className="text-sm font-medium text-purple-900">Most Reps</span>
+              </div>
+              <p className="text-2xl font-bold text-purple-900">
+                {records.most_reps?.[0]?.max_reps || 0}
+              </p>
+              <p className="text-xs text-purple-700 mt-1 truncate">
+                {records.most_reps?.[0]?.exercise_name || 'N/A'}
+              </p>
+            </div>
+          </div>
+
+          {/* Top Lifts Table */}
+          {records.heaviest_lifts?.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Top 5 Heaviest Lifts</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 px-3 font-medium text-gray-600">Exercise</th>
+                      <th className="text-left py-2 px-3 font-medium text-gray-600">Muscle</th>
+                      <th className="text-right py-2 px-3 font-medium text-gray-600">Weight</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {records.heaviest_lifts.slice(0, 5).map((record, idx) => (
+                      <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-2 px-3 text-gray-900">{record.exercise_name}</td>
+                        <td className="py-2 px-3 text-gray-600">{record.muscle_group || 'N/A'}</td>
+                        <td className="py-2 px-3 text-right font-semibold text-gray-900">
+                          {record.max_weight} kg
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Exercise Progress */}
       <div className="card p-6 mb-8">

@@ -286,4 +286,147 @@ router.get('/muscle-groups', auth, async (req, res) => {
   }
 });
 
-module.exports = router;
+// Get workout type distribution
+router.get('/workout-types', auth, async (req, res) => {
+  try {
+    const { period = '30' } = req.query;
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - parseInt(period));
+
+    const [types] = await pool.query(
+      `SELECT 
+        w.workout_type,
+        COUNT(*) as count,
+        SUM(wl.duration_minutes) as total_duration,
+        AVG(wl.duration_minutes) as avg_duration
+       FROM workout_logs wl
+       JOIN workouts w ON wl.workout_id = w.id
+       WHERE wl.user_id = ? AND wl.completed_at >= ? AND w.workout_type IS NOT NULL
+       GROUP BY w.workout_type
+       ORDER BY count DESC`,
+      [req.user.id, daysAgo]
+    );
+
+    res.json({
+      success: true,
+      data: types
+    });
+  } catch (error) {
+    console.error('Get workout types stats error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Get personal records and achievements
+router.get('/records', auth, async (req, res) => {
+  try {
+    // Heaviest lift by exercise
+    const [heaviestLifts] = await pool.query(
+      `SELECT 
+        e.name as exercise_name,
+        e.muscle_group,
+        MAX(JSON_EXTRACT(el.weight_per_set, '$[0]')) as max_weight,
+        wl.completed_at as date_achieved
+       FROM exercise_logs el
+       JOIN exercises e ON el.exercise_id = e.id
+       JOIN workout_logs wl ON el.workout_log_id = wl.id
+       WHERE wl.user_id = ? 
+       GROUP BY e.id, e.name, e.muscle_group
+       ORDER BY max_weight DESC
+       LIMIT 10`,
+      [req.user.id]
+    );
+
+    // Most reps in a set
+    const [mostReps] = await pool.query(
+      `SELECT 
+        e.name as exercise_name,
+        MAX(JSON_EXTRACT(el.reps_per_set, '$[0]')) as max_reps,
+        wl.completed_at as date_achieved
+       FROM exercise_logs el
+       JOIN exercises e ON el.exercise_id = e.id
+       JOIN workout_logs wl ON el.workout_log_id = wl.id
+       WHERE wl.user_id = ?
+       GROUP BY e.id, e.name
+       ORDER BY max_reps DESC
+       LIMIT 10`,
+      [req.user.id]
+    );
+
+    // Longest workout
+    const [longestWorkout] = await pool.query(
+      `SELECT 
+        w.name as workout_name,
+        wl.duration_minutes,
+        wl.completed_at as date
+       FROM workout_logs wl
+       LEFT JOIN workouts w ON wl.workout_id = w.id
+       WHERE wl.user_id = ?
+       ORDER BY wl.duration_minutes DESC
+       LIMIT 1`,
+      [req.user.id]
+    );
+
+    // Total volume lifted
+    const [totalVolume] = await pool.query(
+      `SELECT 
+        SUM(
+          JSON_EXTRACT(el.weight_per_set, '$[0]') * 
+          JSON_EXTRACT(el.reps_per_set, '$[0]') * 
+          el.sets_completed
+        ) as total_volume
+       FROM exercise_logs el
+       JOIN workout_logs wl ON el.workout_log_id = wl.id
+       WHERE wl.user_id = ?`,
+      [req.user.id]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        heaviest_lifts: heaviestLifts,
+        most_reps: mostReps,
+        longest_workout: longestWorkout[0],
+        total_volume: totalVolume[0]?.total_volume || 0
+      }
+    });
+  } catch (error) {
+    console.error('Get records error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Get workout frequency by time of day
+router.get('/time-distribution', auth, async (req, res) => {
+  try {
+    const { period = '30' } = req.query;
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - parseInt(period));
+
+    const [distribution] = await pool.query(
+      `SELECT 
+        CASE 
+          WHEN HOUR(completed_at) BETWEEN 5 AND 11 THEN 'Morning'
+          WHEN HOUR(completed_at) BETWEEN 12 AND 16 THEN 'Afternoon'
+          WHEN HOUR(completed_at) BETWEEN 17 AND 21 THEN 'Evening'
+          ELSE 'Night'
+        END as time_of_day,
+        COUNT(*) as count,
+        AVG(duration_minutes) as avg_duration
+       FROM workout_logs
+       WHERE user_id = ? AND completed_at >= ?
+       GROUP BY time_of_day
+       ORDER BY FIELD(time_of_day, 'Morning', 'Afternoon', 'Evening', 'Night')`,
+      [req.user.id, daysAgo]
+    );
+
+    res.json({
+      success: true,
+      data: distribution
+    });
+  } catch (error) {
+    console.error('Get time distribution error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
