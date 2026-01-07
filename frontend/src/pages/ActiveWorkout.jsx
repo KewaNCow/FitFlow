@@ -92,9 +92,15 @@ const ActiveWorkout = () => {
   const fetchAvailableExercises = async () => {
     try {
       const response = await exerciseAPI.getAll();
+      console.log('API response:', response.data);
       const exercisesData = response.data.data;
       console.log('Available exercises fetched:', exercisesData);
-      setAvailableExercises(Array.isArray(exercisesData) ? exercisesData : []);
+      
+      // Check if exercises are nested in an object with pagination
+      const exercises = exercisesData.exercises || exercisesData;
+      console.log('Extracted exercises:', exercises);
+      
+      setAvailableExercises(Array.isArray(exercises) ? exercises : []);
     } catch (error) {
       console.error('Error fetching exercises:', error);
       setAvailableExercises([]);
