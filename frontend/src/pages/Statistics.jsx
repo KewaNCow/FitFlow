@@ -72,8 +72,16 @@ const Statistics = () => {
 
       setOverview(overviewRes.data.data);
       setVolume(volumeRes.data.data);
-      setMuscleGroups(muscleRes.data.data);
-      console.log('Muscle groups data:', muscleRes.data.data);
+      
+      // Parse muscle groups data - convert string numbers to integers
+      const parsedMuscleGroups = (muscleRes.data.data || []).map(group => ({
+        ...group,
+        total_sets: parseInt(group.total_sets) || 0,
+        exercise_count: parseInt(group.exercise_count) || 0
+      }));
+      setMuscleGroups(parsedMuscleGroups);
+      console.log('Muscle groups data:', parsedMuscleGroups);
+      
       setExercisesProgress(exercisesRes.data.data);
       setWorkoutTypes(typesRes.data.data);
       setTimeDistribution(timeRes.data.data);
