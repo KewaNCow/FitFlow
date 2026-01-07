@@ -63,10 +63,9 @@ async function addMoreContent() {
 
   try {
     // =====================================================
-    // ADDITIONAL STRENGTH WORKOUTS
+    // HELPER FUNCTIONS
     // =====================================================
-    console.log('💪 Adding strength workouts...');
-
+    
     // Helper function to add workout exercises
     const addWorkoutExercises = async (workoutId, exercises) => {
       for (const ex of exercises) {
@@ -82,6 +81,27 @@ async function addMoreContent() {
         }
       }
     };
+
+    // Helper function to add program workouts
+    const addProgramWorkouts = async (programId, workouts) => {
+      for (const workout of workouts) {
+        const [workoutData] = await connection.query(
+          'SELECT id FROM workouts WHERE name = ? AND is_predefined = TRUE LIMIT 1',
+          [workout.name]
+        );
+        if (workoutData.length > 0) {
+          await connection.query(
+            'INSERT INTO program_workouts (program_id, workout_id, day_of_week, order_index) VALUES (?, ?, ?, ?)',
+            [programId, workoutData[0].id, workout.day, workout.order]
+          );
+        }
+      }
+    };
+
+    // =====================================================
+    // ADDITIONAL STRENGTH WORKOUTS
+    // =====================================================
+    console.log('💪 Adding strength workouts...');
 
     // Upper Body Hypertrophy
     const [upperBodyHypertrophy] = await connection.query(
@@ -219,22 +239,6 @@ async function addMoreContent() {
     // ADDITIONAL PROGRAMS
     // =====================================================
     console.log('📋 Adding programs...');
-
-    // Helper function to add program workouts
-    const addProgramWorkouts = async (programId, workouts) => {
-      for (const workout of workouts) {
-        const [workoutData] = await connection.query(
-          'SELECT id FROM workouts WHERE name = ? AND is_predefined = TRUE LIMIT 1',
-          [workout.name]
-        );
-        if (workoutData.length > 0) {
-          await connection.query(
-            'INSERT INTO program_workouts (program_id, workout_id, day_of_week, order_index) VALUES (?, ?, ?, ?)',
-            [programId, workoutData[0].id, workout.day, workout.order]
-          );
-        }
-      }
-    };
 
     // Classic Bodybuilding Split
     const [bodybuildingSplit] = await connection.query(
