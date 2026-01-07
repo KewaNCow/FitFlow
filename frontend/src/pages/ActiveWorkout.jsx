@@ -33,8 +33,20 @@ const ActiveWorkout = () => {
   
   // Exercise search/add modal
   const [showAddExercise, setShowAddExercise] = useState(false);
+  const [showCreateExercise, setShowCreateExercise] = useState(false);
   const [availableExercises, setAvailableExercises] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Create exercise form
+  const [newExercise, setNewExercise] = useState({
+    name: '',
+    description: '',
+    muscle_group: '',
+    category: 'strength',
+    equipment: '',
+    difficulty: 'intermediate'
+  });
   
   // Edit modal
   const [editingSet, setEditingSet] = useState(null);
@@ -42,8 +54,18 @@ const ActiveWorkout = () => {
 
   useEffect(() => {
     fetchWorkout();
-    fetchAvailableExercises();
   }, [id]);
+
+  // Search exercises with debounce
+  useEffect(() => {
+    if (!showAddExercise) return;
+    
+    const timeoutId = setTimeout(() => {
+      fetchAvailableExercises(searchQuery);
+    }, 300); // Debounce 300ms
+    
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, showAddExercise]);
 
   // Timer
   useEffect(() => {
@@ -89,9 +111,11 @@ const ActiveWorkout = () => {
     }
   };
 
-  const fetchAvailableExercises = async () => {
+  const fetchAvailableExercises = async (search = '') => {
+    setIsSearching(true);
     try {
-      const response = await exerciseAPI.getAll();
+      // Use the search endpoint to get all matching exercises
+      const response = await exerciseAPI.getAll({ search, limit: 100 });
       console.log('API response:', response.data);
       const exercisesData = response.data.data;
       console.log('Available exercises fetched:', exercisesData);
@@ -104,6 +128,8 @@ const ActiveWorkout = () => {
     } catch (error) {
       console.error('Error fetching exercises:', error);
       setAvailableExercises([]);
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -260,14 +286,32 @@ const ActiveWorkout = () => {
     navigate(`/my-workouts/${id}`);
   };
 
-  const filteredExercises = (Array.isArray(availableExercises) ? availableExercises : []).filter(ex =>
-    ex.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ex.muscle_group?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  console.log('Available exercises:', availableExercises.length);
-  console.log('Search query:', searchQuery);
-  console.log('Filtered exercises:', filteredExercises.length);
+  const createNewExercise = async () => {
+    try {
+      const response = await exerciseAPI.create(newExercise);
+      const createdExercise = response.data.data;
+      
+      // Add the newly created exercise to the workout immediately
+      addExerciseToWorkout(createdExercise);
+      
+      // Reset form and close modal
+      setNewExercise({
+        name: '',
+        description: '',
+        muscle_group: '',
+        category: 'strength',
+        equipment: '',
+        difficulty: 'intermediate'
+      });
+      setShowCreateExercise(false);
+      setShowAddExercise(false);
+      
+      alert('Exercise created and added to workout!');
+    } catch (error) {
+      console.error('Error creating exercise:', error);
+      alert('Error creating exercise. Please try again.');
+    }
+  };
 
   if (loading) {
     return (
@@ -478,12 +522,15 @@ const ActiveWorkout = () => {
       )}
 
       {/* Add Exercise Modal */}
-      {showAddExercise && (
+      {showAddExercise && !showCreateExercise && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Add Exercise</h3>
-              <button onClick={() => setShowAddExercise(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => {
+                setShowAddExercise(false);
+                setSearchQuery('');
+              }} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -497,13 +544,22 @@ const ActiveWorkout = () => {
               autoFocus
             />
             
-            <div className="text-sm text-gray-500 mb-2">
-              Showing {filteredExercises.length} exercise{filteredExercises.length !== 1 ? 's' : ''}
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-gray-500">
+                {isSearching ? 'Searching...' : `${availableExercises.length} exercise${availableExercises.length !== 1 ? 's' : ''}`}
+              </div>
+              <button
+                onClick={() => setShowCreateExercise(true)}
+                className="btn-secondary text-sm gap-1"
+              >
+                <Plus className="w-4 h-4" />
+                Create New
+              </button>
             </div>
             
             <div className="flex-1 overflow-y-auto space-y-2 min-h-[200px]">
-              {filteredExercises.length > 0 ? (
-                filteredExercises.map(exercise => (
+              {availableExercises.length > 0 ? (
+                availableExercises.map(exercise => (
                   <button
                     key={exercise.id}
                     onClick={() => addExerciseToWorkout(exercise)}
@@ -515,16 +571,169 @@ const ActiveWorkout = () => {
                 ))
               ) : (
                 <div className="text-center text-gray-500 py-8">
-                  {availableExercises.length === 0 ? (
+                  {isSearching ? (
+                    <>
+                      <LoadingSpinner size="lg" />
+                      <p className="mt-2">Searching exercises...</p>
+                    </>
+                  ) : searchQuery ? (
                     <>
                       <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p>Loading exercises...</p>
+                      <p>No exercises found matching "{searchQuery}"</p>
+                      <button
+                        onClick={() => {
+                          setNewExercise(prev => ({ ...prev, name: searchQuery }));
+                          setShowCreateExercise(true);
+                        }}
+                        className="btn-primary mt-4 gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Create "{searchQuery}"
+                      </button>
                     </>
                   ) : (
-                    <p>No exercises found matching "{searchQuery}"</p>
+                    <>
+                      <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <p>Start typing to search exercises</p>
+                    </>
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Exercise Modal */}
+      {showCreateExercise && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Create New Exercise</h3>
+              <button 
+                onClick={() => {
+                  setShowCreateExercise(false);
+                  setNewExercise({
+                    name: '',
+                    description: '',
+                    muscle_group: '',
+                    category: 'strength',
+                    equipment: '',
+                    difficulty: 'intermediate'
+                  });
+                }} 
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Exercise Name *
+                </label>
+                <input
+                  type="text"
+                  value={newExercise.name}
+                  onChange={(e) => setNewExercise(prev => ({ ...prev, name: e.target.value }))}
+                  className="input-field"
+                  placeholder="e.g., Cable Chest Fly"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={newExercise.description}
+                  onChange={(e) => setNewExercise(prev => ({ ...prev, description: e.target.value }))}
+                  className="input-field"
+                  rows="3"
+                  placeholder="Brief description of the exercise..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Muscle Group
+                  </label>
+                  <input
+                    type="text"
+                    value={newExercise.muscle_group}
+                    onChange={(e) => setNewExercise(prev => ({ ...prev, muscle_group: e.target.value }))}
+                    className="input-field"
+                    placeholder="e.g., Chest, Back"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={newExercise.category}
+                    onChange={(e) => setNewExercise(prev => ({ ...prev, category: e.target.value }))}
+                    className="input-field"
+                  >
+                    <option value="strength">Strength</option>
+                    <option value="cardio">Cardio</option>
+                    <option value="flexibility">Flexibility</option>
+                    <option value="bodyweight">Bodyweight</option>
+                    <option value="machine">Machine</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Equipment
+                  </label>
+                  <input
+                    type="text"
+                    value={newExercise.equipment}
+                    onChange={(e) => setNewExercise(prev => ({ ...prev, equipment: e.target.value }))}
+                    className="input-field"
+                    placeholder="e.g., Dumbbells, Cable"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Difficulty
+                  </label>
+                  <select
+                    value={newExercise.difficulty}
+                    onChange={(e) => setNewExercise(prev => ({ ...prev, difficulty: e.target.value }))}
+                    className="input-field"
+                  >
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button 
+                onClick={() => setShowCreateExercise(false)} 
+                className="btn-secondary flex-1"
+              >
+                Back
+              </button>
+              <button 
+                onClick={createNewExercise} 
+                className="btn-primary flex-1 gap-2"
+                disabled={!newExercise.name.trim()}
+              >
+                <Plus className="w-4 h-4" />
+                Create & Add
+              </button>
             </div>
           </div>
         </div>
