@@ -264,7 +264,21 @@ const ActiveWorkout = () => {
   };
 
   const finishWorkout = async () => {
-    if (!window.confirm('Finish and save this workout?')) return;
+    // Ensure exercises is an array
+    const exercisesArray = Array.isArray(exercises) ? exercises : [];
+    
+    // Check for incomplete sets
+    const incompleteSets = exercisesArray.reduce((count, ex) => {
+      const sets = Array.isArray(ex.sets) ? ex.sets : [];
+      return count + sets.filter(s => !s.completed).length;
+    }, 0);
+    
+    let confirmMessage = 'Finish and save this workout?';
+    if (incompleteSets > 0) {
+      confirmMessage = `You have ${incompleteSets} incomplete set${incompleteSets > 1 ? 's' : ''}. Only completed sets will be logged.\n\nFinish workout anyway?`;
+    }
+    
+    if (!window.confirm(confirmMessage)) return;
     
     setSaving(true);
     try {
@@ -285,13 +299,9 @@ const ActiveWorkout = () => {
         completedAt = new Date().toISOString();
       }
       
-      // Prepare workout log data
-      const workoutLogData = {
-        workoutId: parseInt(id),
-        durationMinutes,
-        completedAt,
-        notes: `Completed ${exercisesArray.filter(e => e.completed).length}/${exercisesArray.length} exercises`,
-        exercises: exercisesArray.map(ex => ({
+      // Prepare workout log data - only include exercises with at least one completed set
+      const exercisesWithCompletedSets = exercisesArray
+        .map(ex => ({
           exerciseId: ex.exercise_id,
           sets: (Array.isArray(ex.sets) ? ex.sets.filter(s => s.completed) : []).map(s => ({
             reps: s.actualReps || s.targetReps,
@@ -299,6 +309,14 @@ const ActiveWorkout = () => {
             notes: s.notes
           }))
         }))
+        .filter(ex => ex.sets.length > 0); // Only include exercises with completed sets
+      
+      const workoutLogData = {
+        workoutId: parseInt(id),
+        durationMinutes,
+        completedAt,
+        notes: `Completed ${exercisesWithCompletedSets.length}/${exercisesArray.length} exercises (${exercisesArray.reduce((sum, ex) => sum + (Array.isArray(ex.sets) ? ex.sets.filter(s => s.completed).length : 0), 0)} sets)`,
+        exercises: exercisesWithCompletedSets
       };
       
       await workoutLogAPI.create(workoutLogData);
