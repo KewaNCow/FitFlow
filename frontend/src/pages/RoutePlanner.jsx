@@ -263,15 +263,73 @@ const endIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-// Map click handler component
+// Map click handler component with long press support
 const MapClickHandler = ({ onMapClick, isDrawing }) => {
-  useMapEvents({
+  const [touchStart, setTouchStart] = React.useState(null);
+  const longPressTimeout = React.useRef(null);
+
+  const map = useMapEvents({
     click: (e) => {
       if (isDrawing) {
         onMapClick(e.latlng);
       }
     },
   });
+
+  // Handle touch events for mobile long-press
+  React.useEffect(() => {
+    const isMobile = window.innerWidth < 1024;
+    if (!isMobile || !isDrawing) return;
+
+    const handleTouchStart = (e) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        setTouchStart({ x: touch.clientX, y: touch.clientY });
+        
+        longPressTimeout.current = setTimeout(() => {
+          const latlng = map.mouseEventToLatLng(touch);
+          onMapClick(latlng);
+          setTouchStart(null);
+        }, 500); // 500ms long press
+      }
+    };
+
+    const handleTouchMove = (e) => {
+      if (touchStart && e.touches.length === 1) {
+        const touch = e.touches[0];
+        const moveDistance = Math.sqrt(
+          Math.pow(touch.clientX - touchStart.x, 2) + 
+          Math.pow(touch.clientY - touchStart.y, 2)
+        );
+        
+        // Cancel if moved too much (> 10px)
+        if (moveDistance > 10) {
+          clearTimeout(longPressTimeout.current);
+          setTouchStart(null);
+        }
+      }
+    };
+
+    const handleTouchEnd = () => {
+      clearTimeout(longPressTimeout.current);
+      setTouchStart(null);
+    };
+
+    const mapContainer = map.getContainer();
+    mapContainer.addEventListener('touchstart', handleTouchStart);
+    mapContainer.addEventListener('touchmove', handleTouchMove);
+    mapContainer.addEventListener('touchend', handleTouchEnd);
+    mapContainer.addEventListener('touchcancel', handleTouchEnd);
+
+    return () => {
+      clearTimeout(longPressTimeout.current);
+      mapContainer.removeEventListener('touchstart', handleTouchStart);
+      mapContainer.removeEventListener('touchmove', handleTouchMove);
+      mapContainer.removeEventListener('touchend', handleTouchEnd);
+      mapContainer.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [map, isDrawing, onMapClick, touchStart]);
+
   return null;
 };
 
@@ -337,6 +395,14 @@ const RoutePlanner = () => {
   useEffect(() => {
     fetchRoutes();
   }, []);
+
+  // Auto-enable drawing on mobile when creating
+  useEffect(() => {
+    const isMobile = window.innerWidth < 1024;
+    if (isMobile && isCreating) {
+      setIsDrawing(true);
+    }
+  }, [isCreating]);
 
   // Calculate road-following route when waypoints, activity type, or route options change
   useEffect(() => {
@@ -876,8 +942,8 @@ const RoutePlanner = () => {
                   </div>
                 )}
 
-                {/* Drawing controls */}
-                <div className="flex gap-2">
+                {/* Drawing controls - Desktop only */}
+                <div className="hidden lg:flex gap-2">
                   <button
                     onClick={() => setIsDrawing(!isDrawing)}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
@@ -889,6 +955,12 @@ const RoutePlanner = () => {
                     <Navigation className="w-4 h-4" />
                     {isDrawing ? 'Drawing...' : 'Draw Route'}
                   </button>
+                </div>
+
+                {/* Mobile instruction */}
+                <div className="lg:hidden bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                  <p className="font-medium mb-1">📍 Tap map to add waypoints</p>
+                  <p className="text-xs text-blue-600">Drag markers to adjust position</p>
                 </div>
 
                 <div className="flex gap-2">
@@ -1151,9 +1223,9 @@ const RoutePlanner = () => {
             )}
           </MapContainer>
 
-          {/* Drawing mode indicator */}
+          {/* Drawing mode indicator - Desktop only */}
           {isDrawing && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-primary-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium flex items-center gap-2">
+            <div className="hidden lg:flex absolute top-4 left-1/2 -translate-x-1/2 bg-primary-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-medium items-center gap-2">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
               Click on the map to add waypoints
             </div>
