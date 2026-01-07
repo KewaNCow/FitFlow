@@ -482,27 +482,46 @@ const Statistics = () => {
           {records.heaviest_lifts?.length > 0 && (
             <div className="mt-6">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Top 5 Heaviest Lifts</h3>
-              <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0">
-                <table className="w-full text-xs sm:text-sm min-w-[300px]">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 px-3 font-medium text-gray-600">Exercise</th>
-                      <th className="text-left py-2 px-3 font-medium text-gray-600">Muscle</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Weight</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {records.heaviest_lifts.slice(0, 5).map((record, idx) => (
-                      <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-2 px-3 text-gray-900">{record.exercise_name}</td>
-                        <td className="py-2 px-3 text-gray-600">{record.muscle_group || 'N/A'}</td>
-                        <td className="py-2 px-3 text-right font-semibold text-gray-900">
-                          {record.max_weight} kg
-                        </td>
+              <div className="md:hidden space-y-3">
+                {records.heaviest_lifts.slice(0, 5).map((record, idx) => (
+                  <div
+                    key={`top-lift-card-${idx}`}
+                    className="p-4 rounded-lg border border-gray-200 bg-white flex items-center justify-between"
+                  >
+                    <div className="pr-3">
+                      <p className="text-sm font-semibold text-gray-900">{record.exercise_name}</p>
+                      <p className="text-xs text-gray-500">{record.muscle_group || 'N/A'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-gray-900">{record.max_weight} kg</p>
+                      <p className="text-[11px] text-gray-500">Max weight</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="hidden md:block">
+                <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0">
+                  <table className="w-full text-xs sm:text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-2 px-3 font-medium text-gray-600">Exercise</th>
+                        <th className="text-left py-2 px-3 font-medium text-gray-600">Muscle</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-600">Weight</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {records.heaviest_lifts.slice(0, 5).map((record, idx) => (
+                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-2 px-3 text-gray-900">{record.exercise_name}</td>
+                          <td className="py-2 px-3 text-gray-600">{record.muscle_group || 'N/A'}</td>
+                          <td className="py-2 px-3 text-right font-semibold text-gray-900">
+                            {record.max_weight} kg
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -517,51 +536,97 @@ const Statistics = () => {
         </h2>
         
         {exercisesProgress?.length > 0 ? (
-          <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0">
-            <table className="w-full min-w-[600px]">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Exercise</th>
-                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Category</th>
-                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Times Performed</th>
-                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Max Weight</th>
-                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Avg Weight</th>
-                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Progress</th>
-                </tr>
-              </thead>
-              <tbody>
-                {exercisesProgress.slice(0, 10).map((exercise, index) => (
-                  <tr 
-                    key={exercise.id} 
-                    className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => fetchExerciseProgress(exercise.id)}
-                  >
-                    <td className="py-2 sm:py-3 px-2 sm:px-4">
-                      <span className="font-medium text-gray-900 text-sm sm:text-base">{exercise.name}</span>
+          <>
+            <div className="md:hidden space-y-3">
+              {exercisesProgress.slice(0, 10).map((exercise) => (
+                <button
+                  type="button"
+                  key={`exercise-card-${exercise.id}`}
+                  onClick={() => fetchExerciseProgress(exercise.id)}
+                  className="w-full text-left p-4 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-gray-900">{exercise.name}</p>
                       {exercise.muscle_group && (
-                        <span className="text-xs sm:text-sm text-gray-500 block">{exercise.muscle_group}</span>
+                        <p className="text-xs text-gray-500 mt-0.5">{exercise.muscle_group}</p>
                       )}
-                    </td>
-                    <td className="py-2 sm:py-3 px-2 sm:px-4">
-                      <span className="badge bg-gray-100 text-gray-700 text-xs">{exercise.category}</span>
-                    </td>
-                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center font-medium text-sm">{exercise.times_performed}</td>
-                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-sm">
-                      {exercise.max_weight ? `${exercise.max_weight} kg` : '-'}
-                    </td>
-                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-sm">
-                      {exercise.avg_weight ? `${Math.round(exercise.avg_weight)} kg` : '-'}
-                    </td>
-                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
-                      <button className="text-primary-600 hover:text-primary-700 text-xs sm:text-sm font-medium whitespace-nowrap">
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                    <span className="badge bg-gray-100 text-gray-700 text-xs">{exercise.category}</span>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-gray-600">
+                    <div>
+                      <p className="text-xl font-semibold text-gray-900">{exercise.times_performed}</p>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Sessions</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-semibold text-gray-900">
+                        {exercise.max_weight ? `${exercise.max_weight} kg` : '-'}
+                      </p>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Max</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-semibold text-gray-900">
+                        {exercise.avg_weight ? `${Math.round(exercise.avg_weight)} kg` : '-'}
+                      </p>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Avg</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-base font-semibold text-primary-600">View progress</p>
+                      <p className="text-xs text-gray-500">Tap to inspect</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="hidden md:block">
+              <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Exercise</th>
+                      <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Category</th>
+                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Times Performed</th>
+                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Max Weight</th>
+                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Avg Weight</th>
+                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Progress</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {exercisesProgress.slice(0, 10).map((exercise) => (
+                      <tr 
+                        key={exercise.id} 
+                        className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => fetchExerciseProgress(exercise.id)}
+                      >
+                        <td className="py-2 sm:py-3 px-2 sm:px-4">
+                          <span className="font-medium text-gray-900 text-sm sm:text-base">{exercise.name}</span>
+                          {exercise.muscle_group && (
+                            <span className="text-xs sm:text-sm text-gray-500 block">{exercise.muscle_group}</span>
+                          )}
+                        </td>
+                        <td className="py-2 sm:py-3 px-2 sm:px-4">
+                          <span className="badge bg-gray-100 text-gray-700 text-xs">{exercise.category}</span>
+                        </td>
+                        <td className="py-2 sm:py-3 px-2 sm:px-4 text-center font-medium text-sm">{exercise.times_performed}</td>
+                        <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-sm">
+                          {exercise.max_weight ? `${exercise.max_weight} kg` : '-'}
+                        </td>
+                        <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-sm">
+                          {exercise.avg_weight ? `${Math.round(exercise.avg_weight)} kg` : '-'}
+                        </td>
+                        <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                          <button className="text-primary-600 hover:text-primary-700 text-xs sm:text-sm font-medium whitespace-nowrap">
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         ) : (
           <div className="py-12 text-center text-gray-400">
             <Dumbbell className="w-12 h-12 mx-auto mb-4 opacity-50" />
