@@ -283,12 +283,12 @@ const MyWorkouts = () => {
                       {workout.exercise_count || 0} {t('common.exercises')}
                     </p>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {workout.workout_type && (
+                      {!!workout.workout_type && (
                         <span className={`badge text-xs ${getWorkoutTypeColor(workout.workout_type)}`}>
                           {t(`common.categories.${workout.workout_type}`)}
                         </span>
                       )}
-                      {workout.is_predefined && (
+                      {!!workout.is_predefined && (
                         <span className="badge bg-blue-100 text-blue-700 text-xs">
                           {t('workouts.predefined')}
                         </span>
@@ -342,7 +342,7 @@ const MyWorkouts = () => {
                         </button>
                       </>
                     )}
-                    {workout.is_predefined && (
+                    {!!workout.is_predefined && (
                       <>
                         <button
                           onClick={() => handleCopyAndEdit(workout.id)}

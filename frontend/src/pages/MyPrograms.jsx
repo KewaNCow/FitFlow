@@ -267,7 +267,7 @@ const MyPrograms = () => {
                           {t(`programs.filter${program.difficulty.charAt(0).toUpperCase() + program.difficulty.slice(1)}`)}
                         </span>
                       )}
-                      {program.is_predefined && (
+                      {!!program.is_predefined && (
                         <span className="badge bg-blue-100 text-blue-700 text-xs">
                           {t('programs.predefinedBadge')}
                         </span>
@@ -300,7 +300,7 @@ const MyPrograms = () => {
                         {t('common.edit')}
                       </Link>
                     )}
-                    {program.is_predefined && (
+                    {!!program.is_predefined && (
                       <button
                         onClick={() => handleCopy(program.id)}
                         className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"

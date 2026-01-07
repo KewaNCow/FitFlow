@@ -128,7 +128,7 @@ const ProgramDetail = () => {
                 {t(`programs.filter${program.difficulty.charAt(0).toUpperCase() + program.difficulty.slice(1)}`)}
               </span>
             )}
-            {program.is_predefined && (
+            {!!program.is_predefined && (
               <span className="badge bg-blue-100 text-blue-700 text-xs">
                 {t('programDetail.predefined')}
               </span>
