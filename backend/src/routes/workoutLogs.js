@@ -172,12 +172,18 @@ router.get('/stats', auth, async (req, res) => {
 // Log a completed workout
 router.post('/', auth, [
   body('workoutId').optional().isInt().withMessage('Invalid workout ID'),
-  body('durationMinutes').optional().isInt({ min: 1 }).withMessage('Duration must be at least 1 minute')
+  body('durationMinutes').optional().isInt({ min: 1 }).withMessage('Duration must be at least 1 minute'),
+  body('exercises').optional().isArray().withMessage('Exercises must be an array')
 ], validate, async (req, res) => {
+  const connection = await pool.getConnection();
+  
   try {
-    const { workoutId, durationMinutes, notes, completedAt } = req.body;
+    await connection.beginTransaction();
+    
+    const { workoutId, durationMinutes, notes, completedAt, exercises } = req.body;
 
-    const [result] = await pool.query(
+    // Insert workout log
+    const [result] = await connection.query(
       `INSERT INTO workout_logs (user_id, workout_id, duration_minutes, notes, completed_at)
        VALUES (?, ?, ?, ?, ?)`,
       [
@@ -189,12 +195,45 @@ router.post('/', auth, [
       ]
     );
 
+    const workoutLogId = result.insertId;
+
+    // Insert exercise logs if provided
+    if (exercises && exercises.length > 0) {
+      for (const exercise of exercises) {
+        const { exerciseId, sets } = exercise;
+        
+        if (!exerciseId || !sets || sets.length === 0) continue;
+
+        // Extract reps and weights from sets
+        const repsPerSet = sets.map(s => s.reps || 0);
+        const weightPerSet = sets.map(s => s.weight || 0);
+        const totalSets = sets.length;
+        
+        await connection.query(
+          `INSERT INTO exercise_logs 
+           (workout_log_id, exercise_id, sets_completed, reps_per_set, weight_per_set, notes)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            workoutLogId,
+            exerciseId,
+            totalSets,
+            JSON.stringify(repsPerSet),
+            JSON.stringify(weightPerSet),
+            sets.map(s => s.notes).filter(Boolean).join('; ') || null
+          ]
+        );
+      }
+    }
+
+    await connection.commit();
+
+    // Fetch the complete log with workout name
     const [newLog] = await pool.query(
       `SELECT wl.*, w.name as workout_name
        FROM workout_logs wl
        LEFT JOIN workouts w ON wl.workout_id = w.id
        WHERE wl.id = ?`,
-      [result.insertId]
+      [workoutLogId]
     );
 
     res.status(201).json({
@@ -203,10 +242,60 @@ router.post('/', auth, [
       data: newLog[0]
     });
   } catch (error) {
+    await connection.rollback();
     console.error('Log workout error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error logging workout'
+      message: 'Error logging workout',
+      error: error.message
+    });
+  } finally {
+    connection.release();
+  }
+});
+
+// Get single workout log by ID with exercise details
+router.get('/:id', auth, async (req, res) => {
+  try {
+    // Get workout log
+    const [logs] = await pool.query(
+      `SELECT wl.*, w.name as workout_name
+       FROM workout_logs wl
+       LEFT JOIN workouts w ON wl.workout_id = w.id
+       WHERE wl.id = ? AND wl.user_id = ?`,
+      [req.params.id, req.user.id]
+    );
+
+    if (logs.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Workout log not found'
+      });
+    }
+
+    const workoutLog = logs[0];
+
+    // Get exercise logs
+    const [exerciseLogs] = await pool.query(
+      `SELECT el.*, e.name as exercise_name, e.category
+       FROM exercise_logs el
+       LEFT JOIN exercises e ON el.exercise_id = e.id
+       WHERE el.workout_log_id = ?
+       ORDER BY el.id`,
+      [req.params.id]
+    );
+
+    workoutLog.exercises = exerciseLogs;
+
+    res.json({
+      success: true,
+      data: workoutLog
+    });
+  } catch (error) {
+    console.error('Get workout log error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching workout log'
     });
   }
 });
