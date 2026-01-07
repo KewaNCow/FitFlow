@@ -99,7 +99,7 @@ const WorkoutHistory = () => {
 
       {/* Stats Overview */}
       {stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="card p-3 sm:p-4 text-center">
             <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 mx-auto mb-1 sm:mb-2" />
             <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total_workouts || 0}</p>
@@ -128,7 +128,7 @@ const WorkoutHistory = () => {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* Calendar */}
         <div className="card p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -149,47 +149,49 @@ const WorkoutHistory = () => {
             </button>
           </div>
 
-          {/* Days of week header */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
-                {day}
+          <div className="overflow-x-auto -mx-2 px-2">
+            <div className="min-w-[520px]">
+              {/* Days of week header */}
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+                    {day}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {/* Calendar grid */}
-          <div className="grid grid-cols-7 gap-1">
-            {/* Empty cells for days before the 1st */}
-            {Array.from({ length: startingDay }, (_, i) => (
-              <div key={`empty-${i}`} className="h-10" />
-            ))}
+              {/* Calendar grid */}
+              <div className="grid grid-cols-7 gap-1">
+                {Array.from({ length: startingDay }, (_, i) => (
+                  <div key={`empty-${i}`} className="h-10" />
+                ))}
 
-            {/* Days of the month */}
-            {Array.from({ length: daysInMonth }, (_, i) => {
-              const day = i + 1;
-              const dayLogs = getLogsForDate(year, month, day);
-              const hasWorkout = dayLogs.length > 0;
-              const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
+                {Array.from({ length: daysInMonth }, (_, i) => {
+                  const day = i + 1;
+                  const dayLogs = getLogsForDate(year, month, day);
+                  const hasWorkout = dayLogs.length > 0;
+                  const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
 
-              return (
-                <div
-                  key={day}
-                  className={`
-                    h-10 flex items-center justify-center rounded-lg text-sm
-                    ${hasWorkout ? 'bg-primary-100 text-primary-700 font-medium' : ''}
-                    ${isToday ? 'ring-2 ring-primary-500' : ''}
-                  `}
-                >
-                  {day}
-                  {hasWorkout && (
-                    <span className="ml-1">
-                      <Dumbbell className="w-3 h-3" />
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+                  return (
+                    <div
+                      key={day}
+                      className={`
+                        h-10 flex items-center justify-center rounded-lg text-sm
+                        ${hasWorkout ? 'bg-primary-100 text-primary-700 font-medium' : ''}
+                        ${isToday ? 'ring-2 ring-primary-500' : ''}
+                      `}
+                    >
+                      {day}
+                      {hasWorkout && (
+                        <span className="ml-1">
+                          <Dumbbell className="w-3 h-3" />
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
 

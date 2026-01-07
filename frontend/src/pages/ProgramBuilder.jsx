@@ -156,7 +156,7 @@ const ProgramBuilder = () => {
   return (
     <div className="page-container max-w-4xl">
       {/* Header */}
-      <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div className="flex items-center flex-wrap gap-3 sm:gap-4 mb-6 sm:mb-8">
         <Link
           to="/my-programs"
           className="p-2 rounded-lg hover:bg-gray-100"
@@ -244,7 +244,7 @@ const ProgramBuilder = () => {
               const dayWorkouts = getWorkoutsForDay(index);
               return (
                 <div key={day} className="card p-4">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
                     <h3 className="font-medium text-gray-900">{day}</h3>
                     <button
                       type="button"
@@ -289,11 +289,11 @@ const ProgramBuilder = () => {
         </div>
 
         {/* Submit */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             type="submit"
             disabled={saving}
-            className="btn-primary gap-2"
+            className="btn-primary gap-2 w-full sm:w-auto"
           >
             {saving ? (
               <LoadingSpinner size="sm" />
@@ -304,7 +304,7 @@ const ProgramBuilder = () => {
               </>
             )}
           </button>
-          <Link to="/my-programs" className="btn-secondary">
+          <Link to="/my-programs" className="btn-secondary w-full sm:w-auto text-center">
             Cancel
           </Link>
         </div>
@@ -314,7 +314,7 @@ const ProgramBuilder = () => {
       {showWorkoutModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl w-full max-w-lg max-h-[80vh] overflow-hidden animate-slide-up">
-            <div className="p-4 border-b flex items-center justify-between">
+            <div className="p-4 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <h3 className="text-lg font-semibold">Add Workout to {DAYS[selectedDay]}</h3>
               <button
                 onClick={() => {

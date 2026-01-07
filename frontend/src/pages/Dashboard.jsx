@@ -69,7 +69,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div className="card p-4 sm:p-5">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -120,7 +120,7 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Actions & Recent Workouts */}
-      <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Quick Actions */}
         <div className="lg:col-span-1">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
@@ -171,7 +171,7 @@ const Dashboard = () => {
 
         {/* Recent Workouts */}
         <div className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900">My Workouts</h2>
             <Link to="/my-workouts" className="text-primary-600 hover:text-primary-700 text-sm font-medium">
               View all

@@ -267,7 +267,7 @@ const WorkoutBuilder = () => {
   return (
     <div className="page-container max-w-3xl">
       {/* Header */}
-      <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div className="flex items-center flex-wrap gap-3 sm:gap-4 mb-6 sm:mb-8">
         <Link
           to="/my-workouts"
           className="p-2 rounded-lg hover:bg-gray-100"
@@ -322,7 +322,7 @@ const WorkoutBuilder = () => {
                 <MapPin className="w-4 h-4" />
                 Linked Route (Optional)
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <select
                   value={selectedRoute?.id || ''}
                   onChange={(e) => {
@@ -345,7 +345,7 @@ const WorkoutBuilder = () => {
                 </select>
                 <Link
                   to="/routes"
-                  className="btn-outline px-3 flex items-center gap-1"
+                  className="btn-outline px-3 flex items-center gap-1 justify-center"
                   title="Create new route"
                 >
                   <Plus className="w-4 h-4" />
@@ -378,7 +378,7 @@ const WorkoutBuilder = () => {
 
         {/* Exercises */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
               Exercises ({workout.exercises.length})
             </h2>
@@ -550,11 +550,11 @@ const WorkoutBuilder = () => {
         </div>
 
         {/* Submit */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             type="submit"
             disabled={saving}
-            className="btn-primary gap-2"
+            className="btn-primary gap-2 w-full sm:w-auto"
           >
             {saving ? (
               <LoadingSpinner size="sm" />
@@ -565,7 +565,7 @@ const WorkoutBuilder = () => {
               </>
             )}
           </button>
-          <Link to="/my-workouts" className="btn-secondary">
+          <Link to="/my-workouts" className="btn-secondary w-full sm:w-auto text-center">
             Cancel
           </Link>
         </div>
@@ -575,7 +575,7 @@ const WorkoutBuilder = () => {
       {showExerciseModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl w-full max-w-lg max-h-[80vh] overflow-hidden animate-slide-up">
-            <div className="p-4 border-b flex items-center justify-between">
+            <div className="p-4 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <h3 className="text-lg font-semibold">Add Exercise</h3>
               <button
                 onClick={() => {

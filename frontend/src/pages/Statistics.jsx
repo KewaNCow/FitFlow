@@ -144,7 +144,7 @@ const Statistics = () => {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div className="card p-3 sm:p-4">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -202,7 +202,7 @@ const Statistics = () => {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* Workouts Over Time */}
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Workouts Over Time</h2>
@@ -277,7 +277,7 @@ const Statistics = () => {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Volume Over Time */}
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
@@ -325,7 +325,7 @@ const Statistics = () => {
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Muscle Group Distribution</h2>
           {muscleGroups?.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={200} className="sm:h-[250px]">
               <PieChart>
                 <Pie
                   data={muscleGroups}
@@ -353,7 +353,7 @@ const Statistics = () => {
       </div>
 
       {/* New Charts Row */}
-      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* Workout Types Distribution */}
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Workout Types</h2>
@@ -391,7 +391,7 @@ const Statistics = () => {
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Workout Times</h2>
           {timeDistribution?.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={200} className="sm:h-[250px]">
               <PieChart>
                 <Pie
                   data={timeDistribution}
@@ -426,8 +426,8 @@ const Statistics = () => {
             Personal Records
           </h2>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 border border-yellow-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3 sm:p-4 border border-yellow-200">
               <div className="flex items-center gap-2 mb-2">
                 <Dumbbell className="w-5 h-5 text-yellow-600" />
                 <span className="text-sm font-medium text-yellow-900">Total Volume</span>
@@ -482,8 +482,8 @@ const Statistics = () => {
           {records.heaviest_lifts?.length > 0 && (
             <div className="mt-6">
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Top 5 Heaviest Lifts</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0">
+                <table className="w-full text-xs sm:text-sm min-w-[300px]">
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th className="text-left py-2 px-3 font-medium text-gray-600">Exercise</th>
@@ -517,16 +517,16 @@ const Statistics = () => {
         </h2>
         
         {exercisesProgress?.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0">
+            <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Exercise</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-600">Times Performed</th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-600">Max Weight</th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-600">Avg Weight</th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-600">Progress</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Exercise</th>
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Category</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Times Performed</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Max Weight</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Avg Weight</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Progress</th>
                 </tr>
               </thead>
               <tbody>
@@ -536,24 +536,24 @@ const Statistics = () => {
                     className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
                     onClick={() => fetchExerciseProgress(exercise.id)}
                   >
-                    <td className="py-3 px-4">
-                      <span className="font-medium text-gray-900">{exercise.name}</span>
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">{exercise.name}</span>
                       {exercise.muscle_group && (
-                        <span className="text-sm text-gray-500 block">{exercise.muscle_group}</span>
+                        <span className="text-xs sm:text-sm text-gray-500 block">{exercise.muscle_group}</span>
                       )}
                     </td>
-                    <td className="py-3 px-4">
-                      <span className="badge bg-gray-100 text-gray-700">{exercise.category}</span>
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
+                      <span className="badge bg-gray-100 text-gray-700 text-xs">{exercise.category}</span>
                     </td>
-                    <td className="py-3 px-4 text-center font-medium">{exercise.times_performed}</td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center font-medium text-sm">{exercise.times_performed}</td>
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-sm">
                       {exercise.max_weight ? `${exercise.max_weight} kg` : '-'}
                     </td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-sm">
                       {exercise.avg_weight ? `${Math.round(exercise.avg_weight)} kg` : '-'}
                     </td>
-                    <td className="py-3 px-4 text-center">
-                      <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
+                      <button className="text-primary-600 hover:text-primary-700 text-xs sm:text-sm font-medium whitespace-nowrap">
                         View
                       </button>
                     </td>
@@ -574,7 +574,7 @@ const Statistics = () => {
       {/* Individual Exercise Progress Modal/Section */}
       {selectedExercise && exerciseProgress && (
         <div className="card p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
               {exerciseProgress.exercise?.name} Progress
             </h2>
@@ -590,7 +590,7 @@ const Statistics = () => {
           </div>
 
           {/* Personal Records */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
             <div className="bg-yellow-50 rounded-lg p-3 text-center">
               <p className="text-xl font-bold text-yellow-700">
                 {exerciseProgress.personal_records?.max_weight || 0} kg

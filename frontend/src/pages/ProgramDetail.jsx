@@ -129,19 +129,19 @@ const ProgramDetail = () => {
             <p className="text-gray-600 mt-2 text-sm sm:text-base">{program.description}</p>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           {program.is_predefined ? (
-            <button onClick={handleCopy} className="btn-primary gap-2">
+            <button onClick={handleCopy} className="btn-primary gap-2 w-full sm:w-auto">
               <Copy className="w-4 h-4" />
               Try This Program
             </button>
           ) : (
             <>
-              <Link to={`/my-programs/${id}/edit`} className="btn-secondary gap-2">
+              <Link to={`/my-programs/${id}/edit`} className="btn-secondary gap-2 w-full sm:w-auto text-center">
                 <Edit className="w-4 h-4" />
                 Edit
               </Link>
-              <button onClick={handleDelete} className="btn-danger gap-2">
+              <button onClick={handleDelete} className="btn-danger gap-2 w-full sm:w-auto">
                 <Trash2 className="w-4 h-4" />
                 Delete
               </button>
@@ -151,7 +151,7 @@ const ProgramDetail = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <div className="card p-4 text-center">
           <Clock className="w-6 h-6 text-primary-600 mx-auto mb-2" />
           <p className="text-2xl font-bold text-gray-900">{program.duration_weeks}</p>
