@@ -60,10 +60,12 @@ const ActiveWorkout = () => {
     try {
       const response = await workoutAPI.getById(id);
       const workoutData = response.data.data;
+      console.log('Workout data:', workoutData);
+      console.log('Exercises:', workoutData.exercises);
       setWorkout(workoutData);
       
       // Initialize exercises with tracking structure
-      const initialExercises = workoutData.exercises?.map(ex => ({
+      const initialExercises = (Array.isArray(workoutData.exercises) ? workoutData.exercises : []).map(ex => ({
         ...ex,
         completed: false,
         sets: Array.from({ length: ex.sets || 3 }, (_, i) => ({
@@ -75,8 +77,9 @@ const ActiveWorkout = () => {
           completed: false,
           notes: ''
         }))
-      })) || [];
+      }));
       
+      console.log('Initialized exercises:', initialExercises);
       setExercises(initialExercises);
     } catch (error) {
       console.error('Error fetching workout:', error);
@@ -174,11 +177,13 @@ const ActiveWorkout = () => {
   const removeSet = (exerciseIndex, setIndex) => {
     setExercises(prev => {
       const updated = [...prev];
-      updated[exerciseIndex].sets = updated[exerciseIndex].sets.filter((_, i) => i !== setIndex);
-      // Renumber sets
-      updated[exerciseIndex].sets.forEach((set, i) => {
-        set.setNumber = i + 1;
-      });
+      if (Array.isArray(updated[exerciseIndex]?.sets)) {
+        updated[exerciseIndex].sets = updated[exerciseIndex].sets.filter((_, i) => i !== setIndex);
+        // Renumber sets
+        updated[exerciseIndex].sets.forEach((set, i) => {
+          set.setNumber = i + 1;
+        });
+      }
       return updated;
     });
   };
@@ -223,7 +228,7 @@ const ActiveWorkout = () => {
         notes: `Completed ${exercises.filter(e => e.completed).length}/${exercises.length} exercises`,
         exercises: exercises.map(ex => ({
           exerciseId: ex.exercise_id,
-          sets: ex.sets.filter(s => s.completed).map(s => ({
+          sets: (Array.isArray(ex.sets) ? ex.sets.filter(s => s.completed) : []).map(s => ({
             reps: s.actualReps || s.targetReps,
             weight: s.actualWeight || s.targetWeight,
             notes: s.notes
@@ -260,9 +265,9 @@ const ActiveWorkout = () => {
   }
 
   const totalSetsCompleted = exercises.reduce((sum, ex) => 
-    sum + ex.sets.filter(s => s.completed).length, 0
+    sum + (Array.isArray(ex.sets) ? ex.sets.filter(s => s.completed).length : 0), 0
   );
-  const totalSets = exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+  const totalSets = exercises.reduce((sum, ex) => sum + (Array.isArray(ex.sets) ? ex.sets.length : 0), 0);
 
   return (
     <div className="page-container max-w-4xl pb-24">
@@ -324,7 +329,7 @@ const ActiveWorkout = () => {
 
             {/* Sets */}
             <div className="space-y-2">
-              {exercise.sets.map((set, setIdx) => (
+              {Array.isArray(exercise.sets) && exercise.sets.map((set, setIdx) => (
                 <div
                   key={setIdx}
                   className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${
