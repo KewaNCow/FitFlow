@@ -250,7 +250,7 @@ const MyPrograms = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredPrograms.map((program) => (
-            <div key={program.id} className="card-hover relative">
+            <div key={program.id} className={`card-hover relative ${activeMenu === program.id ? 'z-[100] !overflow-visible' : ''}`}>
               <Link to={`/my-programs/${program.id}`} className="block p-4 sm:p-5">
                 <div className="flex items-start gap-3 sm:gap-4">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">

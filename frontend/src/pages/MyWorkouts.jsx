@@ -271,7 +271,7 @@ const MyWorkouts = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredWorkouts.map((workout) => (
-            <div key={workout.id} className="card-hover relative">
+            <div key={workout.id} className={`card-hover relative ${activeMenu === workout.id ? 'z-[100] !overflow-visible' : ''}`}>
               <Link to={`/my-workouts/${workout.id}`} className="block p-4 sm:p-5">
                 <div className="flex items-start gap-3 sm:gap-4">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
