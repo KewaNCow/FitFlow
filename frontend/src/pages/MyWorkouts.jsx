@@ -77,6 +77,16 @@ const MyWorkouts = () => {
     setActiveMenu(null);
   };
 
+  const handleCopyAndEdit = async (id) => {
+    try {
+      const response = await workoutAPI.copy(id);
+      navigate(`/my-workouts/${response.data.data.id}/edit`);
+    } catch (error) {
+      console.error('Error copying workout:', error);
+    }
+    setActiveMenu(null);
+  };
+
   const getWorkoutTypeColor = (type) => {
     const colors = {
       strength: 'bg-red-100 text-red-700',
@@ -331,13 +341,22 @@ const MyWorkouts = () => {
                       </>
                     )}
                     {workout.is_predefined && (
-                      <button
-                        onClick={() => handleCopy(workout.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      >
-                        <Copy className="w-4 h-4" />
-                        Copy to My Workouts
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleCopyAndEdit(workout.id)}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit as My Workout
+                        </button>
+                        <button
+                          onClick={() => handleCopy(workout.id)}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
+                          <Copy className="w-4 h-4" />
+                          Copy to My Workouts
+                        </button>
+                      </>
                     )}
                   </div>
                 )}

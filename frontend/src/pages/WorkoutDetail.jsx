@@ -45,6 +45,15 @@ const WorkoutDetail = () => {
     }
   };
 
+  const handleCopyAndEdit = async () => {
+    try {
+      const response = await workoutAPI.copy(id);
+      navigate(`/my-workouts/${response.data.data.id}/edit`);
+    } catch (error) {
+      console.error('Error copying workout:', error);
+    }
+  };
+
   const handleLogWorkout = async () => {
     navigate(`/my-workouts/${id}/start`);
   };
@@ -91,18 +100,25 @@ const WorkoutDetail = () => {
             <p className="text-gray-600 mt-2 text-sm sm:text-base">{workout.description}</p>
           )}
         </div>
-        {!workout.is_predefined && (
-          <div className="flex gap-2 w-full sm:w-auto">
-            <Link to={`/my-workouts/${id}/edit`} className="btn-secondary gap-2 flex-1 sm:flex-initial justify-center">
+        <div className="flex gap-2 w-full sm:w-auto">
+          {workout.is_predefined ? (
+            <button onClick={handleCopyAndEdit} className="btn-secondary gap-2 flex-1 sm:flex-initial justify-center">
               <Edit className="w-4 h-4" />
-              <span className="hidden sm:inline">Edit</span>
-            </Link>
-            <button onClick={handleDelete} className="btn-danger gap-2 flex-1 sm:flex-initial justify-center">
-              <Trash2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Delete</span>
+              <span className="hidden sm:inline">Edit as My Workout</span>
             </button>
-          </div>
-        )}
+          ) : (
+            <>
+              <Link to={`/my-workouts/${id}/edit`} className="btn-secondary gap-2 flex-1 sm:flex-initial justify-center">
+                <Edit className="w-4 h-4" />
+                <span className="hidden sm:inline">Edit</span>
+              </Link>
+              <button onClick={handleDelete} className="btn-danger gap-2 flex-1 sm:flex-initial justify-center">
+                <Trash2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Delete</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Stats */}

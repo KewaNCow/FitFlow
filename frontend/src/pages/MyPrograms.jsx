@@ -67,6 +67,16 @@ const MyPrograms = () => {
     setActiveMenu(null);
   };
 
+  const handleCopyAndEdit = async (id) => {
+    try {
+      const response = await programAPI.copy(id);
+      navigate(`/my-programs/${response.data.data.id}/edit`);
+    } catch (error) {
+      console.error('Error copying program:', error);
+    }
+    setActiveMenu(null);
+  };
+
   const getDifficultyColor = (difficulty) => {
     const colors = {
       beginner: 'bg-green-100 text-green-700',
@@ -278,7 +288,7 @@ const MyPrograms = () => {
                 </button>
                 
                 {activeMenu === program.id && (
-                  <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border py-1 z-10 animate-fade-in">
+                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border py-1 z-10 animate-fade-in">
                     {!program.is_predefined && (
                       <Link
                         to={`/my-programs/${program.id}/edit`}
@@ -289,13 +299,22 @@ const MyPrograms = () => {
                       </Link>
                     )}
                     {program.is_predefined && (
-                      <button
-                        onClick={() => handleCopy(program.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      >
-                        <Copy className="w-4 h-4" />
-                        Copy to My Programs
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleCopyAndEdit(program.id)}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit as My Program
+                        </button>
+                        <button
+                          onClick={() => handleCopy(program.id)}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        >
+                          <Copy className="w-4 h-4" />
+                          Copy to My Programs
+                        </button>
+                      </>
                     )}
                     {!program.is_predefined && (
                       <button

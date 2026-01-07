@@ -56,6 +56,15 @@ const ProgramDetail = () => {
     }
   };
 
+  const handleCopyAndEdit = async () => {
+    try {
+      const response = await programAPI.copy(id);
+      navigate(`/my-programs/${response.data.data.id}/edit`);
+    } catch (error) {
+      console.error('Error copying program:', error);
+    }
+  };
+
   const getWorkoutsForDay = (day) => {
     return program?.workouts?.filter(w => w.day_of_week === day) || [];
   };
@@ -122,10 +131,16 @@ const ProgramDetail = () => {
         </div>
         <div className="flex gap-2">
           {program.is_predefined ? (
-            <button onClick={handleCopy} className="btn-primary gap-2">
-              <Copy className="w-4 h-4" />
-              Copy to My Programs
-            </button>
+            <>
+              <button onClick={handleCopyAndEdit} className="btn-secondary gap-2">
+                <Edit className="w-4 h-4" />
+                Edit as My Program
+              </button>
+              <button onClick={handleCopy} className="btn-primary gap-2">
+                <Copy className="w-4 h-4" />
+                Copy to My Programs
+              </button>
+            </>
           ) : (
             <>
               <Link to={`/my-programs/${id}/edit`} className="btn-secondary gap-2">
