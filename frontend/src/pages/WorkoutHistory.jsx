@@ -50,7 +50,7 @@ const WorkoutHistory = () => {
 
   const getLogsForDate = (year, month, day) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return logs.filter(log => log.date.startsWith(dateStr));
+    return Array.isArray(logs) ? logs.filter(log => log.date?.startsWith(dateStr)) : [];
   };
 
   const formatDuration = (minutes) => {
@@ -186,7 +186,7 @@ const WorkoutHistory = () => {
         <div className="card p-4 sm:p-6">
           <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Recent Workouts</h2>
           
-          {logs.length === 0 ? (
+          {!Array.isArray(logs) || logs.length === 0 ? (
             <div className="text-center py-8">
               <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No workouts logged yet</h3>
