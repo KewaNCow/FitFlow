@@ -9,7 +9,9 @@ import {
   Trash2, 
   Copy,
   Search,
-  Users
+  Users,
+  Filter,
+  X as CloseIcon
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -20,6 +22,8 @@ const MyPrograms = () => {
   const [search, setSearch] = useState('');
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeTab, setActiveTab] = useState('my');
+  const [filterDifficulty, setFilterDifficulty] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchPrograms();
@@ -73,9 +77,11 @@ const MyPrograms = () => {
   };
 
   const currentPrograms = activeTab === 'my' ? programs : predefinedPrograms;
-  const filteredPrograms = currentPrograms.filter(program =>
-    program.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredPrograms = currentPrograms.filter(program => {
+    const matchesSearch = program.name.toLowerCase().includes(search.toLowerCase());
+    const matchesDifficulty = filterDifficulty === 'all' || program.difficulty === filterDifficulty;
+    return matchesSearch && matchesDifficulty;
+  });
 
   if (loading) {
     return (
@@ -128,17 +134,79 @@ const MyPrograms = () => {
         </button>
       </div>
 
-      {/* Search */}
+      {/* Search and Filter */}
       {currentPrograms.length > 0 && (
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search programs..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input pl-10"
-          />
+        <div className="mb-6 space-y-4">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search programs..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="input pl-10 w-full"
+              />
+            </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`btn-secondary gap-2 ${showFilters ? 'bg-primary-100 text-primary-700' : ''}`}
+            >
+              <Filter className="w-5 h-5" />
+              <span className="hidden sm:inline">Filter</span>
+            </button>
+          </div>
+
+          {/* Filter Options */}
+          {showFilters && (
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty Level</label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setFilterDifficulty('all')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      filterDifficulty === 'all'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => setFilterDifficulty('beginner')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      filterDifficulty === 'beginner'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Beginner
+                  </button>
+                  <button
+                    onClick={() => setFilterDifficulty('intermediate')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      filterDifficulty === 'intermediate'
+                        ? 'bg-yellow-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Intermediate
+                  </button>
+                  <button
+                    onClick={() => setFilterDifficulty('advanced')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      filterDifficulty === 'advanced'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Advanced
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

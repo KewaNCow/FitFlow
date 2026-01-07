@@ -9,7 +9,9 @@ import {
   Trash2, 
   Copy,
   Search,
-  Users
+  Users,
+  Filter,
+  X as CloseIcon
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -20,6 +22,8 @@ const MyWorkouts = () => {
   const [search, setSearch] = useState('');
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeTab, setActiveTab] = useState('my');
+  const [filterType, setFilterType] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchWorkouts();
@@ -84,9 +88,11 @@ const MyWorkouts = () => {
   };
 
   const currentWorkouts = activeTab === 'my' ? workouts : predefinedWorkouts;
-  const filteredWorkouts = currentWorkouts.filter(workout =>
-    workout.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredWorkouts = currentWorkouts.filter(workout => {
+    const matchesSearch = workout.name.toLowerCase().includes(search.toLowerCase());
+    const matchesType = filterType === 'all' || workout.workout_type === filterType;
+    return matchesSearch && matchesType;
+  });
 
   if (loading) {
     return (
@@ -139,17 +145,89 @@ const MyWorkouts = () => {
         </button>
       </div>
 
-      {/* Search */}
+      {/* Search and Filter */}
       {currentWorkouts.length > 0 && (
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search workouts..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input pl-10"
-          />
+        <div className="mb-6 space-y-4">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search workouts..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="input pl-10 w-full"
+              />
+            </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`btn-secondary gap-2 ${showFilters ? 'bg-primary-100 text-primary-700' : ''}`}
+            >
+              <Filter className="w-5 h-5" />
+              <span className="hidden sm:inline">Filter</span>
+            </button>
+          </div>
+
+          {/* Filter Options */}
+          {showFilters && (
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Workout Type</label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setFilterType('all')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      filterType === 'all'
+                        ? 'bg-primary-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => setFilterType('strength')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      filterType === 'strength'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Strength
+                  </button>
+                  <button
+                    onClick={() => setFilterType('cardio')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      filterType === 'cardio'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Cardio
+                  </button>
+                  <button
+                    onClick={() => setFilterType('mixed')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      filterType === 'mixed'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Mixed
+                  </button>
+                  <button
+                    onClick={() => setFilterType('flexibility')}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      filterType === 'flexibility'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Flexibility
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -227,7 +305,7 @@ const MyWorkouts = () => {
                 
                 {activeMenu === workout.id && (
                   <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border py-1 z-10 animate-fade-in">
-                    {activeTab === 'my' ? (
+                    {!workout.is_predefined && (
                       <>
                         <Link
                           to={`/my-workouts/${workout.id}/edit`}
@@ -251,7 +329,8 @@ const MyWorkouts = () => {
                           Delete
                         </button>
                       </>
-                    ) : (
+                    )}
+                    {workout.is_predefined && (
                       <button
                         onClick={() => handleCopy(workout.id)}
                         className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
