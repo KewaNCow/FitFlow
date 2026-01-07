@@ -191,6 +191,16 @@ router.post('/', auth, [
     
     const { workoutId, durationMinutes, notes, completedAt, exercises } = req.body;
 
+    // Convert completedAt to MySQL datetime format if provided
+    let mysqlCompletedAt;
+    if (completedAt) {
+      const date = new Date(completedAt);
+      mysqlCompletedAt = date.toISOString().slice(0, 19).replace('T', ' ');
+    } else {
+      const date = new Date();
+      mysqlCompletedAt = date.toISOString().slice(0, 19).replace('T', ' ');
+    }
+
     // Insert workout log
     const [result] = await connection.query(
       `INSERT INTO workout_logs (user_id, workout_id, duration_minutes, notes, completed_at)
@@ -200,7 +210,7 @@ router.post('/', auth, [
         workoutId || null,
         durationMinutes || null,
         notes || null,
-        completedAt || new Date()
+        mysqlCompletedAt
       ]
     );
 
