@@ -171,7 +171,13 @@ router.get('/stats', auth, async (req, res) => {
 
 // Log a completed workout
 router.post('/', auth, [
-  body('workoutId').optional().isInt().withMessage('Invalid workout ID'),
+  body('workoutId').optional().custom(value => {
+    const parsed = parseInt(value);
+    if (isNaN(parsed) || parsed < 1) {
+      throw new Error('Invalid workout ID');
+    }
+    return true;
+  }),
   body('durationMinutes').optional().isInt({ min: 1 }).withMessage('Duration must be at least 1 minute'),
   body('exercises').optional().isArray().withMessage('Exercises must be an array')
 ], validate, async (req, res) => {
@@ -179,6 +185,8 @@ router.post('/', auth, [
   
   try {
     await connection.beginTransaction();
+    
+    console.log('Received workout log request:', JSON.stringify(req.body, null, 2));
     
     const { workoutId, durationMinutes, notes, completedAt, exercises } = req.body;
 
