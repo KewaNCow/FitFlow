@@ -1063,7 +1063,7 @@ const RoutePlanner = () => {
         </div>
 
         {/* Map */}
-        <div className="w-full lg:flex-1 relative h-[500px] lg:h-auto lg:min-h-0">
+        <div className={`w-full lg:flex-1 relative lg:h-auto lg:min-h-0 ${isCreating ? 'h-[500px]' : 'h-[calc(100vh-200px)] min-h-[500px]'}`}>
           <MapContainer
             center={userLocation}
             zoom={13}
