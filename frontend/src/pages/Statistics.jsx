@@ -331,44 +331,17 @@ const Statistics = () => {
                   data={muscleGroups}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={2}
+                  labelLine={false}
+                  label={({ muscle_group, percent }) => `${muscle_group} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
                   dataKey="total_sets"
-                  nameKey="muscle_group"
-                  label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-                    const RADIAN = Math.PI / 180;
-                    const radius = outerRadius + 25;
-                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                    return (
-                      <text 
-                        x={x} 
-                        y={y} 
-                        fill="#374151" 
-                        textAnchor={x > cx ? 'start' : 'end'} 
-                        dominantBaseline="central"
-                        fontSize="12"
-                        fontWeight="500"
-                      >
-                        {`${(percent * 100).toFixed(0)}%`}
-                      </text>
-                    );
-                  }}
                 >
                   {muscleGroups.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Legend 
-                  verticalAlign="bottom" 
-                  height={36}
-                  formatter={(value, entry) => `${value} (${entry.payload.total_sets} sets)`}
-                />
-                <Tooltip 
-                  formatter={(value, name) => [`${value} sets`, name]}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                />
+                <Tooltip />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -424,43 +397,17 @@ const Statistics = () => {
                   data={timeDistribution}
                   cx="50%"
                   cy="50%"
-                  outerRadius={100}
-                  paddingAngle={5}
+                  labelLine={false}
+                  label={({ time_of_day, percent }) => `${time_of_day} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
                   dataKey="count"
-                  nameKey="time_of_day"
-                  label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-                    const RADIAN = Math.PI / 180;
-                    const radius = outerRadius + 25;
-                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                    return (
-                      <text 
-                        x={x} 
-                        y={y} 
-                        fill="#374151" 
-                        textAnchor={x > cx ? 'start' : 'end'} 
-                        dominantBaseline="central"
-                        fontSize="12"
-                        fontWeight="500"
-                      >
-                        {`${(percent * 100).toFixed(0)}%`}
-                      </text>
-                    );
-                  }}
                 >
                   {timeDistribution.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Legend 
-                  verticalAlign="bottom" 
-                  height={36}
-                  formatter={(value, entry) => `${value} (${entry.payload.count} workouts)`}
-                />
-                <Tooltip 
-                  formatter={(value) => [`${value} workouts`]}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                />
+                <Tooltip />
               </PieChart>
             </ResponsiveContainer>
           ) : (
