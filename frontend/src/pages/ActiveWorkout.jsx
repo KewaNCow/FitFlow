@@ -31,6 +31,14 @@ const ActiveWorkout = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   
+  // Custom time settings
+  const [useCustomTime, setUseCustomTime] = useState(false);
+  const [showTimeSettings, setShowTimeSettings] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customStartTime, setCustomStartTime] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [customEndTime, setCustomEndTime] = useState('');
+  
   // Exercise search/add modal
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [showCreateExercise, setShowCreateExercise] = useState(false);
@@ -260,15 +268,30 @@ const ActiveWorkout = () => {
     
     setSaving(true);
     try {
-      // Calculate actual duration
-      const durationMinutes = Math.floor(elapsedTime / 60);
+      // Ensure exercises is an array
+      const exercisesArray = Array.isArray(exercises) ? exercises : [];
+      
+      // Calculate duration and completion time
+      let durationMinutes;
+      let completedAt;
+      
+      if (useCustomTime && customStartDate && customStartTime && customEndDate && customEndTime) {
+        const startDateTime = new Date(`${customStartDate}T${customStartTime}`);
+        const endDateTime = new Date(`${customEndDate}T${customEndTime}`);
+        durationMinutes = Math.floor((endDateTime - startDateTime) / 60000); // milliseconds to minutes
+        completedAt = endDateTime.toISOString();
+      } else {
+        durationMinutes = Math.floor(elapsedTime / 60);
+        completedAt = new Date().toISOString();
+      }
       
       // Prepare workout log data
       const workoutLogData = {
         workoutId: parseInt(id),
         durationMinutes,
-        notes: `Completed ${exercises.filter(e => e.completed).length}/${exercises.length} exercises`,
-        exercises: exercises.map(ex => ({
+        completedAt,
+        notes: `Completed ${exercisesArray.filter(e => e.completed).length}/${exercisesArray.length} exercises`,
+        exercises: exercisesArray.map(ex => ({
           exerciseId: ex.exercise_id,
           sets: (Array.isArray(ex.sets) ? ex.sets.filter(s => s.completed) : []).map(s => ({
             reps: s.actualReps || s.targetReps,
@@ -395,13 +418,23 @@ const ActiveWorkout = () => {
           
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setShowTimeSettings(true)}
+              className={`p-2 rounded-lg ${
+                useCustomTime ? 'bg-indigo-100 text-indigo-600' : 'hover:bg-gray-100'
+              }`}
+              title="Set custom workout time"
+            >
+              <Timer className="w-5 h-5" />
+            </button>
+            <button
               onClick={() => setIsPaused(!isPaused)}
               className="p-2 rounded-lg hover:bg-gray-100"
+              disabled={useCustomTime}
             >
               {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
             </button>
             <div className="text-2xl font-mono font-bold text-primary-600">
-              {formatTime(elapsedTime)}
+              {useCustomTime ? '⏱️ Custom' : formatTime(elapsedTime)}
             </div>
           </div>
           
@@ -862,6 +895,161 @@ const ActiveWorkout = () => {
               >
                 <Save className="w-4 h-4" />
                 Save Workout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Time Settings Modal */}
+      {showTimeSettings && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Workout Time Settings</h2>
+                <button
+                  onClick={() => setShowTimeSettings(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">
+                Override automatic timer with custom start and end times
+              </p>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Toggle for custom time */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <label className="text-sm font-medium text-gray-900">Use Custom Time</label>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Set specific start and end times for this workout
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useCustomTime}
+                    onChange={(e) => {
+                      setUseCustomTime(e.target.checked);
+                      if (e.target.checked) {
+                        // Pre-fill with current time by default
+                        const now = new Date();
+                        const dateStr = now.toISOString().split('T')[0];
+                        const timeStr = now.toTimeString().slice(0, 5);
+                        setCustomEndDate(dateStr);
+                        setCustomEndTime(timeStr);
+                        
+                        // Set start time to 1 hour ago
+                        const hourAgo = new Date(now.getTime() - 3600000);
+                        setCustomStartDate(hourAgo.toISOString().split('T')[0]);
+                        setCustomStartTime(hourAgo.toTimeString().slice(0, 5));
+                      }
+                    }}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                </label>
+              </div>
+
+              {useCustomTime && (
+                <>
+                  {/* Start Time */}
+                  <div className="border rounded-lg p-4">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                      Start Time
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <input
+                          type="date"
+                          value={customStartDate}
+                          onChange={(e) => setCustomStartDate(e.target.value)}
+                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Time</label>
+                        <input
+                          type="time"
+                          value={customStartTime}
+                          onChange={(e) => setCustomStartTime(e.target.value)}
+                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* End Time */}
+                  <div className="border rounded-lg p-4">
+                    <label className="block text-sm font-medium text-gray-900 mb-3">
+                      End Time
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <input
+                          type="date"
+                          value={customEndDate}
+                          onChange={(e) => setCustomEndDate(e.target.value)}
+                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Time</label>
+                        <input
+                          type="time"
+                          value={customEndTime}
+                          onChange={(e) => setCustomEndTime(e.target.value)}
+                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Duration Preview */}
+                  {customStartDate && customStartTime && customEndDate && customEndTime && (
+                    <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 text-indigo-900">
+                        <Timer className="w-5 h-5" />
+                        <span className="font-medium">Duration: </span>
+                        <span className="font-bold">
+                          {(() => {
+                            const start = new Date(`${customStartDate}T${customStartTime}`);
+                            const end = new Date(`${customEndDate}T${customEndTime}`);
+                            const diffMinutes = Math.floor((end - start) / 60000);
+                            const hours = Math.floor(diffMinutes / 60);
+                            const minutes = diffMinutes % 60;
+                            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="flex gap-3 p-6 border-t">
+              <button
+                onClick={() => {
+                  setShowTimeSettings(false);
+                }}
+                className="btn-secondary flex-1"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setShowTimeSettings(false);
+                }}
+                className="btn-primary flex-1"
+              >
+                Apply
               </button>
             </div>
           </div>

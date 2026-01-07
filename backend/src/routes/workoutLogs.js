@@ -179,6 +179,7 @@ router.post('/', auth, [
     return true;
   }),
   body('durationMinutes').optional().isInt({ min: 0 }).withMessage('Duration must be a valid number'),
+  body('completedAt').optional().isISO8601().withMessage('Completed at must be a valid ISO 8601 date'),
   body('exercises').optional().isArray().withMessage('Exercises must be an array')
 ], validate, async (req, res) => {
   const connection = await pool.getConnection();
