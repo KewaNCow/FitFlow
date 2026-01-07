@@ -34,9 +34,16 @@ const ActiveWorkout = () => {
   // Exercise search/add modal
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [showCreateExercise, setShowCreateExercise] = useState(false);
+  const [showSaveWorkout, setShowSaveWorkout] = useState(false);
   const [availableExercises, setAvailableExercises] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Save workout form
+  const [saveWorkoutData, setSaveWorkoutData] = useState({
+    name: '',
+    description: ''
+  });
   
   // Create exercise form
   const [newExercise, setNewExercise] = useState({
@@ -313,6 +320,43 @@ const ActiveWorkout = () => {
     }
   };
 
+  const saveCurrentWorkout = async () => {
+    if (!saveWorkoutData.name.trim()) {
+      alert('Please enter a workout name');
+      return;
+    }
+
+    try {
+      // Map current exercises with their sets configuration
+      const workoutExercises = exercises.map(exercise => ({
+        exercise_id: exercise.exercise_id,
+        sets: exercise.sets.length,
+        reps: exercise.sets[0]?.reps || 10,
+        weight: exercise.sets[0]?.weight || 0,
+        rest_time: 60,
+        notes: ''
+      }));
+
+      const workoutData = {
+        name: saveWorkoutData.name,
+        description: saveWorkoutData.description || '',
+        exercises: workoutExercises
+      };
+
+      await workoutAPI.create(workoutData);
+      
+      alert('Workout saved successfully!');
+      setShowSaveWorkout(false);
+      setSaveWorkoutData({ name: '', description: '' });
+      
+      // Optionally navigate to My Workouts
+      // navigate('/my-workouts');
+    } catch (error) {
+      console.error('Error saving workout:', error);
+      alert('Error saving workout. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -359,14 +403,23 @@ const ActiveWorkout = () => {
             </div>
           </div>
           
-          <button
-            onClick={finishWorkout}
-            disabled={saving}
-            className="btn-primary gap-2"
-          >
-            {saving ? <LoadingSpinner size="sm" /> : <Check className="w-5 h-5" />}
-            <span>Finish</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSaveWorkout(true)}
+              className="btn-secondary gap-2"
+            >
+              <Save className="w-5 h-5" />
+              <span>Save</span>
+            </button>
+            <button
+              onClick={finishWorkout}
+              disabled={saving}
+              className="btn-primary gap-2"
+            >
+              {saving ? <LoadingSpinner size="sm" /> : <Check className="w-5 h-5" />}
+              <span>Finish</span>
+            </button>
+          </div>
         </div>
         
         <h1 className="text-xl font-bold text-gray-900">{workout?.name}</h1>
@@ -733,6 +786,80 @@ const ActiveWorkout = () => {
               >
                 <Plus className="w-4 h-4" />
                 Create & Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save Workout Modal */}
+      {showSaveWorkout && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Save Workout Template</h3>
+              <button
+                onClick={() => {
+                  setShowSaveWorkout(false);
+                  setSaveWorkoutData({ name: '', description: '' });
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Workout Name *
+                </label>
+                <input
+                  type="text"
+                  value={saveWorkoutData.name}
+                  onChange={(e) => setSaveWorkoutData({ ...saveWorkoutData, name: e.target.value })}
+                  placeholder="e.g., My Custom Upper Body Workout"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={saveWorkoutData.description}
+                  onChange={(e) => setSaveWorkoutData({ ...saveWorkoutData, description: e.target.value })}
+                  placeholder="Optional description..."
+                  rows={3}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                />
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-sm text-gray-600">
+                  <strong>{exercises.length}</strong> exercises with current sets configuration will be saved
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowSaveWorkout(false);
+                  setSaveWorkoutData({ name: '', description: '' });
+                }}
+                className="btn-secondary flex-1"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={saveCurrentWorkout} 
+                className="btn-primary flex-1 gap-2"
+                disabled={!saveWorkoutData.name.trim()}
+              >
+                <Save className="w-4 h-4" />
+                Save Workout
               </button>
             </div>
           </div>
