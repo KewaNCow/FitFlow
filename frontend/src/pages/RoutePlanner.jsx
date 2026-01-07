@@ -1012,7 +1012,18 @@ const RoutePlanner = () => {
                           onDragLeave={handleDragLeave}
                           onDrop={(e) => handleDrop(e, index)}
                           onDragEnd={handleDragEnd}
-                          className={`flex items-center gap-2 p-2 rounded-lg border transition-all cursor-grab active:cursor-grabbing ${
+                          onTouchStart={(e) => {
+                            e.currentTarget.setAttribute('data-touch-drag', 'true');
+                          }}
+                          onTouchMove={(e) => {
+                            if (e.currentTarget.getAttribute('data-touch-drag') === 'true') {
+                              e.preventDefault();
+                            }
+                          }}
+                          onTouchEnd={(e) => {
+                            e.currentTarget.removeAttribute('data-touch-drag');
+                          }}
+                          className={`flex items-center gap-2 p-2 rounded-lg border transition-all cursor-grab active:cursor-grabbing touch-none ${
                             draggedIndex === index 
                               ? 'opacity-50 border-primary-300 bg-primary-50' 
                               : dragOverIndex === index
