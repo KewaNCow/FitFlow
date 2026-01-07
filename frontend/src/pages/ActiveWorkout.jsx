@@ -92,9 +92,11 @@ const ActiveWorkout = () => {
   const fetchAvailableExercises = async () => {
     try {
       const response = await exerciseAPI.getAll();
-      setAvailableExercises(response.data.data);
+      const exercisesData = response.data.data;
+      setAvailableExercises(Array.isArray(exercisesData) ? exercisesData : []);
     } catch (error) {
       console.error('Error fetching exercises:', error);
+      setAvailableExercises([]);
     }
   };
 
@@ -251,12 +253,20 @@ const ActiveWorkout = () => {
     navigate(`/my-workouts/${id}`);
   };
 
-  const filteredExercises = availableExercises.filter(ex =>
-    ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredExercises = (Array.isArray(availableExercises) ? availableExercises : []).filter(ex =>
+    ex.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     ex.muscle_group?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!workout || !Array.isArray(exercises) || exercises.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
