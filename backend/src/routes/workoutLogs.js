@@ -12,9 +12,16 @@ router.get('/', auth, async (req, res) => {
     const { startDate, endDate, workoutId, limit = 50, page = 1 } = req.query;
 
     let query = `
-      SELECT wl.*, w.name as workout_name
+      SELECT 
+        wl.*, 
+        w.name as workout_name,
+        COUNT(DISTINCT el.id) as exercises_completed,
+        SUM(el.sets_completed) as total_sets,
+        GROUP_CONCAT(DISTINCT e.name SEPARATOR ', ') as exercise_names
       FROM workout_logs wl
       LEFT JOIN workouts w ON wl.workout_id = w.id
+      LEFT JOIN exercise_logs el ON el.workout_log_id = wl.id
+      LEFT JOIN exercises e ON e.id = el.exercise_id
       WHERE wl.user_id = ?
     `;
     const params = [req.user.id];
@@ -32,7 +39,7 @@ router.get('/', auth, async (req, res) => {
       params.push(workoutId);
     }
 
-    query += ' ORDER BY wl.completed_at DESC';
+    query += ' GROUP BY wl.id ORDER BY wl.completed_at DESC';
 
     // Pagination
     const offset = (page - 1) * limit;
@@ -150,11 +157,33 @@ router.get('/stats', auth, async (req, res) => {
       }
     }
 
+    // Total exercises and sets completed
+    const [exerciseStats] = await pool.query(
+      `SELECT 
+        COUNT(DISTINCT el.exercise_id) as total_exercises,
+        SUM(el.sets_completed) as total_sets
+       FROM exercise_logs el
+       JOIN workout_logs wl ON el.workout_log_id = wl.id
+       WHERE wl.user_id = ? ${dateFilter}`,
+      [req.user.id]
+    );
+
+    // Average workout duration
+    const [avgDuration] = await pool.query(
+      `SELECT AVG(duration_minutes) as avg_duration
+       FROM workout_logs
+       WHERE user_id = ? AND duration_minutes > 0 ${dateFilter}`,
+      [req.user.id]
+    );
+
     res.json({
       success: true,
       data: {
-        totalWorkouts: totalResult[0].total,
-        totalMinutes: durationResult[0].total_minutes || 0,
+        total_workouts: totalResult[0].total,
+        total_minutes: durationResult[0].total_minutes || 0,
+        total_exercises: exerciseStats[0].total_exercises || 0,
+        total_sets: exerciseStats[0].total_sets || 0,
+        avg_duration: Math.round(avgDuration[0].avg_duration || 0),
         weeklyData: weeklyResult,
         frequentWorkouts,
         currentStreak

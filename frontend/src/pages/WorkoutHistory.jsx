@@ -28,10 +28,13 @@ const WorkoutHistory = () => {
         workoutLogAPI.getAll(),
         workoutLogAPI.getStats()
       ]);
-      setLogs(logsRes.data.data);
+      console.log('Logs response:', logsRes.data);
+      console.log('Stats response:', statsRes.data);
+      setLogs(logsRes.data.data?.logs || logsRes.data.data || []);
       setStats(statsRes.data.data);
     } catch (error) {
       console.error('Error fetching workout history:', error);
+      setLogs([]);
     } finally {
       setLoading(false);
     }
@@ -50,7 +53,10 @@ const WorkoutHistory = () => {
 
   const getLogsForDate = (year, month, day) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return Array.isArray(logs) ? logs.filter(log => log.date?.startsWith(dateStr)) : [];
+    return Array.isArray(logs) ? logs.filter(log => {
+      const logDate = log.completed_at || log.date;
+      return logDate?.startsWith(dateStr);
+    }) : [];
   };
 
   const formatDuration = (minutes) => {
@@ -93,25 +99,30 @@ const WorkoutHistory = () => {
 
       {/* Stats Overview */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="card p-3 sm:p-4 text-center">
             <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 mx-auto mb-1 sm:mb-2" />
             <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total_workouts || 0}</p>
-            <p className="text-xs sm:text-sm text-gray-500">Total Workouts</p>
-          </div>
-          <div className="card p-3 sm:p-4 text-center">
-            <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 mx-auto mb-1 sm:mb-2" />
-            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.this_week || 0}</p>
-            <p className="text-xs sm:text-sm text-gray-500">This Week</p>
+            <p className="text-xs sm:text-sm text-gray-500">Workouts</p>
           </div>
           <div className="card p-3 sm:p-4 text-center">
             <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mx-auto mb-1 sm:mb-2" />
-            <p className="text-xl sm:text-2xl font-bold text-gray-900">{formatDuration(stats.total_duration)}</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{formatDuration(stats.total_minutes)}</p>
             <p className="text-xs sm:text-sm text-gray-500">Total Time</p>
           </div>
           <div className="card p-3 sm:p-4 text-center">
-            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 mx-auto mb-1 sm:mb-2" />
-            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.current_streak || 0}</p>
+            <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 mx-auto mb-1 sm:mb-2" />
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total_exercises || 0}</p>
+            <p className="text-xs sm:text-sm text-gray-500">Exercises</p>
+          </div>
+          <div className="card p-3 sm:p-4 text-center">
+            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 mx-auto mb-1 sm:mb-2" />
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total_sets || 0}</p>
+            <p className="text-xs sm:text-sm text-gray-500">Total Sets</p>
+          </div>
+          <div className="card p-3 sm:p-4 text-center">
+            <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 mx-auto mb-1 sm:mb-2" />
+            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.currentStreak || 0}</p>
             <p className="text-xs sm:text-sm text-gray-500">Day Streak</p>
           </div>
         </div>
@@ -198,30 +209,52 @@ const WorkoutHistory = () => {
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {logs.slice(0, 20).map((log) => (
-                <div key={log.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Dumbbell className="w-5 h-5 text-primary-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <Link 
-                      to={`/my-workouts/${log.workout_id}`}
-                      className="font-medium text-gray-900 hover:text-primary-600 truncate block"
-                    >
-                      {log.workout_name}
-                    </Link>
-                    <p className="text-sm text-gray-500">
-                      {formatDate(log.date)}
-                    </p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-sm font-medium text-gray-900">
-                      {formatDuration(log.duration_minutes)}
-                    </p>
-                    {log.exercises_completed > 0 && (
-                      <p className="text-xs text-gray-500">
-                        {log.exercises_completed} exercises
+                <div key={log.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Dumbbell className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {log.workout_id ? (
+                        <Link 
+                          to={`/my-workouts/${log.workout_id}`}
+                          className="font-medium text-gray-900 hover:text-primary-600 truncate block"
+                        >
+                          {log.workout_name || 'Unknown Workout'}
+                        </Link>
+                      ) : (
+                        <p className="font-medium text-gray-900 truncate">
+                          {log.workout_name || 'Quick Workout'}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-500">
+                        {formatDate(log.completed_at || log.date)}
                       </p>
-                    )}
+                      {log.exercises_completed > 0 && (
+                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <Activity className="w-3 h-3" />
+                            {log.exercises_completed} {log.exercises_completed === 1 ? 'exercise' : 'exercises'}
+                          </span>
+                          {log.total_sets > 0 && (
+                            <span className="flex items-center gap-1">
+                              <TrendingUp className="w-3 h-3" />
+                              {log.total_sets} {log.total_sets === 1 ? 'set' : 'sets'}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatDuration(log.duration_minutes)}
+                      </p>
+                      {log.notes && log.notes.includes('Completed') && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {log.notes.split('exercises')[0]}exercises
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
