@@ -374,6 +374,11 @@ const RoutePlanner = () => {
   // Drag and drop state
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  
+  // Touch drag state
+  const [touchDragIndex, setTouchDragIndex] = useState(null);
+  const [touchDragY, setTouchDragY] = useState(null);
+  const touchStartY = useRef(null);
 
   // Route filtering options
   const [showRouteOptions, setShowRouteOptions] = useState(false);
@@ -717,6 +722,57 @@ const RoutePlanner = () => {
     setDragOverIndex(null);
   };
 
+  // Touch drag handlers
+  const handleTouchDragStart = (e, index) => {
+    const touch = e.touches[0];
+    touchStartY.current = touch.clientY;
+    setTouchDragIndex(index);
+    setTouchDragY(touch.clientY);
+  };
+
+  const handleTouchDragMove = (e, containerRef) => {
+    if (touchDragIndex === null) return;
+    
+    e.preventDefault();
+    const touch = e.touches[0];
+    setTouchDragY(touch.clientY);
+    
+    // Calculate which item we're over
+    const container = containerRef;
+    if (!container) return;
+    
+    const items = Array.from(container.children);
+    const currentY = touch.clientY;
+    
+    let newOverIndex = touchDragIndex;
+    items.forEach((item, idx) => {
+      const rect = item.getBoundingClientRect();
+      const itemMiddle = rect.top + rect.height / 2;
+      
+      if (currentY < itemMiddle && idx < touchDragIndex) {
+        newOverIndex = idx;
+      } else if (currentY > itemMiddle && idx > touchDragIndex) {
+        newOverIndex = idx;
+      }
+    });
+    
+    if (newOverIndex !== touchDragIndex) {
+      // Reorder waypoints
+      const newWaypoints = [...formData.waypoints];
+      const [draggedItem] = newWaypoints.splice(touchDragIndex, 1);
+      newWaypoints.splice(newOverIndex, 0, draggedItem);
+      
+      setFormData(prev => ({ ...prev, waypoints: newWaypoints }));
+      setTouchDragIndex(newOverIndex);
+    }
+  };
+
+  const handleTouchDragEnd = () => {
+    setTouchDragIndex(null);
+    setTouchDragY(null);
+    touchStartY.current = null;
+  };
+
   const getWaypointLabel = (index, total) => {
     if (index === 0) return 'Start';
     if (index === total - 1) return 'End';
@@ -1002,7 +1058,15 @@ const RoutePlanner = () => {
                     </div>
                     <p className="text-xs text-gray-400 mb-3">Drag to reorder • Click × to remove</p>
                     
-                    <div className="space-y-1 max-h-48 overflow-y-auto">
+                    <div 
+                      className="space-y-1 max-h-48 overflow-y-auto"
+                      ref={(el) => {
+                        if (el) {
+                          const handleMove = (e) => handleTouchDragMove(e, el);
+                          el.touchMoveHandler = handleMove;
+                        }
+                      }}
+                    >
                       {formData.waypoints.map((waypoint, index) => (
                         <div
                           key={`wp-list-${index}`}
@@ -1013,18 +1077,17 @@ const RoutePlanner = () => {
                           onDrop={(e) => handleDrop(e, index)}
                           onDragEnd={handleDragEnd}
                           onTouchStart={(e) => {
-                            e.currentTarget.setAttribute('data-touch-drag', 'true');
+                            handleTouchDragStart(e, index);
                           }}
                           onTouchMove={(e) => {
-                            if (e.currentTarget.getAttribute('data-touch-drag') === 'true') {
-                              e.preventDefault();
+                            if (touchDragIndex === index) {
+                              const container = e.currentTarget.parentElement;
+                              handleTouchDragMove(e, container);
                             }
                           }}
-                          onTouchEnd={(e) => {
-                            e.currentTarget.removeAttribute('data-touch-drag');
-                          }}
+                          onTouchEnd={handleTouchDragEnd}
                           className={`flex items-center gap-2 p-2 rounded-lg border transition-all cursor-grab active:cursor-grabbing touch-none ${
-                            draggedIndex === index 
+                            draggedIndex === index || touchDragIndex === index
                               ? 'opacity-50 border-primary-300 bg-primary-50' 
                               : dragOverIndex === index
                                 ? 'border-primary-500 bg-primary-50 shadow-sm'
