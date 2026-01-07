@@ -129,12 +129,36 @@ router.get('/exercise/:exerciseId', auth, async (req, res) => {
     );
 
     // Calculate progress metrics
-    const weightProgress = progressData.map(log => ({
-      date: log.date,
-      weight: parseFloat(log.weight_used) || 0,
-      sets: log.sets_completed,
-      reps: log.reps_completed
-    }));
+    const weightProgress = progressData.map(log => {
+      let weight = 0;
+      let totalReps = 0;
+      
+      // Try to parse JSON data first (new format)
+      if (log.weight_per_set && log.reps_per_set) {
+        try {
+          const weights = JSON.parse(log.weight_per_set);
+          const reps = JSON.parse(log.reps_per_set);
+          // Calculate average weight across sets
+          weight = weights.reduce((sum, w) => sum + (parseFloat(w) || 0), 0) / weights.length || 0;
+          totalReps = reps.reduce((sum, r) => sum + (parseInt(r) || 0), 0);
+        } catch (e) {
+          // Fall back to old format
+          weight = parseFloat(log.weight_used) || 0;
+          totalReps = parseInt(log.reps_completed) || 0;
+        }
+      } else {
+        // Use old format
+        weight = parseFloat(log.weight_used) || 0;
+        totalReps = parseInt(log.reps_completed) || 0;
+      }
+      
+      return {
+        date: log.date,
+        weight: weight,
+        sets: log.sets_completed,
+        reps: totalReps
+      };
+    });
 
     // Calculate personal records
     let maxWeight = 0;
@@ -142,14 +166,55 @@ router.get('/exercise/:exerciseId', auth, async (req, res) => {
     let maxReps = 0;
 
     progressData.forEach(log => {
-      const weight = parseFloat(log.weight_used) || 0;
-      const sets = log.sets_completed || 0;
-      const reps = parseInt(log.reps_completed) || 0;
-      const volume = weight * sets * reps;
-
-      if (weight > maxWeight) maxWeight = weight;
-      if (volume > maxVolume) maxVolume = volume;
-      if (reps > maxReps) maxReps = reps;
+      let weight = 0;
+      let totalReps = 0;
+      let sets = log.sets_completed || 0;
+      
+      // Try to parse JSON data first (new format)
+      if (log.weight_per_set && log.reps_per_set) {
+        try {
+          const weights = JSON.parse(log.weight_per_set);
+          const reps = JSON.parse(log.reps_per_set);
+          
+          // Find max weight across all sets
+          const maxWeightInLog = Math.max(...weights.filter(w => w > 0));
+          weight = maxWeightInLog || 0;
+          
+          // Calculate total reps
+          totalReps = reps.reduce((sum, r) => sum + (parseInt(r) || 0), 0);
+          
+          // Calculate total volume
+          let volume = 0;
+          for (let i = 0; i < Math.min(weights.length, reps.length); i++) {
+            volume += (parseFloat(weights[i]) || 0) * (parseInt(reps[i]) || 0);
+          }
+          
+          if (weight > maxWeight) maxWeight = weight;
+          if (volume > maxVolume) maxVolume = volume;
+          
+          // Find max reps in a single set
+          const maxRepsInLog = Math.max(...reps.filter(r => r > 0));
+          if (maxRepsInLog > maxReps) maxReps = maxRepsInLog;
+        } catch (e) {
+          // Fall back to old format
+          weight = parseFloat(log.weight_used) || 0;
+          totalReps = parseInt(log.reps_completed) || 0;
+          const volume = weight * sets * totalReps;
+          
+          if (weight > maxWeight) maxWeight = weight;
+          if (volume > maxVolume) maxVolume = volume;
+          if (totalReps > maxReps) maxReps = totalReps;
+        }
+      } else {
+        // Use old format
+        weight = parseFloat(log.weight_used) || 0;
+        totalReps = parseInt(log.reps_completed) || 0;
+        const volume = weight * sets * totalReps;
+        
+        if (weight > maxWeight) maxWeight = weight;
+        if (volume > maxVolume) maxVolume = volume;
+        if (totalReps > maxReps) maxReps = totalReps;
+      }
     });
 
     res.json({
@@ -185,8 +250,8 @@ router.get('/exercises/progress', auth, async (req, res) => {
         e.category,
         e.muscle_group,
         COUNT(el.id) as times_performed,
-        MAX(el.weight_used) as max_weight,
-        AVG(el.weight_used) as avg_weight,
+        el.weight_per_set,
+        el.weight_used,
         MAX(el.sets_completed) as max_sets
        FROM exercises e
        JOIN exercise_logs el ON e.id = el.exercise_id
@@ -197,9 +262,69 @@ router.get('/exercises/progress', auth, async (req, res) => {
       [req.user.id, daysAgo]
     );
 
+    // Process the data to calculate max and avg weight from JSON
+    const processedData = exerciseProgress.map(exercise => {
+      let maxWeight = 0;
+      let totalWeight = 0;
+      let weightCount = 0;
+      
+      // Get all logs for this exercise to calculate properly
+      return pool.query(
+        `SELECT el.weight_per_set, el.weight_used
+         FROM exercise_logs el
+         JOIN workout_logs wl ON el.workout_log_id = wl.id
+         WHERE el.exercise_id = ? AND wl.user_id = ? AND wl.completed_at >= ?`,
+        [exercise.id, req.user.id, daysAgo]
+      ).then(([logs]) => {
+        logs.forEach(log => {
+          if (log.weight_per_set) {
+            try {
+              const weights = JSON.parse(log.weight_per_set);
+              weights.forEach(w => {
+                const weight = parseFloat(w);
+                if (weight > 0) {
+                  if (weight > maxWeight) maxWeight = weight;
+                  totalWeight += weight;
+                  weightCount++;
+                }
+              });
+            } catch (e) {
+              // Fall back to old format
+              const weight = parseFloat(log.weight_used);
+              if (weight > 0) {
+                if (weight > maxWeight) maxWeight = weight;
+                totalWeight += weight;
+                weightCount++;
+              }
+            }
+          } else if (log.weight_used) {
+            const weight = parseFloat(log.weight_used);
+            if (weight > 0) {
+              if (weight > maxWeight) maxWeight = weight;
+              totalWeight += weight;
+              weightCount++;
+            }
+          }
+        });
+        
+        return {
+          id: exercise.id,
+          name: exercise.name,
+          category: exercise.category,
+          muscle_group: exercise.muscle_group,
+          times_performed: exercise.times_performed,
+          max_weight: maxWeight,
+          avg_weight: weightCount > 0 ? totalWeight / weightCount : 0,
+          max_sets: exercise.max_sets
+        };
+      });
+    });
+
+    const results = await Promise.all(processedData);
+
     res.json({
       success: true,
-      data: exerciseProgress
+      data: results
     });
   } catch (error) {
     console.error('Get exercises progress error:', error);
@@ -214,33 +339,114 @@ router.get('/volume', auth, async (req, res) => {
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - parseInt(period));
 
-    const [volumeData] = await pool.query(
+    // Get all exercise logs with weight and reps data
+    const [exerciseLogs] = await pool.query(
       `SELECT 
         DATE(wl.completed_at) as date,
-        SUM(el.weight_used * el.sets_completed * CAST(el.reps_completed AS UNSIGNED)) as total_volume,
-        COUNT(DISTINCT wl.id) as workouts
+        el.weight_per_set,
+        el.reps_per_set,
+        el.weight_used,
+        el.reps_completed,
+        el.sets_completed,
+        wl.id as workout_id
        FROM exercise_logs el
        JOIN workout_logs wl ON el.workout_log_id = wl.id
-       WHERE wl.user_id = ? AND wl.completed_at >= ? AND el.weight_used IS NOT NULL
-       GROUP BY DATE(wl.completed_at)
+       WHERE wl.user_id = ? AND wl.completed_at >= ?
        ORDER BY date`,
       [req.user.id, daysAgo]
     );
 
-    // Weekly volume
-    const [weeklyVolume] = await pool.query(
-      `SELECT 
-        YEARWEEK(wl.completed_at) as week,
-        MIN(DATE(wl.completed_at)) as week_start,
-        SUM(el.weight_used * el.sets_completed * CAST(el.reps_completed AS UNSIGNED)) as total_volume,
-        COUNT(DISTINCT wl.id) as workouts
-       FROM exercise_logs el
-       JOIN workout_logs wl ON el.workout_log_id = wl.id
-       WHERE wl.user_id = ? AND wl.completed_at >= ? AND el.weight_used IS NOT NULL
-       GROUP BY YEARWEEK(wl.completed_at)
-       ORDER BY week`,
-      [req.user.id, daysAgo]
-    );
+    // Calculate volume by date
+    const dailyVolumeMap = {};
+    const workoutCounts = {};
+    
+    exerciseLogs.forEach(log => {
+      const date = log.date.toISOString().split('T')[0];
+      let volume = 0;
+      
+      // Try to parse JSON data first (new format)
+      if (log.weight_per_set && log.reps_per_set) {
+        try {
+          const weights = JSON.parse(log.weight_per_set);
+          const reps = JSON.parse(log.reps_per_set);
+          for (let i = 0; i < Math.min(weights.length, reps.length); i++) {
+            volume += (parseFloat(weights[i]) || 0) * (parseInt(reps[i]) || 0);
+          }
+        } catch (e) {
+          // Fall back to old format
+          volume = (parseFloat(log.weight_used) || 0) * 
+                   (parseInt(log.reps_completed) || 0) * 
+                   (log.sets_completed || 0);
+        }
+      } else {
+        // Use old format
+        volume = (parseFloat(log.weight_used) || 0) * 
+                 (parseInt(log.reps_completed) || 0) * 
+                 (log.sets_completed || 0);
+      }
+      
+      dailyVolumeMap[date] = (dailyVolumeMap[date] || 0) + volume;
+      workoutCounts[date] = workoutCounts[date] || new Set();
+      workoutCounts[date].add(log.workout_id);
+    });
+
+    const volumeData = Object.keys(dailyVolumeMap).map(date => ({
+      date,
+      total_volume: Math.round(dailyVolumeMap[date]),
+      workouts: workoutCounts[date].size
+    })).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // Calculate weekly volume
+    const weeklyVolumeMap = {};
+    const weeklyWorkoutCounts = {};
+    
+    exerciseLogs.forEach(log => {
+      const date = new Date(log.date);
+      const yearWeek = getYearWeek(date);
+      const weekStart = getWeekStart(date);
+      
+      let volume = 0;
+      
+      // Try to parse JSON data first (new format)
+      if (log.weight_per_set && log.reps_per_set) {
+        try {
+          const weights = JSON.parse(log.weight_per_set);
+          const reps = JSON.parse(log.reps_per_set);
+          for (let i = 0; i < Math.min(weights.length, reps.length); i++) {
+            volume += (parseFloat(weights[i]) || 0) * (parseInt(reps[i]) || 0);
+          }
+        } catch (e) {
+          // Fall back to old format
+          volume = (parseFloat(log.weight_used) || 0) * 
+                   (parseInt(log.reps_completed) || 0) * 
+                   (log.sets_completed || 0);
+        }
+      } else {
+        // Use old format
+        volume = (parseFloat(log.weight_used) || 0) * 
+                 (parseInt(log.reps_completed) || 0) * 
+                 (log.sets_completed || 0);
+      }
+      
+      if (!weeklyVolumeMap[yearWeek]) {
+        weeklyVolumeMap[yearWeek] = {
+          week: yearWeek,
+          week_start: weekStart,
+          total_volume: 0,
+          workouts: new Set()
+        };
+      }
+      
+      weeklyVolumeMap[yearWeek].total_volume += volume;
+      weeklyVolumeMap[yearWeek].workouts.add(log.workout_id);
+    });
+
+    const weeklyVolume = Object.values(weeklyVolumeMap).map(week => ({
+      week: week.week,
+      week_start: week.week_start,
+      total_volume: Math.round(week.total_volume),
+      workouts: week.workouts.size
+    })).sort((a, b) => a.week - b.week);
 
     res.json({
       success: true,
@@ -254,6 +460,25 @@ router.get('/volume', auth, async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
+// Helper function to get year-week number
+function getYearWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return d.getUTCFullYear() * 100 + weekNo;
+}
+
+// Helper function to get the start of the week (Monday)
+function getWeekStart(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+  const monday = new Date(d.setDate(diff));
+  return monday.toISOString().split('T')[0];
+}
 
 // Get muscle group distribution
 router.get('/muscle-groups', auth, async (req, res) => {

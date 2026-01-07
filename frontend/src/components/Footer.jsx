@@ -57,7 +57,7 @@ const Footer = () => {
               </li>
               <li>
                 <a 
-                  href="https://github.com" 
+                  href="https://github.com/KewaNCow" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 hover:text-primary-400 transition-colors"

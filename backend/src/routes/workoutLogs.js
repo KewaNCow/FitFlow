@@ -179,11 +179,16 @@ router.get('/stats', auth, async (req, res) => {
     res.json({
       success: true,
       data: {
-        total_workouts: totalResult[0].total,
-        total_minutes: durationResult[0].total_minutes || 0,
-        total_exercises: exerciseStats[0].total_exercises || 0,
-        total_sets: exerciseStats[0].total_sets || 0,
-        avg_duration: Math.round(avgDuration[0].avg_duration || 0),
+        totalWorkouts: totalResult[0].total,
+        total_workouts: totalResult[0].total, // Legacy support
+        totalMinutes: durationResult[0].total_minutes || 0,
+        total_minutes: durationResult[0].total_minutes || 0, // Legacy support
+        totalExercises: exerciseStats[0].total_exercises || 0,
+        total_exercises: exerciseStats[0].total_exercises || 0, // Legacy support
+        totalSets: exerciseStats[0].total_sets || 0,
+        total_sets: exerciseStats[0].total_sets || 0, // Legacy support
+        avgDuration: Math.round(avgDuration[0].avg_duration || 0),
+        avg_duration: Math.round(avgDuration[0].avg_duration || 0), // Legacy support
         weeklyData: weeklyResult,
         frequentWorkouts,
         currentStreak
@@ -333,7 +338,42 @@ router.get('/:id', auth, async (req, res) => {
       [req.params.id]
     );
 
-    workoutLog.exercises = exerciseLogs;
+    // Parse JSON fields for frontend
+    const parsedExercises = exerciseLogs.map(log => {
+      const parsedLog = { ...log };
+      
+      // Parse weight_per_set if it's a string
+      if (log.weight_per_set && typeof log.weight_per_set === 'string') {
+        try {
+          parsedLog.weight_per_set = JSON.parse(log.weight_per_set);
+        } catch (e) {
+          parsedLog.weight_per_set = [];
+        }
+      }
+      
+      // Parse reps_per_set if it's a string
+      if (log.reps_per_set && typeof log.reps_per_set === 'string') {
+        try {
+          parsedLog.reps_per_set = JSON.parse(log.reps_per_set);
+        } catch (e) {
+          parsedLog.reps_per_set = [];
+        }
+      }
+      
+      // Calculate totals for convenience
+      if (parsedLog.weight_per_set && parsedLog.reps_per_set) {
+        parsedLog.total_volume = 0;
+        for (let i = 0; i < Math.min(parsedLog.weight_per_set.length, parsedLog.reps_per_set.length); i++) {
+          parsedLog.total_volume += (parseFloat(parsedLog.weight_per_set[i]) || 0) * (parseInt(parsedLog.reps_per_set[i]) || 0);
+        }
+        parsedLog.total_reps = parsedLog.reps_per_set.reduce((sum, r) => sum + (parseInt(r) || 0), 0);
+        parsedLog.max_weight = Math.max(...parsedLog.weight_per_set.filter(w => w > 0));
+      }
+      
+      return parsedLog;
+    });
+
+    workoutLog.exercises = parsedExercises;
 
     res.json({
       success: true,
