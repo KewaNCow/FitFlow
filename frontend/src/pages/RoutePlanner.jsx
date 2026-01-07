@@ -694,10 +694,10 @@ const RoutePlanner = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-hidden">
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] w-full overflow-hidden">
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex flex-col lg:flex-row lg:h-[calc(100vh-64px)] w-full">
         {/* Sidebar */}
-        <div className="w-full lg:w-80 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col max-h-[40vh] lg:max-h-none overflow-y-auto min-w-0">
+        <div className="w-full lg:w-80 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col lg:overflow-y-auto min-w-0">
           <div className="p-3 sm:p-4 border-b">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <h1 className="text-lg sm:text-xl font-bold text-gray-900">Route Planner</h1>
@@ -991,7 +991,7 @@ const RoutePlanner = () => {
           </div>
 
           {/* Routes list */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="p-4">
             <h2 className="text-sm font-medium text-gray-500 mb-3">My Routes</h2>
             {routes.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-8">
@@ -1063,7 +1063,7 @@ const RoutePlanner = () => {
         </div>
 
         {/* Map */}
-        <div className="flex-1 relative min-h-[300px] lg:min-h-0 min-w-0">
+        <div className="flex-1 relative h-[400px] lg:h-auto lg:min-h-0 min-w-0">
           <MapContainer
             center={userLocation}
             zoom={13}
