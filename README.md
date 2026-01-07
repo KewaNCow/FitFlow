@@ -121,7 +121,7 @@ FitFlow is a comprehensive fitness application that helps users plan, track, and
 
 ## Author
 
-**Kevin Robertsson**
+**Kevin**
 - GitHub: [@KewaNCow](https://github.com/KewaNCow)
 
 ## Acknowledgments
