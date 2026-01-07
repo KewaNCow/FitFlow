@@ -1063,12 +1063,12 @@ const RoutePlanner = () => {
         </div>
 
         {/* Map */}
-        <div className="flex-1 relative h-[400px] lg:h-auto lg:min-h-0 min-w-0">
+        <div className="w-full lg:flex-1 relative h-[500px] lg:h-auto lg:min-h-0">
           <MapContainer
             center={userLocation}
             zoom={13}
-            className="h-full w-full"
-            style={{ height: '100%', width: '100%' }}
+            className="w-full h-full"
+            style={{ height: '100%', width: '100%', zIndex: 0 }}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
