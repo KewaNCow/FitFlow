@@ -16,6 +16,7 @@ import EquipmentLibrary from './pages/EquipmentLibrary';
 import MyWorkouts from './pages/MyWorkouts';
 import WorkoutBuilder from './pages/WorkoutBuilder';
 import WorkoutDetail from './pages/WorkoutDetail';
+import ActiveWorkout from './pages/ActiveWorkout';
 import MyPrograms from './pages/MyPrograms';
 import ProgramBuilder from './pages/ProgramBuilder';
 import ProgramDetail from './pages/ProgramDetail';
@@ -71,6 +72,11 @@ function App() {
               <Route path="/my-workouts/:id" element={
                 <ProtectedRoute>
                   <WorkoutDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/my-workouts/:id/start" element={
+                <ProtectedRoute>
+                  <ActiveWorkout />
                 </ProtectedRoute>
               } />
               <Route path="/my-workouts/:id/edit" element={

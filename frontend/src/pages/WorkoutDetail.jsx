@@ -17,7 +17,6 @@ const WorkoutDetail = () => {
   const navigate = useNavigate();
   const [workout, setWorkout] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [logging, setLogging] = useState(false);
 
   useEffect(() => {
     fetchWorkout();
@@ -47,18 +46,7 @@ const WorkoutDetail = () => {
   };
 
   const handleLogWorkout = async () => {
-    setLogging(true);
-    try {
-      await workoutLogAPI.create({
-        workoutId: parseInt(id),
-        durationMinutes: workout.exercises?.length * 5 || 30
-      });
-      alert('Workout logged successfully!');
-    } catch (error) {
-      console.error('Error logging workout:', error);
-    } finally {
-      setLogging(false);
-    }
+    navigate(`/my-workouts/${id}/start`);
   };
 
   if (loading) {
@@ -134,20 +122,15 @@ const WorkoutDetail = () => {
         </div>
       </div>
 
-      {/* Log Workout Button */}
+      {/* Start Workout Button */}
       <button
         onClick={handleLogWorkout}
-        disabled={logging}
         className="w-full btn-primary btn-lg gap-2 mb-6 sm:mb-8"
       >
-        {logging ? (
-          <LoadingSpinner size="sm" />
-        ) : (
-          <>
-            <Play className="w-5 h-5" />
-            Log Completed Workout
-          </>
-        )}
+        <>
+          <Play className="w-5 h-5" />
+          Start Workout
+        </>
       </button>
 
       {/* Exercises */}
