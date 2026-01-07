@@ -282,7 +282,9 @@ const ActiveWorkout = () => {
       navigate('/workout-history', { state: { message: 'Workout saved successfully!' } });
     } catch (error) {
       console.error('Error saving workout:', error);
-      alert('Error saving workout. Please try again.');
+      console.error('Error response:', error.response?.data);
+      const errorMessage = error.response?.data?.message || error.response?.data?.errors?.[0]?.msg || 'Error saving workout. Please try again.';
+      alert(errorMessage);
     } finally {
       setSaving(false);
     }
