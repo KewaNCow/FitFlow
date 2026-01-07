@@ -28,17 +28,35 @@ async function addMoreContent() {
   const systemUserId = users[0].id;
   console.log(`✅ System user found: ID ${systemUserId}`);
 
-  // Check if content already exists
+  // Check if content already exists AND is complete (has exercises)
   console.log('🔍 Checking for existing additional workouts...');
   const [existingWorkouts] = await connection.query(
-    "SELECT COUNT(*) as count FROM workouts WHERE name = 'Upper Body Hypertrophy'"
+    `SELECT w.id, w.name, COUNT(we.id) as exercise_count 
+     FROM workouts w 
+     LEFT JOIN workout_exercises we ON w.id = we.workout_id 
+     WHERE w.name = 'Upper Body Hypertrophy' 
+     GROUP BY w.id, w.name`
   );
 
-  if (existingWorkouts[0].count > 0) {
-    console.log('⚠️  Additional content already exists. Skipping import.');
-    await connection.end();
-    console.log('👋 Done!');
-    process.exit(0);
+  if (existingWorkouts.length > 0) {
+    const workout = existingWorkouts[0];
+    if (workout.exercise_count > 0) {
+      console.log(`✅ Additional content already exists and is complete (${workout.exercise_count} exercises).`);
+      await connection.end();
+      console.log('👋 Done!');
+      process.exit(0);
+    } else {
+      console.log(`⚠️  Found incomplete workout "${workout.name}" (0 exercises). Deleting and re-importing...`);
+      // Delete incomplete workouts to re-import them properly
+      await connection.query(
+        "DELETE FROM workouts WHERE name IN ('Upper Body Hypertrophy', 'Lower Body Hypertrophy', 'Arms & Core Blast', 'Chest & Back Superset', 'Shoulders & Traps', 'Full Body Circuit Training', 'Tabata HIIT Protocol', 'Steady State Endurance', 'Deep Stretch Recovery', 'Morning Yoga Flow')"
+      );
+      // Delete incomplete programs
+      await connection.query(
+        "DELETE FROM programs WHERE name IN ('Classic Bodybuilding Split', '8-Week Fat Shredder', 'Power & Hypertrophy', 'Busy Professional Fitness', 'Summer Shred Challenge')"
+      );
+      console.log('✅ Cleaned up incomplete content.');
+    }
   }
 
   console.log('📊 Adding additional workouts and programs...');
