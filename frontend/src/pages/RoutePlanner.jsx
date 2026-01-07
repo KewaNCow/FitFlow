@@ -265,8 +265,8 @@ const endIcon = new L.Icon({
 
 // Map click handler component with long press support
 const MapClickHandler = ({ onMapClick, isDrawing }) => {
-  const [touchStart, setTouchStart] = React.useState(null);
-  const longPressTimeout = React.useRef(null);
+  const [touchStart, setTouchStart] = useState(null);
+  const longPressTimeout = useRef(null);
 
   const map = useMapEvents({
     click: (e) => {
@@ -277,7 +277,7 @@ const MapClickHandler = ({ onMapClick, isDrawing }) => {
   });
 
   // Handle touch events for mobile long-press
-  React.useEffect(() => {
+  useEffect(() => {
     const isMobile = window.innerWidth < 1024;
     if (!isMobile || !isDrawing) return;
 
