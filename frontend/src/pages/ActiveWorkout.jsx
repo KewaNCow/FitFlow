@@ -279,7 +279,7 @@ const ActiveWorkout = () => {
       };
       
       await workoutLogAPI.create(workoutLogData);
-      navigate('/workout-history', { state: { message: 'Workout saved successfully!' } });
+      navigate('/history', { state: { message: 'Workout saved successfully!' } });
     } catch (error) {
       console.error('Error saving workout:', error);
       console.error('Error response:', error.response?.data);

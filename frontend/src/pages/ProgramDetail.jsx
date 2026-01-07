@@ -131,16 +131,10 @@ const ProgramDetail = () => {
         </div>
         <div className="flex gap-2">
           {program.is_predefined ? (
-            <>
-              <button onClick={handleCopyAndEdit} className="btn-secondary gap-2">
-                <Edit className="w-4 h-4" />
-                Edit as My Program
-              </button>
-              <button onClick={handleCopy} className="btn-primary gap-2">
-                <Copy className="w-4 h-4" />
-                Copy to My Programs
-              </button>
-            </>
+            <button onClick={handleCopy} className="btn-primary gap-2">
+              <Copy className="w-4 h-4" />
+              Try This Program
+            </button>
           ) : (
             <>
               <Link to={`/my-programs/${id}/edit`} className="btn-secondary gap-2">

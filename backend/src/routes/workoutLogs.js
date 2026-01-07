@@ -178,7 +178,7 @@ router.post('/', auth, [
     }
     return true;
   }),
-  body('durationMinutes').optional().isInt({ min: 1 }).withMessage('Duration must be at least 1 minute'),
+  body('durationMinutes').optional().isInt({ min: 0 }).withMessage('Duration must be a valid number'),
   body('exercises').optional().isArray().withMessage('Exercises must be an array')
 ], validate, async (req, res) => {
   const connection = await pool.getConnection();
