@@ -243,6 +243,7 @@ router.get('/exercises/progress', auth, async (req, res) => {
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - parseInt(period));
 
+    // First get the list of exercises with basic stats
     const [exerciseProgress] = await pool.query(
       `SELECT 
         e.id,
@@ -250,8 +251,6 @@ router.get('/exercises/progress', auth, async (req, res) => {
         e.category,
         e.muscle_group,
         COUNT(el.id) as times_performed,
-        el.weight_per_set,
-        el.weight_used,
         MAX(el.sets_completed) as max_sets
        FROM exercises e
        JOIN exercise_logs el ON e.id = el.exercise_id
@@ -262,20 +261,22 @@ router.get('/exercises/progress', auth, async (req, res) => {
       [req.user.id, daysAgo]
     );
 
-    // Process the data to calculate max and avg weight from JSON
-    const processedData = exerciseProgress.map(exercise => {
-      let maxWeight = 0;
-      let totalWeight = 0;
-      let weightCount = 0;
-      
-      // Get all logs for this exercise to calculate properly
-      return pool.query(
-        `SELECT el.weight_per_set, el.weight_used
-         FROM exercise_logs el
-         JOIN workout_logs wl ON el.workout_log_id = wl.id
-         WHERE el.exercise_id = ? AND wl.user_id = ? AND wl.completed_at >= ?`,
-        [exercise.id, req.user.id, daysAgo]
-      ).then(([logs]) => {
+    // Process each exercise to calculate max and avg weight from JSON
+    const processedData = await Promise.all(
+      exerciseProgress.map(async (exercise) => {
+        // Get all logs for this exercise
+        const [logs] = await pool.query(
+          `SELECT el.weight_per_set, el.weight_used
+           FROM exercise_logs el
+           JOIN workout_logs wl ON el.workout_log_id = wl.id
+           WHERE el.exercise_id = ? AND wl.user_id = ? AND wl.completed_at >= ?`,
+          [exercise.id, req.user.id, daysAgo]
+        );
+
+        let maxWeight = 0;
+        let totalWeight = 0;
+        let weightCount = 0;
+
         logs.forEach(log => {
           if (log.weight_per_set) {
             try {
@@ -306,7 +307,7 @@ router.get('/exercises/progress', auth, async (req, res) => {
             }
           }
         });
-        
+
         return {
           id: exercise.id,
           name: exercise.name,
@@ -314,17 +315,15 @@ router.get('/exercises/progress', auth, async (req, res) => {
           muscle_group: exercise.muscle_group,
           times_performed: exercise.times_performed,
           max_weight: maxWeight,
-          avg_weight: weightCount > 0 ? totalWeight / weightCount : 0,
+          avg_weight: weightCount > 0 ? Math.round(totalWeight / weightCount) : 0,
           max_sets: exercise.max_sets
         };
-      });
-    });
-
-    const results = await Promise.all(processedData);
+      })
+    );
 
     res.json({
       success: true,
-      data: results
+      data: processedData
     });
   } catch (error) {
     console.error('Get exercises progress error:', error);
