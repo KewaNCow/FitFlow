@@ -555,11 +555,15 @@ router.get('/muscle-groups', auth, async (req, res) => {
        FROM exercise_logs el
        JOIN exercises e ON el.exercise_id = e.id
        JOIN workout_logs wl ON el.workout_log_id = wl.id
-       WHERE wl.user_id = ? AND wl.completed_at >= ? AND e.muscle_group IS NOT NULL
+       WHERE wl.user_id = ? AND wl.completed_at >= ? 
+         AND e.muscle_group IS NOT NULL 
+         AND e.muscle_group != ''
        GROUP BY e.muscle_group
        ORDER BY total_sets DESC`,
       [req.user.id, daysAgo]
     );
+
+    console.log('Muscle group distribution query result:', distribution);
 
     res.json({
       success: true,

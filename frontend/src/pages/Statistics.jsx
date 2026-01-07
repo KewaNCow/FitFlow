@@ -73,6 +73,7 @@ const Statistics = () => {
       setOverview(overviewRes.data.data);
       setVolume(volumeRes.data.data);
       setMuscleGroups(muscleRes.data.data);
+      console.log('Muscle groups data:', muscleRes.data.data);
       setExercisesProgress(exercisesRes.data.data);
       setWorkoutTypes(typesRes.data.data);
       setTimeDistribution(timeRes.data.data);
