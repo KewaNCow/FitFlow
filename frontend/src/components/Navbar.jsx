@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { 
   Menu, 
@@ -18,9 +19,11 @@ import {
   Package,
   Shield
 } from 'lucide-react';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -32,18 +35,18 @@ const Navbar = () => {
   };
 
   const navLinks = [
-    { to: '/exercises', label: 'Exercises', icon: BookOpen },
-    { to: '/equipment', label: 'Equipment', icon: Package },
+    { to: '/exercises', label: t('nav.exercises'), icon: BookOpen },
+    { to: '/equipment', label: t('nav.equipment'), icon: Package },
   ];
 
   const authNavLinks = [
-    { to: '/dashboard', label: 'Dashboard', icon: Home },
-    { to: '/exercises', label: 'Exercises', icon: BookOpen },
-    { to: '/equipment', label: 'Equipment', icon: Package },
-    { to: '/my-workouts', label: 'Workouts', icon: ClipboardList },
-    { to: '/my-programs', label: 'Programs', icon: Calendar },
-    { to: '/routes', label: 'Routes', icon: Map },
-    { to: '/statistics', label: 'Stats', icon: BarChart3 },
+    { to: '/dashboard', label: t('nav.dashboard'), icon: Home },
+    { to: '/exercises', label: t('nav.exercises'), icon: BookOpen },
+    { to: '/equipment', label: t('nav.equipment'), icon: Package },
+    { to: '/my-workouts', label: t('nav.workouts'), icon: ClipboardList },
+    { to: '/my-programs', label: t('nav.programs'), icon: Calendar },
+    { to: '/routes', label: t('nav.routes'), icon: Map },
+    { to: '/statistics', label: t('nav.stats'), icon: BarChart3 },
   ];
 
   const currentLinks = isAuthenticated ? authNavLinks : navLinks;
@@ -78,6 +81,7 @@ const Navbar = () => {
 
           {/* Auth Buttons / User Menu */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSwitcher />
             {isAuthenticated ? (
               <div className="relative">
                 <button
@@ -101,7 +105,7 @@ const Navbar = () => {
                       className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
                     >
                       <User className="w-4 h-4" />
-                      Profile
+                      {t('nav.profile')}
                     </Link>
                     {user?.isAdmin && (
                       <Link
@@ -110,7 +114,7 @@ const Navbar = () => {
                         className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         <Shield className="w-4 h-4" />
-                        Admin Dashboard
+                        {t('nav.admin')}
                       </Link>
                     )}
                     <button
@@ -118,7 +122,7 @@ const Navbar = () => {
                       className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50"
                     >
                       <LogOut className="w-4 h-4" />
-                      Logout
+                      {t('nav.logout')}
                     </button>
                   </div>
                 )}
@@ -126,10 +130,10 @@ const Navbar = () => {
             ) : (
               <>
                 <Link to="/login" className="btn-ghost">
-                  Log in
+                  {t('nav.login')}
                 </Link>
                 <Link to="/signup" className="btn-primary">
-                  Sign up
+                  {t('nav.signup')}
                 </Link>
               </>
             )}
@@ -172,7 +176,7 @@ const Navbar = () => {
                   className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg"
                 >
                   <User className="w-5 h-5" />
-                  Profile
+                  {t('nav.profile')}
                 </Link>
                 {user?.isAdmin && (
                   <Link
@@ -181,7 +185,7 @@ const Navbar = () => {
                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg"
                   >
                     <Shield className="w-5 h-5" />
-                    Admin Dashboard
+                    {t('nav.admin')}
                   </Link>
                 )}
                 <button
@@ -192,7 +196,7 @@ const Navbar = () => {
                   className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg"
                 >
                   <LogOut className="w-5 h-5" />
-                  Logout
+                  {t('nav.logout')}
                 </button>
               </>
             ) : (
@@ -202,17 +206,22 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                   className="block w-full btn-secondary text-center"
                 >
-                  Log in
+                  {t('nav.login')}
                 </Link>
                 <Link
                   to="/signup"
                   onClick={() => setIsOpen(false)}
                   className="block w-full btn-primary text-center"
                 >
-                  Sign up
+                  {t('nav.signup')}
                 </Link>
               </div>
             )}
+            
+            {/* Language switcher in mobile menu */}
+            <div className="pt-3 border-t mt-3">
+              <LanguageSwitcher />
+            </div>
           </div>
         </div>
       )}

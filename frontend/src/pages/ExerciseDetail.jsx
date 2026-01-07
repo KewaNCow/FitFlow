@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { exerciseAPI } from '../services/api';
 import { 
   ArrowLeft, 
@@ -13,6 +14,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 const ExerciseDetail = () => {
   const { id } = useParams();
+  const { t } = useTranslation();
   const [exercise, setExercise] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -65,9 +67,9 @@ const ExerciseDetail = () => {
     return (
       <div className="page-container text-center py-12">
         <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Exercise not found</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('exerciseDetail.notFound')}</h3>
         <Link to="/exercises" className="btn-primary">
-          Back to Exercises
+          {t('exerciseDetail.backToExercises')}
         </Link>
       </div>
     );
@@ -81,7 +83,7 @@ const ExerciseDetail = () => {
         className="inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-4 sm:mb-6 text-sm sm:text-base"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Exercises
+        {t('exerciseDetail.backToExercises')}
       </Link>
 
       <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
@@ -128,7 +130,7 @@ const ExerciseDetail = () => {
                     <Target className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Target Muscle</p>
+                    <p className="text-sm text-gray-500">{t('exerciseDetail.targetMuscle')}</p>
                     <p className="font-medium text-gray-900">{exercise.muscle_group}</p>
                   </div>
                 </div>
@@ -141,7 +143,7 @@ const ExerciseDetail = () => {
                     <Settings className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Equipment</p>
+                    <p className="text-sm text-gray-500">{t('exerciseDetail.equipment')}</p>
                     <p className="font-medium text-gray-900">{exercise.equipment}</p>
                   </div>
                 </div>
@@ -158,7 +160,7 @@ const ExerciseDetail = () => {
               className="btn-primary gap-2 mb-6"
             >
               <Play className="w-4 h-4" />
-              Watch Video Tutorial
+              {t('exerciseDetail.watchVideo')}
             </a>
           )}
         </div>
@@ -167,7 +169,7 @@ const ExerciseDetail = () => {
       {/* Instructions */}
       {exercise.instructions && (
         <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Instructions</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('exerciseDetail.instructions')}</h2>
           <div className="card p-6">
             <div className="prose max-w-none">
               {exercise.instructions.split('\n').map((step, index) => (

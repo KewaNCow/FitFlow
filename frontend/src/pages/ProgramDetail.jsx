@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { programAPI } from '../services/api';
+import { useTranslation } from 'react-i18next';
 import { 
   ArrowLeft, 
   Edit, 
@@ -12,13 +13,22 @@ import {
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
 const ProgramDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [program, setProgram] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  const DAYS = [
+    t('common.days.monday'),
+    t('common.days.tuesday'),
+    t('common.days.wednesday'),
+    t('common.days.thursday'),
+    t('common.days.friday'),
+    t('common.days.saturday'),
+    t('common.days.sunday')
+  ];
 
   useEffect(() => {
     fetchProgram();
@@ -37,7 +47,7 @@ const ProgramDetail = () => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this program?')) return;
+    if (!window.confirm(t('programDetail.deleteConfirm'))) return;
     
     try {
       await programAPI.delete(id);
@@ -90,9 +100,9 @@ const ProgramDetail = () => {
     return (
       <div className="page-container text-center py-12">
         <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Program not found</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('programDetail.notFound')}</h3>
         <Link to="/my-programs" className="btn-primary">
-          Back to Programs
+          {t('programDetail.backToPrograms')}
         </Link>
       </div>
     );
@@ -106,7 +116,7 @@ const ProgramDetail = () => {
         className="inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-4 sm:mb-6 text-sm sm:text-base"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Programs
+        {t('programDetail.backToPrograms')}
       </Link>
 
       {/* Header */}
@@ -115,12 +125,12 @@ const ProgramDetail = () => {
           <div className="flex flex-wrap gap-2 mb-2">
             {program.difficulty && (
               <span className={`badge text-xs ${getDifficultyColor(program.difficulty)}`}>
-                {program.difficulty}
+                {t(`programs.filter${program.difficulty.charAt(0).toUpperCase() + program.difficulty.slice(1)}`)}
               </span>
             )}
             {program.is_predefined && (
               <span className="badge bg-blue-100 text-blue-700 text-xs">
-                Predefined
+                {t('programDetail.predefined')}
               </span>
             )}
           </div>
@@ -133,17 +143,17 @@ const ProgramDetail = () => {
           {program.is_predefined ? (
             <button onClick={handleCopy} className="btn-primary gap-2 w-full sm:w-auto">
               <Copy className="w-4 h-4" />
-              Try This Program
+              {t('programDetail.tryProgram')}
             </button>
           ) : (
             <>
               <Link to={`/my-programs/${id}/edit`} className="btn-secondary gap-2 w-full sm:w-auto text-center">
                 <Edit className="w-4 h-4" />
-                Edit
+                {t('common.edit')}
               </Link>
               <button onClick={handleDelete} className="btn-danger gap-2 w-full sm:w-auto">
                 <Trash2 className="w-4 h-4" />
-                Delete
+                {t('common.delete')}
               </button>
             </>
           )}
@@ -155,17 +165,17 @@ const ProgramDetail = () => {
         <div className="card p-4 text-center">
           <Clock className="w-6 h-6 text-primary-600 mx-auto mb-2" />
           <p className="text-2xl font-bold text-gray-900">{program.duration_weeks}</p>
-          <p className="text-sm text-gray-500">Weeks</p>
+          <p className="text-sm text-gray-500">{t('programDetail.weeks')}</p>
         </div>
         <div className="card p-4 text-center">
           <Dumbbell className="w-6 h-6 text-blue-600 mx-auto mb-2" />
           <p className="text-2xl font-bold text-gray-900">{program.workouts?.length || 0}</p>
-          <p className="text-sm text-gray-500">Workouts/Week</p>
+          <p className="text-sm text-gray-500">{t('programDetail.workoutsPerWeek')}</p>
         </div>
       </div>
 
       {/* Weekly Schedule */}
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">Weekly Schedule</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('programDetail.weeklySchedule')}</h2>
       <div className="grid gap-3">
         {DAYS.map((day, index) => {
           const dayWorkouts = getWorkoutsForDay(index);
@@ -173,7 +183,7 @@ const ProgramDetail = () => {
             <div key={day} className="card p-4">
               <h3 className="font-medium text-gray-900 mb-2">{day}</h3>
               {dayWorkouts.length === 0 ? (
-                <p className="text-sm text-gray-400">Rest day</p>
+                <p className="text-sm text-gray-400">{t('programDetail.restDay')}</p>
               ) : (
                 <div className="space-y-2">
                   {dayWorkouts.map((workout, wIndex) => (
@@ -187,7 +197,7 @@ const ProgramDetail = () => {
                       </Link>
                       {workout.exercise_count > 0 && (
                         <span className="text-xs text-gray-500">
-                          {workout.exercise_count} exercises
+                          {workout.exercise_count} {t('programDetail.exercises')}
                         </span>
                       )}
                     </div>

@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Dumbbell, Github, Mail, Heart } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+  const { t } = useTranslation();
+  
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -15,28 +18,27 @@ const Footer = () => {
               <span className="text-xl font-bold text-white">FitFlow</span>
             </Link>
             <p className="text-gray-400 max-w-md">
-              Your smart workout planner. Create custom workouts, follow structured programs, 
-              and track your fitness journey all in one place.
+              {t('footer.tagline')}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-white font-semibold mb-4">{t('footer.quickLinks')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/exercises" className="hover:text-primary-400 transition-colors">
-                  Exercise Library
+                  {t('footer.exerciseLibrary')}
                 </Link>
               </li>
               <li>
                 <Link to="/signup" className="hover:text-primary-400 transition-colors">
-                  Get Started
+                  {t('footer.getStarted')}
                 </Link>
               </li>
               <li>
                 <Link to="/login" className="hover:text-primary-400 transition-colors">
-                  Log In
+                  {t('footer.logIn')}
                 </Link>
               </li>
             </ul>
@@ -44,7 +46,7 @@ const Footer = () => {
 
           {/* Contact */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Contact</h3>
+            <h3 className="text-white font-semibold mb-4">{t('footer.contact')}</h3>
             <ul className="space-y-2">
               <li>
                 <a 
@@ -75,7 +77,7 @@ const Footer = () => {
             © {new Date().getFullYear()} FitFlow. All rights reserved.
           </p>
           <p className="text-gray-400 text-sm flex items-center gap-1">
-            Made with <Heart className="w-4 h-4 text-red-500" /> by Kevin Robertsson
+            {t('footer.madeWith')} <Heart className="w-4 h-4 text-red-500" /> {t('footer.by')} Kevin Robertsson
           </p>
         </div>
       </div>

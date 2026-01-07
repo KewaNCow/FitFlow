@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { workoutAPI, workoutLogAPI } from '../services/api';
+import { useTranslation } from 'react-i18next';
 import { 
   ArrowLeft, 
   Edit, 
@@ -15,6 +16,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const WorkoutDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [workout, setWorkout] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +37,7 @@ const WorkoutDetail = () => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this workout?')) return;
+    if (!window.confirm(t('workoutDetail.deleteConfirm'))) return;
     
     try {
       await workoutAPI.delete(id);
@@ -70,9 +72,9 @@ const WorkoutDetail = () => {
     return (
       <div className="page-container text-center py-12">
         <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Workout not found</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('workoutDetail.notFound')}</h3>
         <Link to="/my-workouts" className="btn-primary">
-          Back to Workouts
+          {t('workoutDetail.backToWorkouts')}
         </Link>
       </div>
     );
@@ -89,7 +91,7 @@ const WorkoutDetail = () => {
         className="inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-4 sm:mb-6 text-sm sm:text-base"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Workouts
+        {t('workoutDetail.backToWorkouts')}
       </Link>
 
       {/* Header */}
@@ -104,17 +106,17 @@ const WorkoutDetail = () => {
           {workout.is_predefined ? (
             <button onClick={handleCopyAndEdit} className="btn-secondary gap-2 flex-1 sm:flex-initial justify-center">
               <Edit className="w-4 h-4" />
-              <span className="hidden sm:inline">Edit as My Workout</span>
+              <span className="hidden sm:inline">{t('workoutDetail.editAsMyWorkout')}</span>
             </button>
           ) : (
             <>
               <Link to={`/my-workouts/${id}/edit`} className="btn-secondary gap-2 flex-1 sm:flex-initial justify-center">
                 <Edit className="w-4 h-4" />
-                <span className="hidden sm:inline">Edit</span>
+                <span className="hidden sm:inline">{t('common.edit')}</span>
               </Link>
               <button onClick={handleDelete} className="btn-danger gap-2 flex-1 sm:flex-initial justify-center">
                 <Trash2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Delete</span>
+                <span className="hidden sm:inline">{t('common.delete')}</span>
               </button>
             </>
           )}
@@ -126,17 +128,17 @@ const WorkoutDetail = () => {
         <div className="card p-3 sm:p-4 text-center">
           <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 mx-auto mb-1 sm:mb-2" />
           <p className="text-xl sm:text-2xl font-bold text-gray-900">{workout.exercises?.length || 0}</p>
-          <p className="text-xs sm:text-sm text-gray-500">Exercises</p>
+          <p className="text-xs sm:text-sm text-gray-500">{t('workoutDetail.exercises')}</p>
         </div>
         <div className="card p-3 sm:p-4 text-center">
           <Target className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 mx-auto mb-1 sm:mb-2" />
           <p className="text-xl sm:text-2xl font-bold text-gray-900">{totalSets}</p>
-          <p className="text-xs sm:text-sm text-gray-500">Total Sets</p>
+          <p className="text-xs sm:text-sm text-gray-500">{t('workoutDetail.totalSets')}</p>
         </div>
         <div className="card p-3 sm:p-4 text-center">
           <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 mx-auto mb-1 sm:mb-2" />
           <p className="text-xl sm:text-2xl font-bold text-gray-900">~{estimatedTime}</p>
-          <p className="text-xs sm:text-sm text-gray-500">Minutes</p>
+          <p className="text-xs sm:text-sm text-gray-500">{t('workoutDetail.minutes')}</p>
         </div>
       </div>
 
@@ -147,18 +149,18 @@ const WorkoutDetail = () => {
       >
         <>
           <Play className="w-5 h-5" />
-          Start Workout
+          {t('workoutDetail.startWorkout')}
         </>
       </button>
 
       {/* Exercises */}
-      <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Exercises</h2>
+      <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">{t('workoutDetail.exercises')}</h2>
       {workout.exercises?.length === 0 ? (
         <div className="card p-6 sm:p-8 text-center">
           <Dumbbell className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 mb-3">No exercises in this workout</p>
+          <p className="text-gray-500 mb-3">{t('workoutDetail.noExercises')}</p>
           <Link to={`/my-workouts/${id}/edit`} className="btn-primary">
-            Add Exercises
+            {t('workoutDetail.addExercises')}
           </Link>
         </div>
       ) : (
@@ -177,9 +179,9 @@ const WorkoutDetail = () => {
                     {exercise.name}
                   </Link>
                   <div className="flex flex-wrap gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-gray-500">
-                    <span>{exercise.sets} sets</span>
+                    <span>{exercise.sets} {t('workoutDetail.sets')}</span>
                     <span>×</span>
-                    <span>{exercise.reps} reps</span>
+                    <span>{exercise.reps} {t('workoutDetail.reps')}</span>
                     {exercise.weight && (
                       <>
                         <span>×</span>
@@ -189,7 +191,7 @@ const WorkoutDetail = () => {
                     {exercise.rest_time && (
                       <>
                         <span>•</span>
-                        <span>{exercise.rest_time}s rest</span>
+                        <span>{exercise.rest_time}s {t('workoutDetail.rest')}</span>
                       </>
                     )}
                   </div>

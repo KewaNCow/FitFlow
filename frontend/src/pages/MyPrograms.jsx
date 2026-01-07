@@ -14,8 +14,10 @@ import {
   X as CloseIcon
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useTranslation } from 'react-i18next';
 
 const MyPrograms = () => {
+  const { t } = useTranslation();
   const [programs, setPrograms] = useState([]);
   const [predefinedPrograms, setPredefinedPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,14 +108,14 @@ const MyPrograms = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Training Programs</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('programs.title')}</h1>
           <p className="text-gray-600 mt-1 text-sm sm:text-base">
-            Structured workout plans for your goals
+            {t('programs.subtitle')}
           </p>
         </div>
         <Link to="/my-programs/new" className="btn-primary gap-2 w-full sm:w-auto justify-center">
           <Plus className="w-5 h-5" />
-          Create Program
+          {t('programs.create')}
         </Link>
       </div>
 
@@ -127,7 +129,7 @@ const MyPrograms = () => {
               : 'text-gray-600 hover:bg-gray-100'
           }`}
         >
-          My Programs ({programs.length})
+          {t('programs.myPrograms')} ({programs.length})
         </button>
         <button
           onClick={() => setActiveTab('predefined')}
@@ -139,7 +141,7 @@ const MyPrograms = () => {
         >
           <span className="flex items-center gap-2">
             <Users className="w-4 h-4" />
-            Predefined ({predefinedPrograms.length})
+            {t('programs.predefined')} ({predefinedPrograms.length})
           </span>
         </button>
       </div>
@@ -152,7 +154,7 @@ const MyPrograms = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search programs..."
+                placeholder={t('programs.search')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="input pl-10 w-full"
@@ -163,7 +165,7 @@ const MyPrograms = () => {
               className={`btn-secondary gap-2 ${showFilters ? 'bg-primary-100 text-primary-700' : ''}`}
             >
               <Filter className="w-5 h-5" />
-              <span className="hidden sm:inline">Filter</span>
+              <span className="hidden sm:inline">{t('common.filter')}</span>
             </button>
           </div>
 
@@ -171,7 +173,7 @@ const MyPrograms = () => {
           {showFilters && (
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty Level</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('programs.difficultyLevel')}</label>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setFilterDifficulty('all')}
@@ -181,7 +183,7 @@ const MyPrograms = () => {
                         : 'bg-white text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    All
+                    {t('programs.filterAll')}
                   </button>
                   <button
                     onClick={() => setFilterDifficulty('beginner')}
@@ -191,7 +193,7 @@ const MyPrograms = () => {
                         : 'bg-white text-gray-700 hover:bg-gray-100'
                     }`}
                   >
-                    Beginner
+                    {t('programs.filterBeginner')}
                   </button>
                   <button
                     onClick={() => setFilterDifficulty('intermediate')}
@@ -225,25 +227,25 @@ const MyPrograms = () => {
         <div className="text-center py-12">
           <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {activeTab === 'my' ? 'No programs yet' : 'No predefined programs'}
+            {activeTab === 'my' ? t('programs.noPrograms') : t('programs.noPredefined')}
           </h3>
           <p className="text-gray-500 mb-4">
             {activeTab === 'my' 
-              ? 'Create your first program to get started!' 
-              : 'Check back later for predefined programs'}
+              ? t('programs.createFirst') 
+              : t('programs.predefinedWillAppear')}
           </p>
           {activeTab === 'my' && (
             <Link to="/my-programs/new" className="btn-primary gap-2">
               <Plus className="w-5 h-5" />
-              Create Program
+              {t('programs.createProgram')}
             </Link>
           )}
         </div>
       ) : filteredPrograms.length === 0 ? (
         <div className="text-center py-12">
           <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No programs found</h3>
-          <p className="text-gray-500">Try a different search term</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('programs.noProgramsFound')}</h3>
+          <p className="text-gray-500">{t('programs.tryDifferentSearch')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -257,17 +259,17 @@ const MyPrograms = () => {
                   <div className="flex-1 min-w-0 pr-8">
                     <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{program.name}</h3>
                     <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                      {program.duration_weeks} weeks • {program.workout_count || 0} workouts
+                      {program.duration_weeks} {t('programs.weeks')} • {program.workout_count || 0} {t('programs.workouts')}
                     </p>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {program.difficulty && (
                         <span className={`badge text-xs ${getDifficultyColor(program.difficulty)}`}>
-                          {program.difficulty}
+                          {t(`programs.filter${program.difficulty.charAt(0).toUpperCase() + program.difficulty.slice(1)}`)}
                         </span>
                       )}
                       {program.is_predefined && (
                         <span className="badge bg-blue-100 text-blue-700 text-xs">
-                          Predefined
+                          {t('programs.predefinedBadge')}
                         </span>
                       )}
                     </div>
@@ -295,7 +297,7 @@ const MyPrograms = () => {
                         className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         <Edit className="w-4 h-4" />
-                        Edit
+                        {t('common.edit')}
                       </Link>
                     )}
                     {program.is_predefined && (
@@ -304,7 +306,7 @@ const MyPrograms = () => {
                         className="w-full flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         <Copy className="w-4 h-4" />
-                        Try This Program
+                        {t('programs.tryProgram')}
                       </button>
                     )}
                     {!program.is_predefined && (
@@ -313,7 +315,7 @@ const MyPrograms = () => {
                         className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50"
                       >
                         <Trash2 className="w-4 h-4" />
-                        Delete
+                        {t('common.delete')}
                       </button>
                     )}
                   </div>

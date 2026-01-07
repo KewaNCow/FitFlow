@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { workoutAPI, workoutLogAPI, exerciseAPI } from '../services/api';
 import { 
   ArrowLeft, 
@@ -19,6 +20,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const ActiveWorkout = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   // Workout data
   const [workout, setWorkout] = useState(null);
@@ -259,7 +261,7 @@ const ActiveWorkout = () => {
   };
 
   const removeExercise = (exerciseIndex) => {
-    if (!window.confirm('Remove this exercise from the workout?')) return;
+    if (!window.confirm(t('activeWorkout.removeExercise'))) return;
     setExercises(prev => prev.filter((_, i) => i !== exerciseIndex));
   };
 
@@ -273,9 +275,9 @@ const ActiveWorkout = () => {
       return count + sets.filter(s => !s.completed).length;
     }, 0);
     
-    let confirmMessage = 'Finish and save this workout?';
+    let confirmMessage = t('activeWorkout.finishConfirm');
     if (incompleteSets > 0) {
-      confirmMessage = `You have ${incompleteSets} incomplete set${incompleteSets > 1 ? 's' : ''}. Only completed sets will be logged.\n\nFinish workout anyway?`;
+      confirmMessage = t('activeWorkout.incompleteSets', { count: incompleteSets });
     }
     
     if (!window.confirm(confirmMessage)) return;
@@ -332,7 +334,7 @@ const ActiveWorkout = () => {
   };
 
   const cancelWorkout = () => {
-    if (!window.confirm('Discard this workout session?')) return;
+    if (!window.confirm(t('activeWorkout.cancelConfirm'))) return;
     navigate(`/my-workouts/${id}`);
   };
 
@@ -356,16 +358,16 @@ const ActiveWorkout = () => {
       setShowCreateExercise(false);
       setShowAddExercise(false);
       
-      alert('Exercise created and added to workout!');
+      alert(t('activeWorkout.exerciseCreated'));
     } catch (error) {
       console.error('Error creating exercise:', error);
-      alert('Error creating exercise. Please try again.');
+      alert(t('activeWorkout.errorCreatingExercise'));
     }
   };
 
   const saveCurrentWorkout = async () => {
     if (!saveWorkoutData.name.trim()) {
-      alert('Please enter a workout name');
+      alert(t('activeWorkout.enterWorkoutName'));
       return;
     }
 
@@ -388,7 +390,7 @@ const ActiveWorkout = () => {
 
       await workoutAPI.create(workoutData);
       
-      alert('Workout saved successfully!');
+      alert(t('activeWorkout.workoutSaved'));
       setShowSaveWorkout(false);
       setSaveWorkoutData({ name: '', description: '' });
       
@@ -396,7 +398,7 @@ const ActiveWorkout = () => {
       // navigate('/my-workouts');
     } catch (error) {
       console.error('Error saving workout:', error);
-      alert('Error saving workout. Please try again.');
+      alert(t('activeWorkout.errorSavingWorkout'));
     }
   };
 
@@ -431,7 +433,7 @@ const ActiveWorkout = () => {
             className="text-gray-600 hover:text-red-600 flex items-center gap-2"
           >
             <X className="w-5 h-5" />
-            <span>Cancel</span>
+            <span>{t('activeWorkout.cancel')}</span>
           </button>
           
           <div className="flex items-center gap-3">
@@ -452,7 +454,7 @@ const ActiveWorkout = () => {
               {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
             </button>
             <div className="text-2xl font-mono font-bold text-primary-600">
-              {useCustomTime ? '⏱️ Custom' : formatTime(elapsedTime)}
+              {useCustomTime ? `⏱️ ${t('activeWorkout.customTime')}` : formatTime(elapsedTime)}
             </div>
           </div>
           
@@ -462,7 +464,7 @@ const ActiveWorkout = () => {
               className="btn-secondary gap-2"
             >
               <Save className="w-5 h-5" />
-              <span>Save</span>
+              <span>{t('activeWorkout.save')}</span>
             </button>
             <button
               onClick={finishWorkout}
@@ -470,14 +472,14 @@ const ActiveWorkout = () => {
               className="btn-primary gap-2"
             >
               {saving ? <LoadingSpinner size="sm" /> : <Check className="w-5 h-5" />}
-              <span>Finish</span>
+              <span>{t('activeWorkout.finish')}</span>
             </button>
           </div>
         </div>
         
         <h1 className="text-xl font-bold text-gray-900">{workout?.name}</h1>
         <p className="text-sm text-gray-500 mt-1">
-          {totalSetsCompleted}/{totalSets} sets completed
+          {totalSetsCompleted}/{totalSets} {t('activeWorkout.setsCompleted')}
         </p>
       </div>
 
@@ -527,11 +529,11 @@ const ActiveWorkout = () => {
                   
                   <div className="flex-1 flex items-center gap-4">
                     <span className="text-sm font-medium text-gray-600 w-12">
-                      Set {set.setNumber}
+                      {t('activeWorkout.set')} {set.setNumber}
                     </span>
                     <div className="flex items-center gap-2 text-sm">
                       <span className="font-medium">
-                        {set.actualReps !== null ? set.actualReps : set.targetReps} reps
+                        {set.actualReps !== null ? set.actualReps : set.targetReps} {t('workoutDetail.reps')}
                       </span>
                       {set.actualWeight > 0 && (
                         <>
@@ -567,7 +569,7 @@ const ActiveWorkout = () => {
               className="w-full mt-2 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary-500 hover:text-primary-600 flex items-center justify-center gap-2 text-sm"
             >
               <Plus className="w-4 h-4" />
-              Add Set
+              {t('activeWorkout.addSet')}
             </button>
           </div>
         ))}
@@ -579,19 +581,19 @@ const ActiveWorkout = () => {
         className="w-full mt-4 btn-secondary gap-2"
       >
         <Plus className="w-5 h-5" />
-        Add Exercise
+        {t('activeWorkout.addExercise')}
       </button>
 
       {/* Edit Set Modal */}
       {editingSet && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-4">Edit Set</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('activeWorkout.editSet')}</h3>
             
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Weight (kg)
+                  {t('activeWorkout.weight')}
                 </label>
                 <input
                   type="number"
@@ -604,7 +606,7 @@ const ActiveWorkout = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Reps
+                  {t('activeWorkout.reps')}
                 </label>
                 <input
                   type="number"
@@ -617,10 +619,10 @@ const ActiveWorkout = () => {
 
             <div className="flex gap-2 mt-6">
               <button onClick={() => setEditingSet(null)} className="btn-secondary flex-1">
-                Cancel
+                {t('common.cancel')}
               </button>
               <button onClick={saveSetEdit} className="btn-primary flex-1">
-                Save
+                {t('common.save')}
               </button>
             </div>
           </div>
@@ -632,7 +634,7 @@ const ActiveWorkout = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Add Exercise</h3>
+              <h3 className="text-lg font-semibold">{t('activeWorkout.addExercise')}</h3>
               <button onClick={() => {
                 setShowAddExercise(false);
                 setSearchQuery('');
@@ -643,7 +645,7 @@ const ActiveWorkout = () => {
             
             <input
               type="text"
-              placeholder="Search exercises..."
+              placeholder={t('activeWorkout.searchExercises')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-field mb-4"
@@ -652,14 +654,14 @@ const ActiveWorkout = () => {
             
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-500">
-                {isSearching ? 'Searching...' : `${availableExercises.length} exercise${availableExercises.length !== 1 ? 's' : ''}`}
+                {isSearching ? t('activeWorkout.searching') : t('activeWorkout.exercisesFound', { count: availableExercises.length })}
               </div>
               <button
                 onClick={() => setShowCreateExercise(true)}
                 className="btn-secondary text-sm gap-1"
               >
                 <Plus className="w-4 h-4" />
-                Create New
+                {t('activeWorkout.createNew')}
               </button>
             </div>
             
@@ -680,12 +682,12 @@ const ActiveWorkout = () => {
                   {isSearching ? (
                     <>
                       <LoadingSpinner size="lg" />
-                      <p className="mt-2">Searching exercises...</p>
+                      <p className="mt-2">{t('activeWorkout.searching')}</p>
                     </>
                   ) : searchQuery ? (
                     <>
                       <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p>No exercises found matching "{searchQuery}"</p>
+                      <p>{t('activeWorkout.noExercisesFound', { query: searchQuery })}</p>
                       <button
                         onClick={() => {
                           setNewExercise(prev => ({ ...prev, name: searchQuery }));
@@ -694,13 +696,13 @@ const ActiveWorkout = () => {
                         className="btn-primary mt-4 gap-2"
                       >
                         <Plus className="w-4 h-4" />
-                        Create "{searchQuery}"
+                        {t('activeWorkout.createExercise', { name: searchQuery })}
                       </button>
                     </>
                   ) : (
                     <>
                       <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p>Start typing to search exercises</p>
+                      <p>{t('activeWorkout.startTyping')}</p>
                     </>
                   )}
                 </div>
@@ -715,7 +717,7 @@ const ActiveWorkout = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Create New Exercise</h3>
+              <h3 className="text-lg font-semibold">{t('activeWorkout.createNewExercise')}</h3>
               <button 
                 onClick={() => {
                   setShowCreateExercise(false);
@@ -737,59 +739,59 @@ const ActiveWorkout = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Exercise Name *
+                  {t('activeWorkout.exerciseName')} *
                 </label>
                 <input
                   type="text"
                   value={newExercise.name}
                   onChange={(e) => setNewExercise(prev => ({ ...prev, name: e.target.value }))}
                   className="input-field"
-                  placeholder="e.g., Cable Chest Fly"
+                  placeholder={t('activeWorkout.exerciseNamePlaceholder')}
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  {t('activeWorkout.description')}
                 </label>
                 <textarea
                   value={newExercise.description}
                   onChange={(e) => setNewExercise(prev => ({ ...prev, description: e.target.value }))}
                   className="input-field"
                   rows="3"
-                  placeholder="Brief description of the exercise..."
+                  placeholder={t('activeWorkout.descriptionPlaceholder')}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Muscle Group
+                    {t('activeWorkout.muscleGroup')}
                   </label>
                   <input
                     type="text"
                     value={newExercise.muscle_group}
                     onChange={(e) => setNewExercise(prev => ({ ...prev, muscle_group: e.target.value }))}
                     className="input-field"
-                    placeholder="e.g., Chest, Back"
+                    placeholder={t('activeWorkout.muscleGroupPlaceholder')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
+                    {t('activeWorkout.category')}
                   </label>
                   <select
                     value={newExercise.category}
                     onChange={(e) => setNewExercise(prev => ({ ...prev, category: e.target.value }))}
                     className="input-field"
                   >
-                    <option value="strength">Strength</option>
-                    <option value="cardio">Cardio</option>
-                    <option value="flexibility">Flexibility</option>
-                    <option value="bodyweight">Bodyweight</option>
-                    <option value="machine">Machine</option>
+                    <option value="strength">{t('activeWorkout.strength')}</option>
+                    <option value="cardio">{t('activeWorkout.cardio')}</option>
+                    <option value="flexibility">{t('activeWorkout.flexibility')}</option>
+                    <option value="bodyweight">{t('activeWorkout.bodyweight')}</option>
+                    <option value="machine">{t('activeWorkout.machine')}</option>
                   </select>
                 </div>
               </div>
@@ -797,7 +799,7 @@ const ActiveWorkout = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Equipment
+                    {t('activeWorkout.equipment')}
                   </label>
                   <input
                     type="text"
@@ -850,7 +852,7 @@ const ActiveWorkout = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">Save Workout Template</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t('activeWorkout.saveWorkoutTemplate')}</h3>
               <button
                 onClick={() => {
                   setShowSaveWorkout(false);
@@ -865,25 +867,25 @@ const ActiveWorkout = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Workout Name *
+                  {t('activeWorkout.workoutName')} *
                 </label>
                 <input
                   type="text"
                   value={saveWorkoutData.name}
                   onChange={(e) => setSaveWorkoutData({ ...saveWorkoutData, name: e.target.value })}
-                  placeholder="e.g., My Custom Upper Body Workout"
+                  placeholder={t('activeWorkout.workoutNamePlaceholder')}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  {t('activeWorkout.description')}
                 </label>
                 <textarea
                   value={saveWorkoutData.description}
                   onChange={(e) => setSaveWorkoutData({ ...saveWorkoutData, description: e.target.value })}
-                  placeholder="Optional description..."
+                  placeholder={t('activeWorkout.optionalDescription')}
                   rows={3}
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 />
@@ -891,7 +893,7 @@ const ActiveWorkout = () => {
 
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="text-sm text-gray-600">
-                  <strong>{exercises.length}</strong> exercises with current sets configuration will be saved
+                  {t('activeWorkout.exercisesWillBeSaved', { count: exercises.length })}
                 </p>
               </div>
             </div>
@@ -904,7 +906,7 @@ const ActiveWorkout = () => {
                 }}
                 className="btn-secondary flex-1"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button 
                 onClick={saveCurrentWorkout} 
@@ -912,7 +914,7 @@ const ActiveWorkout = () => {
                 disabled={!saveWorkoutData.name.trim()}
               >
                 <Save className="w-4 h-4" />
-                Save Workout
+                {t('activeWorkout.saveWorkout')}
               </button>
             </div>
           </div>
@@ -925,7 +927,7 @@ const ActiveWorkout = () => {
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Workout Time Settings</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{t('activeWorkout.workoutTimeSettings')}</h2>
                 <button
                   onClick={() => setShowTimeSettings(false)}
                   className="text-gray-500 hover:text-gray-700"
@@ -934,7 +936,7 @@ const ActiveWorkout = () => {
                 </button>
               </div>
               <p className="text-sm text-gray-600 mt-2">
-                Override automatic timer with custom start and end times
+                {t('activeWorkout.timeSettingsSubtitle')}
               </p>
             </div>
 
@@ -942,9 +944,9 @@ const ActiveWorkout = () => {
               {/* Toggle for custom time */}
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <label className="text-sm font-medium text-gray-900">Use Custom Time</label>
+                  <label className="text-sm font-medium text-gray-900">{t('activeWorkout.useCustomTime')}</label>
                   <p className="text-xs text-gray-600 mt-1">
-                    Set specific start and end times for this workout
+                    {t('activeWorkout.customTimeDescription')}
                   </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -978,11 +980,11 @@ const ActiveWorkout = () => {
                   {/* Start Time */}
                   <div className="border rounded-lg p-4">
                     <label className="block text-sm font-medium text-gray-900 mb-3">
-                      Start Time
+                      {t('activeWorkout.startTime')}
                     </label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <label className="block text-xs text-gray-600 mb-1">{t('activeWorkout.date')}</label>
                         <input
                           type="date"
                           value={customStartDate}
@@ -991,7 +993,7 @@ const ActiveWorkout = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Time</label>
+                        <label className="block text-xs text-gray-600 mb-1">{t('activeWorkout.time')}</label>
                         <input
                           type="time"
                           value={customStartTime}
@@ -1005,11 +1007,11 @@ const ActiveWorkout = () => {
                   {/* End Time */}
                   <div className="border rounded-lg p-4">
                     <label className="block text-sm font-medium text-gray-900 mb-3">
-                      End Time
+                      {t('activeWorkout.endTime')}
                     </label>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Date</label>
+                        <label className="block text-xs text-gray-600 mb-1">{t('activeWorkout.date')}</label>
                         <input
                           type="date"
                           value={customEndDate}
@@ -1018,7 +1020,7 @@ const ActiveWorkout = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Time</label>
+                        <label className="block text-xs text-gray-600 mb-1">{t('activeWorkout.time')}</label>
                         <input
                           type="time"
                           value={customEndTime}
@@ -1034,7 +1036,7 @@ const ActiveWorkout = () => {
                     <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
                       <div className="flex items-center gap-2 text-indigo-900">
                         <Timer className="w-5 h-5" />
-                        <span className="font-medium">Duration: </span>
+                        <span className="font-medium">{t('activeWorkout.duration')}: </span>
                         <span className="font-bold">
                           {(() => {
                             const start = new Date(`${customStartDate}T${customStartTime}`);
@@ -1059,7 +1061,7 @@ const ActiveWorkout = () => {
                 }}
                 className="btn-secondary flex-1"
               >
-                Close
+                {t('activeWorkout.close')}
               </button>
               <button
                 onClick={() => {
@@ -1067,7 +1069,7 @@ const ActiveWorkout = () => {
                 }}
                 className="btn-primary flex-1"
               >
-                Apply
+                {t('activeWorkout.apply')}
               </button>
             </div>
           </div>

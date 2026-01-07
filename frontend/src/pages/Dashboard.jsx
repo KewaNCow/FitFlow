@@ -13,8 +13,10 @@ import {
   Target
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useTranslation } from 'react-i18next';
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [workouts, setWorkouts] = useState([]);
   const [stats, setStats] = useState(null);
@@ -61,10 +63,10 @@ const Dashboard = () => {
       {/* Welcome Section */}
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Welcome back, {user?.firstName}! 👋
+          {t('dashboard.welcomeBack', { name: user?.firstName })} 👋
         </h1>
         <p className="text-gray-600 mt-1 text-sm sm:text-base">
-          Ready to crush your workout today?
+          {t('dashboard.readyToWorkout')}
         </p>
       </div>
 
@@ -77,7 +79,7 @@ const Dashboard = () => {
             </div>
             <div className="min-w-0">
               <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.totalWorkouts || 0}</p>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">Workouts This Month</p>
+              <p className="text-xs sm:text-sm text-gray-500 truncate">{t('dashboard.workoutsThisMonth')}</p>
             </div>
           </div>
         </div>
@@ -89,7 +91,7 @@ const Dashboard = () => {
             </div>
             <div className="min-w-0">
               <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.currentStreak || 0}</p>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">Day Streak</p>
+              <p className="text-xs sm:text-sm text-gray-500 truncate">{t('dashboard.dayStreak')}</p>
             </div>
           </div>
         </div>
@@ -101,7 +103,7 @@ const Dashboard = () => {
             </div>
             <div className="min-w-0">
               <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats?.totalMinutes || 0}</p>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">Minutes Active</p>
+              <p className="text-xs sm:text-sm text-gray-500 truncate">{t('dashboard.minutesActive')}</p>
             </div>
           </div>
         </div>
@@ -113,7 +115,7 @@ const Dashboard = () => {
             </div>
             <div className="min-w-0">
               <p className="text-xl sm:text-2xl font-bold text-gray-900">{workouts.length}</p>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">My Workouts</p>
+              <p className="text-xs sm:text-sm text-gray-500 truncate">{t('dashboard.myWorkouts')}</p>
             </div>
           </div>
         </div>
@@ -123,7 +125,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Quick Actions */}
         <div className="lg:col-span-1">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">{t('dashboard.quickActions')}</h2>
           <div className="space-y-3">
             <Link
               to="/my-workouts/new"
@@ -133,8 +135,8 @@ const Dashboard = () => {
                 <Plus className="w-6 h-6 text-primary-600" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-gray-900">Create Workout</p>
-                <p className="text-sm text-gray-500">Build a new custom workout</p>
+                <p className="font-medium text-gray-900">{t('dashboard.createWorkout')}</p>
+                <p className="text-sm text-gray-500">{t('dashboard.buildNewWorkout')}</p>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary-600" />
             </Link>
@@ -147,8 +149,8 @@ const Dashboard = () => {
                 <Dumbbell className="w-6 h-6 text-blue-600" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-gray-900">Browse Exercises</p>
-                <p className="text-sm text-gray-500">Explore the exercise library</p>
+                <p className="font-medium text-gray-900">{t('dashboard.browseExercises')}</p>
+                <p className="text-sm text-gray-500">{t('dashboard.exploreLibrary')}</p>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
             </Link>
@@ -161,8 +163,8 @@ const Dashboard = () => {
                 <Calendar className="w-6 h-6 text-purple-600" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-gray-900">My Programs</p>
-                <p className="text-sm text-gray-500">View training programs</p>
+                <p className="font-medium text-gray-900">{t('dashboard.myPrograms')}</p>
+                <p className="text-sm text-gray-500">{t('dashboard.viewPrograms')}</p>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600" />
             </Link>
@@ -172,19 +174,19 @@ const Dashboard = () => {
         {/* Recent Workouts */}
         <div className="lg:col-span-2">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">My Workouts</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{t('dashboard.myWorkouts')}</h2>
             <Link to="/my-workouts" className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-              View all
+              {t('common.viewAll')}
             </Link>
           </div>
 
           {workouts.length === 0 ? (
             <div className="card p-6 sm:p-8 text-center">
               <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No workouts yet</h3>
-              <p className="text-gray-500 mb-4">Create your first workout to get started!</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('dashboard.noWorkoutsYet')}</h3>
+              <p className="text-gray-500 mb-4">{t('dashboard.createFirstWorkout')}</p>
               <Link to="/my-workouts/new" className="btn-primary">
-                Create Workout
+                {t('dashboard.createWorkout')}
               </Link>
             </div>
           ) : (
@@ -202,14 +204,14 @@ const Dashboard = () => {
                       {workout.name}
                     </Link>
                     <p className="text-xs sm:text-sm text-gray-500 truncate">
-                      {workout.exercise_count || 0} exercises
+                      {workout.exercise_count || 0} {t('common.exercises')}
                     </p>
                   </div>
                   <button
                     onClick={() => handleQuickLog(workout.id)}
                     className="btn-primary btn-sm whitespace-nowrap text-xs sm:text-sm"
                   >
-                    Log
+                    {t('common.log')}
                   </button>
                 </div>
               ))}

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Polyline, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { routeAPI, workoutAPI } from '../services/api';
+import { useTranslation } from 'react-i18next';
 import {
   MapPin,
   Route,
@@ -349,6 +350,7 @@ const LocationFinder = ({ onLocationFound }) => {
 
 const RoutePlanner = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [routes, setRoutes] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -822,14 +824,14 @@ const RoutePlanner = () => {
         <div className="w-full lg:w-80 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col lg:overflow-y-auto min-w-0">
           <div className="p-3 sm:p-4 border-b">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <h1 className="text-lg sm:text-xl font-bold text-gray-900">Route Planner</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900">{t('routes.title')}</h1>
               {!isCreating && (
                 <button
                   onClick={() => setIsCreating(true)}
                   className="btn-primary py-2 px-3 text-sm gap-1"
                 >
                   <Plus className="w-4 h-4" />
-                  New
+                  {t('routes.create')}
                 </button>
               )}
             </div>
@@ -838,7 +840,7 @@ const RoutePlanner = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
-                    {selectedRoute ? 'Edit Route' : 'New Route'}
+                    {selectedRoute ? t('routes.editRoute') : t('routes.newRoute')}
                   </span>
                   <button
                     onClick={resetForm}
@@ -850,7 +852,7 @@ const RoutePlanner = () => {
 
                 <input
                   type="text"
-                  placeholder="Route name"
+                  placeholder={t('routes.routeName')}
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   className="input text-sm"
@@ -861,10 +863,10 @@ const RoutePlanner = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, activity_type: e.target.value }))}
                   className="input text-sm"
                 >
-                  <option value="running">🏃 Running</option>
-                  <option value="biking">🚴 Biking</option>
-                  <option value="walking">🚶 Walking</option>
-                  <option value="hiking">🥾 Hiking</option>
+                  <option value="running">{t('routes.activityType.running')}</option>
+                  <option value="biking">{t('routes.activityType.biking')}</option>
+                  <option value="walking">{t('routes.activityType.walking')}</option>
+                  <option value="hiking">{t('routes.activityType.hiking')}</option>
                 </select>
 
                 {/* Route Options Panel */}
@@ -875,7 +877,7 @@ const RoutePlanner = () => {
                   >
                     <span className="flex items-center gap-2 text-sm font-medium text-gray-700">
                       <Settings className="w-4 h-4" />
-                      Route Options
+                      {t('routes.routeOptions')}
                       {(selectedProfile || avoidFeatures.length > 0) && (
                         <span className="bg-primary-100 text-primary-700 text-xs px-2 py-0.5 rounded-full">
                           {(selectedProfile ? 1 : 0) + avoidFeatures.length} active
@@ -893,7 +895,7 @@ const RoutePlanner = () => {
                     <div className="p-3 space-y-4 border-t bg-white">
                       {/* Route Profile Selection */}
                       <div>
-                        <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Route Type</h4>
+                        <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">{t('routes.routeType')}</h4>
                         <div className="space-y-1">
                           {currentRouteOptions.profiles.map((profile) => (
                             <button
@@ -921,7 +923,7 @@ const RoutePlanner = () => {
 
                       {/* Avoid Features */}
                       <div>
-                        <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Avoid</h4>
+                        <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">{t('routes.avoid')}</h4>
                         <div className="space-y-1">
                           {currentRouteOptions.avoidOptions.map((option) => (
                             <button
@@ -956,7 +958,7 @@ const RoutePlanner = () => {
                           }}
                           className="w-full text-xs text-gray-500 hover:text-gray-700 py-1"
                         >
-                          Reset to defaults
+                          {t('common.clear')} options
                         </button>
                       )}
                     </div>
@@ -964,7 +966,7 @@ const RoutePlanner = () => {
                 </div>
 
                 <textarea
-                  placeholder="Description (optional)"
+                  placeholder={t('common.description') + ' (optional)'}
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   className="input text-sm resize-none h-20"
@@ -978,7 +980,7 @@ const RoutePlanner = () => {
                     ) : (
                       <p className="text-lg font-bold text-primary-600">{routeDistance.toFixed(2)} km</p>
                     )}
-                    <p className="text-xs text-gray-500">Distance</p>
+                    <p className="text-xs text-gray-500">{t('common.distance')}</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-2">
                     {isCalculatingRoute ? (
@@ -986,7 +988,7 @@ const RoutePlanner = () => {
                     ) : (
                       <p className="text-lg font-bold text-green-600">{routeDuration} min</p>
                     )}
-                    <p className="text-xs text-gray-500">Est. Time</p>
+                    <p className="text-xs text-gray-500">{t('common.time')}</p>
                   </div>
                 </div>
 
@@ -1015,8 +1017,8 @@ const RoutePlanner = () => {
 
                 {/* Mobile instruction */}
                 <div className="lg:hidden bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
-                  <p className="font-medium mb-1">📍 Tap map to add waypoints</p>
-                  <p className="text-xs text-blue-600">Drag markers to adjust position</p>
+                  <p className="font-medium mb-1">{t('routes.tapToAdd')}</p>
+                  <p className="text-xs text-blue-600">{t('routes.dragMarkers')}</p>
                 </div>
 
                 <div className="flex gap-2">
@@ -1026,7 +1028,7 @@ const RoutePlanner = () => {
                     className="flex-1 btn-secondary py-2 text-sm gap-1"
                   >
                     <RotateCcw className="w-4 h-4" />
-                    Undo
+                    {t('routes.undo')}
                   </button>
                   <button
                     onClick={clearRoute}
@@ -1034,7 +1036,7 @@ const RoutePlanner = () => {
                     className="flex-1 btn-secondary py-2 text-sm gap-1"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Clear
+                    {t('routes.clear')}
                   </button>
                 </div>
 
@@ -1044,7 +1046,7 @@ const RoutePlanner = () => {
                   className="w-full btn-primary py-2 gap-2"
                 >
                   {saving ? <LoadingSpinner size="sm" /> : <Save className="w-4 h-4" />}
-                  Save Route
+                  {t('routes.saveRoute')}
                 </button>
 
                 {/* Waypoints List - Google Maps style */}
@@ -1053,10 +1055,10 @@ const RoutePlanner = () => {
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-sm font-medium text-gray-700 flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        Waypoints ({formData.waypoints.length})
+                        {t('routes.waypoints')} ({formData.waypoints.length})
                       </h3>
                     </div>
-                    <p className="text-xs text-gray-400 mb-3">Drag to reorder • Click × to remove</p>
+                    <p className="text-xs text-gray-400 mb-3">{t('routes.dragToReorder')}</p>
                     
                     <div 
                       className="space-y-1 max-h-48 overflow-y-auto"
@@ -1138,10 +1140,10 @@ const RoutePlanner = () => {
 
           {/* Routes list */}
           <div className="p-4">
-            <h2 className="text-sm font-medium text-gray-500 mb-3">My Routes</h2>
+            <h2 className="text-sm font-medium text-gray-500 mb-3">{t('routes.myRoutes')}</h2>
             {routes.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-8">
-                No routes yet. Create your first route!
+                {t('routes.noRoutes')}
               </p>
             ) : (
               <div className="space-y-2">
@@ -1189,7 +1191,7 @@ const RoutePlanner = () => {
                         className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1"
                       >
                         <Dumbbell className="w-3 h-3" />
-                        Create Workout
+                        {t('routes.createWorkout')}
                       </button>
                       <button
                         onClick={(e) => {
@@ -1198,7 +1200,7 @@ const RoutePlanner = () => {
                         }}
                         className="text-xs text-red-500 hover:text-red-700"
                       >
-                        Delete
+                        {t('common.delete')}
                       </button>
                     </div>
                   </div>

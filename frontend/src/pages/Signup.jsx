@@ -3,8 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, UserPlus, Dumbbell } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useTranslation } from 'react-i18next';
 
 const Signup = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -69,9 +71,9 @@ const Signup = () => {
               <Dumbbell className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
           </Link>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Create your account</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('auth.createAccount')}</h2>
           <p className="mt-2 text-sm sm:text-base text-gray-600">
-            Start your fitness journey today
+            {t('auth.startJourney')}
           </p>
         </div>
 
@@ -87,7 +89,7 @@ const Signup = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="label">
-                  First name
+                  {t('auth.firstName')}
                 </label>
                 <input
                   id="firstName"
@@ -102,7 +104,7 @@ const Signup = () => {
               </div>
               <div>
                 <label htmlFor="lastName" className="label">
-                  Last name
+                  {t('auth.lastName')}
                 </label>
                 <input
                   id="lastName"
@@ -119,7 +121,7 @@ const Signup = () => {
 
             <div>
               <label htmlFor="email" className="label">
-                Email address
+                {t('auth.emailAddress')}
               </label>
               <input
                 id="email"
@@ -136,7 +138,7 @@ const Signup = () => {
 
             <div>
               <label htmlFor="password" className="label">
-                Password
+                {t('auth.password')}
               </label>
               <div className="relative">
                 <input
@@ -157,12 +159,12 @@ const Signup = () => {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Must be at least 6 characters</p>
+              <p className="text-xs text-gray-500 mt-1">{t('auth.passwordMinLength')}</p>
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="label">
-                Confirm password
+                {t('auth.confirmPassword')}
               </label>
               <input
                 id="confirmPassword"
@@ -187,15 +189,15 @@ const Signup = () => {
             ) : (
               <>
                 <UserPlus className="w-5 h-5" />
-                Create account
+                {t('auth.createAccount')}
               </>
             )}
           </button>
 
           <p className="text-center text-gray-600">
-            Already have an account?{' '}
+            {t('auth.alreadyHaveAccount')}{' '}
             <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
-              Log in
+              {t('auth.login')}
             </Link>
           </p>
         </form>

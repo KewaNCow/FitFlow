@@ -3,8 +3,10 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, LogIn, Dumbbell, AlertCircle, X } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -58,9 +60,9 @@ const Login = () => {
               <Dumbbell className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
           </Link>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Welcome back</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('auth.welcomeBack')}</h2>
           <p className="mt-2 text-sm sm:text-base text-gray-600">
-            Log in to continue your fitness journey
+            {t('auth.loginToContinue')}
           </p>
         </div>
 
@@ -70,7 +72,7 @@ const Login = () => {
             <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg flex items-start gap-3">
               <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-medium">Login failed</p>
+                <p className="font-medium">{t('auth.loginFailed')}</p>
                 <p className="text-sm mt-1">{error}</p>
               </div>
               <button
@@ -86,7 +88,7 @@ const Login = () => {
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="label">
-                Email address
+                {t('auth.emailAddress')}
               </label>
               <input
                 id="email"
@@ -103,7 +105,7 @@ const Login = () => {
 
             <div>
               <label htmlFor="password" className="label">
-                Password
+                {t('auth.password')}
               </label>
               <div className="relative">
                 <input
@@ -138,24 +140,24 @@ const Login = () => {
             ) : (
               <>
                 <LogIn className="w-5 h-5" />
-                Log in
+                {t('auth.login')}
               </>
             )}
           </button>
 
           <p className="text-center text-gray-600">
-            Don't have an account?{' '}
+            {t('auth.noAccount')}{' '}
             <Link to="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
-              Sign up
+              {t('auth.signUp')}
             </Link>
           </p>
 
           {/* Demo credentials */}
           <div className="border-t pt-4">
-            <p className="text-center text-sm text-gray-500 mb-2">Demo credentials:</p>
+            <p className="text-center text-sm text-gray-500 mb-2">{t('auth.demoCredentials')}</p>
             <div className="bg-gray-50 rounded-lg p-3 text-center text-sm">
-              <p><span className="font-medium">Email:</span> demo@fitflow.com</p>
-              <p><span className="font-medium">Password:</span> demo123</p>
+              <p><span className="font-medium">{t('auth.email')}:</span> demo@fitflow.com</p>
+              <p><span className="font-medium">{t('auth.password')}:</span> demo123</p>
             </div>
           </div>
         </form>

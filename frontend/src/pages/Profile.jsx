@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userAPI } from '../services/api';
+import { useTranslation } from 'react-i18next';
 import { 
   User, 
   Mail, 
@@ -15,6 +16,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -71,9 +73,9 @@ const Profile = () => {
       if (updateUser) {
         updateUser(response.data.data);
       }
-      setSuccess('Profile updated successfully!');
+      setSuccess(t('profile.profileUpdated'));
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update profile');
+      setError(err.response?.data?.message || t('profile.updateFailed'));
     } finally {
       setSaving(false);
     }
@@ -83,12 +85,12 @@ const Profile = () => {
     e.preventDefault();
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError('New passwords do not match');
+      setError(t('profile.passwordsNoMatch'));
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      setError('New password must be at least 6 characters');
+      setError(t('profile.passwordMinLength'));
       return;
     }
 
@@ -101,14 +103,14 @@ const Profile = () => {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       });
-      setSuccess('Password updated successfully!');
+      setSuccess(t('profile.passwordUpdated'));
       setPasswordData({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update password');
+      setError(err.response?.data?.message || t('profile.updateFailed'));
     } finally {
       setSaving(false);
     }
@@ -124,7 +126,7 @@ const Profile = () => {
 
   return (
     <div className="page-container max-w-2xl">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Profile Settings</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">{t('profile.title')}</h1>
 
       {/* Error/Success Messages */}
       {error && (
@@ -143,12 +145,12 @@ const Profile = () => {
 
       {/* Profile Information */}
       <div className="card p-4 sm:p-6 mb-6">
-        <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Personal Information</h2>
+        <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6">{t('profile.personalInfo')}</h2>
         
         <form onSubmit={handleProfileSubmit} className="space-y-4">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
+              {t('profile.fullName')}
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -166,7 +168,7 @@ const Profile = () => {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
+              {t('profile.emailAddress')}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -184,7 +186,7 @@ const Profile = () => {
 
           <div>
             <label htmlFor="fitness_goal" className="block text-sm font-medium text-gray-700 mb-1">
-              Fitness Goal
+              {t('profile.fitnessGoal')}
             </label>
             <select
               id="fitness_goal"
@@ -193,19 +195,19 @@ const Profile = () => {
               onChange={handleProfileChange}
               className="input"
             >
-              <option value="">Select a goal</option>
-              <option value="weight_loss">Weight Loss</option>
-              <option value="muscle_gain">Muscle Gain</option>
-              <option value="strength">Strength Training</option>
-              <option value="endurance">Endurance</option>
-              <option value="flexibility">Flexibility</option>
-              <option value="general_fitness">General Fitness</option>
+              <option value="">{t('profile.selectGoal')}</option>
+              <option value="weight_loss">{t('profile.weightLoss')}</option>
+              <option value="muscle_gain">{t('profile.muscleGain')}</option>
+              <option value="strength">{t('profile.strength')}</option>
+              <option value="endurance">{t('profile.endurance')}</option>
+              <option value="flexibility">{t('profile.flexibility')}</option>
+              <option value="general_fitness">{t('profile.general')}</option>
             </select>
           </div>
 
           <div>
             <label htmlFor="experience_level" className="block text-sm font-medium text-gray-700 mb-1">
-              Experience Level
+              {t('profile.experienceLevel')}
             </label>
             <select
               id="experience_level"
@@ -214,10 +216,10 @@ const Profile = () => {
               onChange={handleProfileChange}
               className="input"
             >
-              <option value="">Select your level</option>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
+              <option value="">{t('profile.selectLevel')}</option>
+              <option value="beginner">{t('profile.beginner')}</option>
+              <option value="intermediate">{t('profile.intermediate')}</option>
+              <option value="advanced">{t('profile.advanced')}</option>
             </select>
           </div>
 
@@ -231,7 +233,7 @@ const Profile = () => {
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                Save Changes
+                {t('common.save')}
               </>
             )}
           </button>
@@ -240,12 +242,12 @@ const Profile = () => {
 
       {/* Change Password */}
       <div className="card p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">Change Password</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">{t('profile.changePassword')}</h2>
         
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
           <div>
             <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Current Password
+              {t('profile.currentPassword')}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -270,7 +272,7 @@ const Profile = () => {
 
           <div>
             <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              New Password
+              {t('profile.newPassword')}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -296,7 +298,7 @@ const Profile = () => {
 
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm New Password
+              {t('profile.confirmNewPassword')}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -322,7 +324,7 @@ const Profile = () => {
             ) : (
               <>
                 <Lock className="w-4 h-4" />
-                Update Password
+                {t('profile.updatePassword')}
               </>
             )}
           </button>

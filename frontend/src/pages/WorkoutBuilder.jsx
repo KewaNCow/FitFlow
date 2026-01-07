@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { workoutAPI, exerciseAPI, routeAPI } from '../services/api';
 import { 
   ArrowLeft, 
@@ -23,6 +24,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const WorkoutBuilder = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const isEditing = !!id;
 
   const [workout, setWorkout] = useState({
@@ -94,7 +96,7 @@ const WorkoutBuilder = () => {
           return;
         } catch (copyError) {
           console.error('Error copying predefined workout:', copyError);
-          setError('Cannot edit predefined workout. Please try copying it first.');
+          setError(t('workoutBuilder.cannotEdit'));
           setTimeout(() => navigate('/my-workouts'), 2000);
           return;
         }
@@ -210,7 +212,7 @@ const WorkoutBuilder = () => {
     setError('');
 
     if (!workout.name.trim()) {
-      setError('Workout name is required');
+      setError(t('workoutBuilder.errorRequired'));
       return;
     }
 
@@ -230,7 +232,7 @@ const WorkoutBuilder = () => {
       navigate('/my-workouts');
     } catch (error) {
       console.error('Error saving workout:', error);
-      setError('Failed to save workout. Please try again.');
+      setError(t('workoutBuilder.errorSaving'));
     } finally {
       setSaving(false);
     }
@@ -275,7 +277,7 @@ const WorkoutBuilder = () => {
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-          {isEditing ? 'Edit Workout' : 'Create Workout'}
+          {isEditing ? t('workoutBuilder.editWorkout') : t('workoutBuilder.createWorkout')}
         </h1>
       </div>
 
@@ -291,7 +293,7 @@ const WorkoutBuilder = () => {
           <div className="space-y-4">
             <div>
               <label htmlFor="name" className="label">
-                Workout Name *
+                {t('workoutBuilder.workoutName')} *
               </label>
               <input
                 id="name"
@@ -299,12 +301,12 @@ const WorkoutBuilder = () => {
                 value={workout.name}
                 onChange={(e) => setWorkout(prev => ({ ...prev, name: e.target.value }))}
                 className="input"
-                placeholder="e.g., Push Day, Full Body, Leg Day"
+                placeholder={t('workoutBuilder.workoutNamePlaceholder')}
               />
             </div>
             <div>
               <label htmlFor="description" className="label">
-                Description
+                {t('workoutBuilder.descriptionOptional')}
               </label>
               <textarea
                 id="description"
@@ -312,7 +314,7 @@ const WorkoutBuilder = () => {
                 onChange={(e) => setWorkout(prev => ({ ...prev, description: e.target.value }))}
                 className="input"
                 rows={3}
-                placeholder="Describe your workout..."
+                placeholder={t('workoutBuilder.descriptionPlaceholder')}
               />
             </div>
             
@@ -320,7 +322,7 @@ const WorkoutBuilder = () => {
             <div>
               <label className="label flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                Linked Route (Optional)
+                {t('workoutBuilder.linkRoute')}
               </label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <select
@@ -336,7 +338,7 @@ const WorkoutBuilder = () => {
                   }}
                   className="input flex-1"
                 >
-                  <option value="">No route linked</option>
+                  <option value="">{t('workoutBuilder.selectRoute')}</option>
                   {allRoutes.map(route => (
                     <option key={route.id} value={route.id}>
                       {route.name} - {parseFloat(route.distance_km || 0).toFixed(2)} km ({route.activity_type})
@@ -366,6 +368,7 @@ const WorkoutBuilder = () => {
                       type="button"
                       onClick={() => setSelectedRoute(null)}
                       className="p-1 text-blue-400 hover:text-blue-600"
+                      title={t('workoutBuilder.removeRoute')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -380,7 +383,7 @@ const WorkoutBuilder = () => {
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
-              Exercises ({workout.exercises.length})
+              {t('workoutBuilder.exercises')} ({workout.exercises.length})
             </h2>
             <button
               type="button"
@@ -388,20 +391,20 @@ const WorkoutBuilder = () => {
               className="btn-primary btn-sm gap-2"
             >
               <Plus className="w-4 h-4" />
-              Add Exercise
+              {t('workoutBuilder.addExercise')}
             </button>
           </div>
 
           {workout.exercises.length === 0 ? (
             <div className="card p-8 text-center">
               <Dumbbell className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 mb-3">No exercises added yet</p>
+              <p className="text-gray-500 mb-3">{t('workoutBuilder.noExercises')}</p>
               <button
                 type="button"
                 onClick={() => setShowExerciseModal(true)}
                 className="btn-outline btn-sm"
               >
-                Add your first exercise
+                {t('workoutBuilder.addExercise')}
               </button>
             </div>
           ) : (
@@ -425,7 +428,7 @@ const WorkoutBuilder = () => {
                               ? 'bg-blue-100 text-blue-700' 
                               : 'bg-red-100 text-red-700'
                           }`}>
-                            {isCardio ? 'Cardio' : 'Strength'}
+                            {isCardio ? t('workoutBuilder.cardio') : t('workoutBuilder.strength')}
                           </span>
                         </div>
                         <button
@@ -442,7 +445,7 @@ const WorkoutBuilder = () => {
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           <div>
                             <label className="text-xs text-gray-500 flex items-center gap-1">
-                              <Timer className="w-3 h-3" /> Duration (min)
+                              <Timer className="w-3 h-3" /> {t('workoutBuilder.duration')}
                             </label>
                             <input
                               type="number"
@@ -455,7 +458,7 @@ const WorkoutBuilder = () => {
                           </div>
                           <div>
                             <label className="text-xs text-gray-500 flex items-center gap-1">
-                              <Route className="w-3 h-3" /> Distance (km)
+                              <Route className="w-3 h-3" /> {t('workoutBuilder.distance')}
                             </label>
                             <input
                               type="number"
@@ -469,7 +472,7 @@ const WorkoutBuilder = () => {
                           </div>
                           <div>
                             <label className="text-xs text-gray-500 flex items-center gap-1">
-                              <Flame className="w-3 h-3" /> Calories
+                              <Flame className="w-3 h-3" /> {t('workoutBuilder.calories')}
                             </label>
                             <input
                               type="number"
@@ -481,15 +484,15 @@ const WorkoutBuilder = () => {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">Intensity</label>
+                            <label className="text-xs text-gray-500">{t('workoutBuilder.intensity')}</label>
                             <select
                               value={exercise.intensity || 'moderate'}
                               onChange={(e) => handleExerciseChange(index, 'intensity', e.target.value)}
                               className="input text-sm py-1.5"
                             >
-                              <option value="low">Low</option>
-                              <option value="moderate">Moderate</option>
-                              <option value="high">High</option>
+                              <option value="low">{t('workoutBuilder.intensityLow')}</option>
+                              <option value="moderate">{t('workoutBuilder.intensityModerate')}</option>
+                              <option value="high">{t('workoutBuilder.intensityHigh')}</option>
                               <option value="interval">Interval</option>
                             </select>
                           </div>
@@ -498,7 +501,7 @@ const WorkoutBuilder = () => {
                         // Strength-specific inputs
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           <div>
-                            <label className="text-xs text-gray-500">Sets</label>
+                            <label className="text-xs text-gray-500">{t('workoutBuilder.sets')}</label>
                             <input
                               type="number"
                               min="1"
@@ -508,7 +511,7 @@ const WorkoutBuilder = () => {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">Reps</label>
+                            <label className="text-xs text-gray-500">{t('workoutBuilder.reps')}</label>
                             <input
                               type="number"
                               min="1"
@@ -518,7 +521,7 @@ const WorkoutBuilder = () => {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">Weight (kg)</label>
+                            <label className="text-xs text-gray-500">{t('workoutBuilder.weight')}</label>
                             <input
                               type="number"
                               min="0"
@@ -530,7 +533,7 @@ const WorkoutBuilder = () => {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">Rest (sec)</label>
+                            <label className="text-xs text-gray-500">{t('workoutBuilder.rest')}</label>
                             <input
                               type="number"
                               min="0"
@@ -561,12 +564,12 @@ const WorkoutBuilder = () => {
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                {isEditing ? 'Save Changes' : 'Create Workout'}
+                {isEditing ? t('common.save') + ' Changes' : t('workoutBuilder.createWorkout')}
               </>
             )}
           </button>
           <Link to="/my-workouts" className="btn-secondary w-full sm:w-auto text-center">
-            Cancel
+            {t('common.cancel')}
           </Link>
         </div>
       </form>
@@ -576,7 +579,7 @@ const WorkoutBuilder = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl w-full max-w-lg max-h-[80vh] overflow-hidden animate-slide-up">
             <div className="p-4 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <h3 className="text-lg font-semibold">Add Exercise</h3>
+              <h3 className="text-lg font-semibold">{t('workoutBuilder.addExercise')}</h3>
               <button
                 onClick={() => {
                   setShowExerciseModal(false);
@@ -593,7 +596,7 @@ const WorkoutBuilder = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search exercises..."
+                  placeholder={t('workoutBuilder.searchExercises')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="input pl-10"
@@ -612,7 +615,7 @@ const WorkoutBuilder = () => {
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
-                    {cat === '' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    {cat === '' ? t('workoutBuilder.allCategories') : cat.charAt(0).toUpperCase() + cat.slice(1)}
                   </button>
                 ))}
               </div>
@@ -620,7 +623,7 @@ const WorkoutBuilder = () => {
             <div className="overflow-y-auto max-h-[50vh]">
               {filteredExercises.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  No exercises found
+                  {t('workoutBuilder.noExercisesFound')}
                 </div>
               ) : (
                 <div className="divide-y">

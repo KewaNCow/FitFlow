@@ -29,10 +29,12 @@ import {
   ChevronDown
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useTranslation } from 'react-i18next';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 
 const Statistics = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('30');
   const [overview, setOverview] = useState(null);
@@ -128,18 +130,18 @@ const Statistics = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Statistics</h1>
-          <p className="text-gray-600 text-sm sm:text-base">Track your progress and analyze your workouts</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">{t('statistics.title')}</h1>
+          <p className="text-gray-600 text-sm sm:text-base">{t('statistics.subtitle')}</p>
         </div>
         <select
           value={period}
           onChange={(e) => setPeriod(e.target.value)}
           className="input w-full sm:w-40"
         >
-          <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="90">Last 90 days</option>
-          <option value="365">Last year</option>
+          <option value="7">{t('statistics.period.week')}</option>
+          <option value="30">{t('statistics.period.month')}</option>
+          <option value="90">{t('statistics.period.quarter')}</option>
+          <option value="365">{t('statistics.period.year')}</option>
         </select>
       </div>
 
@@ -154,7 +156,7 @@ const Statistics = () => {
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {overview?.overview?.total_workouts || 0}
               </p>
-              <p className="text-xs sm:text-sm text-gray-500">Workouts</p>
+              <p className="text-xs sm:text-sm text-gray-500">{t('statistics.overview.workouts')}</p>
             </div>
           </div>
         </div>
@@ -168,7 +170,7 @@ const Statistics = () => {
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {Math.round(overview?.overview?.total_duration / 60) || 0}h
               </p>
-              <p className="text-xs sm:text-sm text-gray-500">Total Time</p>
+              <p className="text-xs sm:text-sm text-gray-500">{t('statistics.overview.totalTime')}</p>
             </div>
           </div>
         </div>
@@ -182,7 +184,7 @@ const Statistics = () => {
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {overview?.current_streak || 0}
               </p>
-              <p className="text-xs sm:text-sm text-gray-500">Day Streak</p>
+              <p className="text-xs sm:text-sm text-gray-500">{t('statistics.overview.dayStreak')}</p>
             </div>
           </div>
         </div>
@@ -196,7 +198,7 @@ const Statistics = () => {
               <p className="text-xl sm:text-2xl font-bold text-gray-900">
                 {Math.round(overview?.overview?.avg_duration) || 0}m
               </p>
-              <p className="text-xs sm:text-sm text-gray-500">Avg Duration</p>
+              <p className="text-xs sm:text-sm text-gray-500">{t('statistics.overview.avgDuration')}</p>
             </div>
           </div>
         </div>
@@ -205,7 +207,7 @@ const Statistics = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* Workouts Over Time */}
         <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Workouts Over Time</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('statistics.charts.workoutsOverTime')}</h2>
           {overview?.daily_workouts?.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <AreaChart data={overview.daily_workouts}>
@@ -239,14 +241,14 @@ const Statistics = () => {
             </ResponsiveContainer>
           ) : (
             <div className="h-64 flex items-center justify-center text-gray-400">
-              No workout data for this period
+              {t('statistics.noData')}
             </div>
           )}
         </div>
 
         {/* Workouts by Day of Week */}
         <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Workouts by Day</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('statistics.charts.workoutsByDay')}</h2>
           {overview?.by_day_of_week?.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={overview.by_day_of_week}>
@@ -271,7 +273,7 @@ const Statistics = () => {
             </ResponsiveContainer>
           ) : (
             <div className="h-64 flex items-center justify-center text-gray-400">
-              No workout data for this period
+              {t('statistics.noData')}
             </div>
           )}
         </div>
@@ -282,7 +284,7 @@ const Statistics = () => {
         <div className="card p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             <TrendingUp className="w-5 h-5 inline mr-2 text-green-600" />
-            Weekly Volume (Total Weight Lifted)
+            {t('statistics.charts.weeklyVolume')}
           </h2>
           {volume?.weekly?.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
@@ -316,14 +318,14 @@ const Statistics = () => {
             </ResponsiveContainer>
           ) : (
             <div className="h-64 flex items-center justify-center text-gray-400">
-              No volume data for this period
+              {t('statistics.noVolumeData')}
             </div>
           )}
         </div>
 
         {/* Muscle Group Distribution */}
         <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Muscle Group Distribution</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('statistics.charts.muscleDistribution')}</h2>
           {muscleGroups?.length > 0 ? (
             <ResponsiveContainer width="100%" height={200} className="sm:h-[250px]">
               <PieChart>
@@ -346,7 +348,7 @@ const Statistics = () => {
             </ResponsiveContainer>
           ) : (
             <div className="h-64 flex items-center justify-center text-gray-400">
-              No muscle group data for this period
+              {t('statistics.noMuscleData')}
             </div>
           )}
         </div>
@@ -356,7 +358,7 @@ const Statistics = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* Workout Types Distribution */}
         <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Workout Types</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('statistics.charts.workoutTypes')}</h2>
           {workoutTypes?.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={workoutTypes} layout="vertical">
@@ -382,14 +384,14 @@ const Statistics = () => {
             </ResponsiveContainer>
           ) : (
             <div className="h-64 flex items-center justify-center text-gray-400">
-              No workout type data
+              {t('statistics.noTypeData')}
             </div>
           )}
         </div>
 
         {/* Time of Day Distribution */}
         <div className="card p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Workout Times</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('statistics.charts.workoutTimes')}</h2>
           {timeDistribution?.length > 0 ? (
             <ResponsiveContainer width="100%" height={200} className="sm:h-[250px]">
               <PieChart>
@@ -412,7 +414,7 @@ const Statistics = () => {
             </ResponsiveContainer>
           ) : (
             <div className="h-64 flex items-center justify-center text-gray-400">
-              No workout time data
+              {t('statistics.noTimeData')}
             </div>
           )}
         </div>
@@ -423,25 +425,25 @@ const Statistics = () => {
         <div className="card p-6 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Award className="w-5 h-5 text-yellow-600" />
-            Personal Records
+            {t('statistics.records.title')}
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
             <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-3 sm:p-4 border border-yellow-200">
               <div className="flex items-center gap-2 mb-2">
                 <Dumbbell className="w-5 h-5 text-yellow-600" />
-                <span className="text-sm font-medium text-yellow-900">Total Volume</span>
+                <span className="text-sm font-medium text-yellow-900">{t('statistics.records.totalVolume')}</span>
               </div>
               <p className="text-2xl font-bold text-yellow-900">
                 {formatVolume(records.total_volume || 0)} kg
               </p>
-              <p className="text-xs text-yellow-700 mt-1">All time</p>
+              <p className="text-xs text-yellow-700 mt-1">{t('statistics.records.allTime')}</p>
             </div>
 
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">Longest Workout</span>
+                <span className="text-sm font-medium text-blue-900">{t('statistics.records.longestWorkout')}</span>
               </div>
               <p className="text-2xl font-bold text-blue-900">
                 {records.longest_workout?.duration_minutes || 0}m
@@ -454,7 +456,7 @@ const Statistics = () => {
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-5 h-5 text-green-600" />
-                <span className="text-sm font-medium text-green-900">Heaviest Lift</span>
+                <span className="text-sm font-medium text-green-900">{t('statistics.records.heaviestLift')}</span>
               </div>
               <p className="text-2xl font-bold text-green-900">
                 {records.heaviest_lifts?.[0]?.max_weight || 0} kg
@@ -467,7 +469,7 @@ const Statistics = () => {
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
               <div className="flex items-center gap-2 mb-2">
                 <Target className="w-5 h-5 text-purple-600" />
-                <span className="text-sm font-medium text-purple-900">Most Reps</span>
+                <span className="text-sm font-medium text-purple-900">{t('statistics.records.mostReps')}</span>
               </div>
               <p className="text-2xl font-bold text-purple-900">
                 {records.most_reps?.[0]?.max_reps || 0}
@@ -481,7 +483,7 @@ const Statistics = () => {
           {/* Top Lifts Table */}
           {records.heaviest_lifts?.length > 0 && (
             <div className="mt-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Top 5 Heaviest Lifts</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('statistics.records.topLifts')}</h3>
               <div className="md:hidden space-y-3">
                 {records.heaviest_lifts.slice(0, 5).map((record, idx) => (
                   <div
@@ -494,7 +496,7 @@ const Statistics = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-gray-900">{record.max_weight} kg</p>
-                      <p className="text-[11px] text-gray-500">Max weight</p>
+                      <p className="text-[11px] text-gray-500">{t('statistics.records.maxWeight')}</p>
                     </div>
                   </div>
                 ))}
@@ -504,9 +506,9 @@ const Statistics = () => {
                   <table className="w-full text-xs sm:text-sm">
                     <thead>
                       <tr className="border-b border-gray-200">
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Exercise</th>
-                        <th className="text-left py-2 px-3 font-medium text-gray-600">Muscle</th>
-                        <th className="text-right py-2 px-3 font-medium text-gray-600">Weight</th>
+                        <th className="text-left py-2 px-3 font-medium text-gray-600">{t('statistics.records.exercise')}</th>
+                        <th className="text-left py-2 px-3 font-medium text-gray-600">{t('statistics.records.muscle')}</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-600">{t('statistics.records.weight')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -532,7 +534,7 @@ const Statistics = () => {
       <div className="card p-6 mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           <Award className="w-5 h-5 inline mr-2 text-yellow-600" />
-          Top Exercises
+          {t('statistics.topExercises.title')}
         </h2>
         
         {exercisesProgress?.length > 0 ? (
@@ -557,23 +559,23 @@ const Statistics = () => {
                   <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-gray-600">
                     <div>
                       <p className="text-xl font-semibold text-gray-900">{exercise.times_performed}</p>
-                      <p className="text-xs uppercase tracking-wide text-gray-500">Sessions</p>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">{t('statistics.topExercises.sessions')}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xl font-semibold text-gray-900">
                         {exercise.max_weight ? `${exercise.max_weight} kg` : '-'}
                       </p>
-                      <p className="text-xs uppercase tracking-wide text-gray-500">Max</p>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">{t('statistics.topExercises.max')}</p>
                     </div>
                     <div>
                       <p className="text-xl font-semibold text-gray-900">
                         {exercise.avg_weight ? `${Math.round(exercise.avg_weight)} kg` : '-'}
                       </p>
-                      <p className="text-xs uppercase tracking-wide text-gray-500">Avg</p>
+                      <p className="text-xs uppercase tracking-wide text-gray-500">{t('statistics.topExercises.avg')}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-base font-semibold text-primary-600">View progress</p>
-                      <p className="text-xs text-gray-500">Tap to inspect</p>
+                      <p className="text-base font-semibold text-primary-600">{t('statistics.topExercises.viewProgress')}</p>
+                      <p className="text-xs text-gray-500">{t('statistics.topExercises.tapToInspect')}</p>
                     </div>
                   </div>
                 </button>
@@ -584,12 +586,12 @@ const Statistics = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Exercise</th>
-                      <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Category</th>
-                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Times Performed</th>
-                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Max Weight</th>
-                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">Avg Weight</th>
-                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">Progress</th>
+                      <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">{t('statistics.topExercises.exercise')}</th>
+                      <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">{t('statistics.topExercises.category')}</th>
+                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">{t('statistics.topExercises.timesPerformed')}</th>
+                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">{t('statistics.topExercises.maxWeight')}</th>
+                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm whitespace-nowrap">{t('statistics.topExercises.avgWeight')}</th>
+                      <th className="text-center py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 text-xs sm:text-sm">{t('statistics.topExercises.progress')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -617,7 +619,7 @@ const Statistics = () => {
                         </td>
                         <td className="py-2 sm:py-3 px-2 sm:px-4 text-center">
                           <button className="text-primary-600 hover:text-primary-700 text-xs sm:text-sm font-medium whitespace-nowrap">
-                            View
+                            {t('statistics.topExercises.view')}
                           </button>
                         </td>
                       </tr>
@@ -630,8 +632,8 @@ const Statistics = () => {
         ) : (
           <div className="py-12 text-center text-gray-400">
             <Dumbbell className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No exercise data for this period</p>
-            <p className="text-sm mt-2">Start logging your workouts to see progress</p>
+            <p>{t('statistics.topExercises.noData')}</p>
+            <p className="text-sm mt-2">{t('statistics.topExercises.startLogging')}</p>
           </div>
         )}
       </div>
@@ -641,7 +643,7 @@ const Statistics = () => {
         <div className="card p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
             <h2 className="text-lg font-semibold text-gray-900">
-              {exerciseProgress.exercise?.name} Progress
+              {exerciseProgress.exercise?.name} {t('statistics.exerciseProgress.title')}
             </h2>
             <button
               onClick={() => {
@@ -660,25 +662,25 @@ const Statistics = () => {
               <p className="text-xl font-bold text-yellow-700">
                 {exerciseProgress.personal_records?.max_weight || 0} kg
               </p>
-              <p className="text-xs text-yellow-600">Max Weight</p>
+              <p className="text-xs text-yellow-600">{t('statistics.exerciseProgress.maxWeight')}</p>
             </div>
             <div className="bg-blue-50 rounded-lg p-3 text-center">
               <p className="text-xl font-bold text-blue-700">
                 {exerciseProgress.personal_records?.max_reps || 0}
               </p>
-              <p className="text-xs text-blue-600">Max Reps</p>
+              <p className="text-xs text-blue-600">{t('statistics.exerciseProgress.maxReps')}</p>
             </div>
             <div className="bg-green-50 rounded-lg p-3 text-center">
               <p className="text-xl font-bold text-green-700">
                 {formatVolume(exerciseProgress.personal_records?.max_volume || 0)}
               </p>
-              <p className="text-xs text-green-600">Max Volume</p>
+              <p className="text-xs text-green-600">{t('statistics.exerciseProgress.maxVolume')}</p>
             </div>
             <div className="bg-purple-50 rounded-lg p-3 text-center">
               <p className="text-xl font-bold text-purple-700">
                 {exerciseProgress.personal_records?.total_sessions || 0}
               </p>
-              <p className="text-xs text-purple-600">Sessions</p>
+              <p className="text-xs text-purple-600">{t('statistics.exerciseProgress.sessions')}</p>
             </div>
           </div>
 
@@ -704,13 +706,13 @@ const Statistics = () => {
                   stroke="#3b82f6"
                   strokeWidth={2}
                   dot={{ fill: '#3b82f6', strokeWidth: 2 }}
-                  name="Weight (kg)"
+                  name={t('statistics.exerciseProgress.weightLabel')}
                 />
               </LineChart>
             </ResponsiveContainer>
           ) : (
             <div className="h-48 flex items-center justify-center text-gray-400">
-              No progress data available
+              {t('statistics.exerciseProgress.noProgressData')}
             </div>
           )}
         </div>

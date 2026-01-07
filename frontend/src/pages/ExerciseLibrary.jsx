@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { exerciseAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { 
   Search, 
   Filter, 
@@ -17,6 +18,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 const ExerciseLibrary = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [exercises, setExercises] = useState([]);
   const [categories, setCategories] = useState({});
@@ -108,7 +110,7 @@ const ExerciseLibrary = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!window.confirm('Are you sure you want to delete this exercise?')) return;
+    if (!window.confirm(t('exercises.deleteConfirm'))) return;
     
     try {
       await exerciseAPI.delete(id);
@@ -165,15 +167,15 @@ const ExerciseLibrary = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Exercise Library</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{t('exercises.library')}</h1>
           <p className="text-sm sm:text-base text-gray-600">
-            Browse our collection of exercises with detailed instructions
+            {t('exercises.browseCollection')}
           </p>
         </div>
         {user && (
           <Link to="/exercises/new" className="btn-primary gap-2 w-full sm:w-auto justify-center sm:justify-start">
             <Plus className="w-4 h-4" />
-            Create Exercise
+            {t('exercises.createExercise')}
           </Link>
         )}
       </div>
@@ -189,7 +191,7 @@ const ExerciseLibrary = () => {
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            All Exercises
+            {t('exercises.allExercises')}
           </button>
           <button
             onClick={() => handleTabChange('custom')}
@@ -200,7 +202,7 @@ const ExerciseLibrary = () => {
             }`}
           >
             <User className="w-4 h-4" />
-            My Exercises
+            {t('exercises.myExercises')}
           </button>
         </div>
       )}
@@ -211,7 +213,7 @@ const ExerciseLibrary = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search exercises..."
+            placeholder={t('exercises.searchPlaceholder')}
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
             className="input pl-10"
@@ -222,7 +224,7 @@ const ExerciseLibrary = () => {
           className={`btn ${showFilters || hasActiveFilters ? 'btn-primary' : 'btn-secondary'} gap-2`}
         >
           <Filter className="w-4 h-4" />
-          Filters
+          {t('exercises.filters')}
           {hasActiveFilters && (
             <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
               {[filters.category, filters.muscleGroup, filters.difficulty].filter(Boolean).length}
@@ -235,26 +237,26 @@ const ExerciseLibrary = () => {
       {showFilters && (
         <div className="card p-4 mb-6 animate-slide-up">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium text-gray-900">Filter Exercises</h3>
+            <h3 className="font-medium text-gray-900">{t('exercises.filterExercises')}</h3>
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
                 className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
               >
                 <X className="w-4 h-4" />
-                Clear all
+                {t('exercises.clearAll')}
               </button>
             )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="label">Category</label>
+              <label className="label">{t('exercises.category')}</label>
               <select
                 value={filters.category}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
                 className="input"
               >
-                <option value="">All Categories</option>
+                <option value="">{t('exercises.allCategories')}</option>
                 {categories.categories?.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat.charAt(0).toUpperCase() + cat.slice(1)}
@@ -263,26 +265,26 @@ const ExerciseLibrary = () => {
               </select>
             </div>
             <div>
-              <label className="label">Muscle Group</label>
+              <label className="label">{t('exercises.muscleGroup')}</label>
               <select
                 value={filters.muscleGroup}
                 onChange={(e) => handleFilterChange('muscleGroup', e.target.value)}
                 className="input"
               >
-                <option value="">All Muscle Groups</option>
+                <option value="">{t('exercises.allMuscleGroups')}</option>
                 {categories.muscleGroups?.map((mg) => (
                   <option key={mg} value={mg}>{mg}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="label">Difficulty</label>
+              <label className="label">{t('exercises.difficulty')}</label>
               <select
                 value={filters.difficulty}
                 onChange={(e) => handleFilterChange('difficulty', e.target.value)}
                 className="input"
               >
-                <option value="">All Difficulties</option>
+                <option value="">{t('exercises.allDifficulties')}</option>
                 {categories.difficulties?.map((diff) => (
                   <option key={diff} value={diff}>
                     {diff.charAt(0).toUpperCase() + diff.slice(1)}
@@ -302,16 +304,16 @@ const ExerciseLibrary = () => {
       ) : exercises.length === 0 ? (
         <div className="text-center py-12">
           <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No exercises found</h3>
-          <p className="text-gray-500 mb-4">Try adjusting your search or filters</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('exercises.noExercisesFound')}</h3>
+          <p className="text-gray-500 mb-4">{t('exercises.tryAdjusting')}</p>
           <button onClick={clearFilters} className="btn-primary">
-            Clear Filters
+            {t('exercises.clearFilters')}
           </button>
         </div>
       ) : (
         <>
           <p className="text-sm text-gray-500 mb-4">
-            Showing {exercises.length} of {pagination.total} exercise{pagination.total !== 1 ? 's' : ''}
+            {t('exercises.showing')} {exercises.length} {t('exercises.of')} {pagination.total} {t('exercises.exercise')}{pagination.total !== 1 ? 's' : ''}
           </p>
           
           {/* Exercise Grid */}
@@ -341,7 +343,7 @@ const ExerciseLibrary = () => {
                     </span>
                     {exercise.is_custom && (
                       <span className="badge bg-purple-100 text-purple-700">
-                        Custom
+                        {t('exercises.custom')}
                       </span>
                     )}
                   </div>
@@ -378,7 +380,7 @@ const ExerciseLibrary = () => {
                   </div>
                   {exercise.difficulty && (
                     <span className={`badge ${getDifficultyColor(exercise.difficulty)} mt-3`}>
-                      {exercise.difficulty}
+                      {t(`exercises.${exercise.difficulty}`)}
                     </span>
                   )}
                 </div>
@@ -397,13 +399,13 @@ const ExerciseLibrary = () => {
                 {loadingMore ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Loading...
+                    {t('exercises.loading')}
                   </>
                 ) : (
                   <>
-                    Load More
+                    {t('exercises.loadMore')}
                     <span className="text-sm opacity-75">
-                      ({pagination.total - exercises.length} remaining)
+                      ({pagination.total - exercises.length} {t('exercises.remaining')})
                     </span>
                   </>
                 )}
@@ -414,7 +416,7 @@ const ExerciseLibrary = () => {
           {/* Page info */}
           {pagination.pages > 1 && (
             <p className="text-center text-sm text-gray-500 mt-4">
-              Page {pagination.page} of {pagination.pages}
+              {t('exercises.page')} {pagination.page} {t('exercises.of')} {pagination.pages}
             </p>
           )}
         </>

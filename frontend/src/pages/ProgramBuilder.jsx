@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { programAPI, workoutAPI } from '../services/api';
 import { 
   ArrowLeft, 
@@ -13,12 +14,21 @@ import {
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
 const ProgramBuilder = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const isEditing = !!id;
+  
+  const DAYS = [
+    t('common.days.monday'),
+    t('common.days.tuesday'),
+    t('common.days.wednesday'),
+    t('common.days.thursday'),
+    t('common.days.friday'),
+    t('common.days.saturday'),
+    t('common.days.sunday')
+  ];
 
   const [program, setProgram] = useState({
     name: '',
@@ -164,7 +174,7 @@ const ProgramBuilder = () => {
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </Link>
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-          {isEditing ? 'Edit Program' : 'Create Program'}
+          {isEditing ? t('programBuilder.editProgram') : t('programBuilder.createProgram')}
         </h1>
       </div>
 
@@ -180,7 +190,7 @@ const ProgramBuilder = () => {
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <label htmlFor="name" className="label">
-                Program Name *
+                {t('programBuilder.programName')} *
               </label>
               <input
                 id="name"
@@ -188,12 +198,12 @@ const ProgramBuilder = () => {
                 value={program.name}
                 onChange={(e) => setProgram(prev => ({ ...prev, name: e.target.value }))}
                 className="input"
-                placeholder="e.g., 12 Week Strength Program"
+                placeholder={t('programBuilder.programNamePlaceholder')}
               />
             </div>
             <div className="sm:col-span-2">
               <label htmlFor="description" className="label">
-                Description
+                {t('programBuilder.description')}
               </label>
               <textarea
                 id="description"
@@ -201,12 +211,12 @@ const ProgramBuilder = () => {
                 onChange={(e) => setProgram(prev => ({ ...prev, description: e.target.value }))}
                 className="input"
                 rows={2}
-                placeholder="Describe your program..."
+                placeholder={t('programBuilder.descriptionPlaceholder')}
               />
             </div>
             <div>
               <label htmlFor="durationWeeks" className="label">
-                Duration (weeks)
+                {t('programBuilder.durationWeeks')}
               </label>
               <input
                 id="durationWeeks"
@@ -220,7 +230,7 @@ const ProgramBuilder = () => {
             </div>
             <div>
               <label htmlFor="difficulty" className="label">
-                Difficulty
+                {t('programBuilder.difficulty')}
               </label>
               <select
                 id="difficulty"
@@ -228,9 +238,9 @@ const ProgramBuilder = () => {
                 onChange={(e) => setProgram(prev => ({ ...prev, difficulty: e.target.value }))}
                 className="input"
               >
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
+                <option value="beginner">{t('programBuilder.beginner')}</option>
+                <option value="intermediate">{t('programBuilder.intermediate')}</option>
+                <option value="advanced">{t('programBuilder.advanced')}</option>
               </select>
             </div>
           </div>
@@ -238,7 +248,7 @@ const ProgramBuilder = () => {
 
         {/* Weekly Schedule */}
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Weekly Schedule</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('programBuilder.weeklySchedule')}</h2>
           <div className="grid gap-3">
             {DAYS.map((day, index) => {
               const dayWorkouts = getWorkoutsForDay(index);
@@ -255,11 +265,11 @@ const ProgramBuilder = () => {
                       className="btn-ghost btn-sm gap-1"
                     >
                       <Plus className="w-4 h-4" />
-                      Add
+                      {t('programBuilder.addWorkout')}
                     </button>
                   </div>
                   {dayWorkouts.length === 0 ? (
-                    <p className="text-sm text-gray-400">Rest day</p>
+                    <p className="text-sm text-gray-400">{t('programBuilder.restDay')}</p>
                   ) : (
                     <div className="space-y-2">
                       {dayWorkouts.map((workout, wIndex) => {
@@ -300,12 +310,12 @@ const ProgramBuilder = () => {
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                {isEditing ? 'Save Changes' : 'Create Program'}
+                {isEditing ? t('common.save') + ' Changes' : t('programBuilder.createProgram')}
               </>
             )}
           </button>
           <Link to="/my-programs" className="btn-secondary w-full sm:w-auto text-center">
-            Cancel
+            {t('common.cancel')}
           </Link>
         </div>
       </form>
@@ -315,7 +325,7 @@ const ProgramBuilder = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl w-full max-w-lg max-h-[80vh] overflow-hidden animate-slide-up">
             <div className="p-4 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <h3 className="text-lg font-semibold">Add Workout to {DAYS[selectedDay]}</h3>
+              <h3 className="text-lg font-semibold">{t('programBuilder.addWorkout')} to {DAYS[selectedDay]}</h3>
               <button
                 onClick={() => {
                   setShowWorkoutModal(false);
@@ -331,7 +341,7 @@ const ProgramBuilder = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search workouts..."
+                  placeholder={t('workouts.search')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="input pl-10"
@@ -343,14 +353,14 @@ const ProgramBuilder = () => {
               {allWorkouts.length === 0 ? (
                 <div className="p-8 text-center">
                   <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-3">No workouts available</p>
+                  <p className="text-gray-500 mb-3">{t('workouts.noWorkouts')}</p>
                   <Link to="/my-workouts/new" className="btn-primary btn-sm">
-                    Create a Workout First
+                    {t('workouts.create')}
                   </Link>
                 </div>
               ) : filteredWorkouts.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  No workouts found
+                  {t('workouts.noWorkoutsFound')}
                 </div>
               ) : (
                 <div className="divide-y">

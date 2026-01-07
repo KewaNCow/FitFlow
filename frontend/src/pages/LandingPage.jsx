@@ -10,38 +10,41 @@ import {
   Smartphone,
   Zap
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const LandingPage = () => {
+  const { t } = useTranslation();
+  
   const features = [
     {
       icon: Dumbbell,
-      title: 'Exercise Library',
-      description: 'Browse hundreds of exercises with detailed instructions, images, and muscle group targeting.'
+      title: t('landing.features.exercise.title'),
+      description: t('landing.features.exercise.description')
     },
     {
       icon: Target,
-      title: 'Custom Workouts',
-      description: 'Build personalized workouts by selecting exercises and configuring sets, reps, and rest times.'
+      title: t('landing.features.workout.title'),
+      description: t('landing.features.workout.description')
     },
     {
       icon: Calendar,
-      title: 'Training Programs',
-      description: 'Combine workouts into structured weekly programs or follow our predefined plans.'
+      title: t('landing.features.program.title'),
+      description: t('landing.features.program.description')
     },
     {
       icon: BarChart3,
-      title: 'Track Progress',
-      description: 'Log your completed workouts and monitor your consistency and improvements over time.'
+      title: t('landing.features.tracking.title'),
+      description: t('landing.features.tracking.description')
     }
   ];
 
   const benefits = [
-    'No more scattered notes or multiple apps',
-    'Access your workouts anywhere, anytime',
-    'Follow structured programs or create your own',
-    'Track your progress and stay motivated',
-    'Works on all devices - desktop, tablet, mobile',
-    'Free to use with all core features'
+    t('landing.benefits.0'),
+    t('landing.benefits.1'),
+    t('landing.benefits.2'),
+    t('landing.benefits.3'),
+    t('landing.benefits.4'),
+    t('landing.benefits.5')
   ];
 
   return (
@@ -53,20 +56,19 @@ const LandingPage = () => {
           <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
             <div className="text-center lg:text-left">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 sm:mb-6">
-                Your Smart
-                <span className="block text-primary-400">Workout Planner</span>
+                {t('landing.hero.title')}
+                <span className="block text-primary-400">{t('landing.hero.subtitle')}</span>
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8 max-w-xl mx-auto lg:mx-0">
-                Create custom workouts, follow structured programs, and track your fitness journey. 
-                Everything you need to reach your goals, in one place.
+                {t('landing.hero.description')}
               </p>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
                 <Link to="/signup" className="btn-primary btn-lg gap-2">
-                  Get Started Free
+                  {t('landing.cta.getStarted')}
                   <ChevronRight className="w-5 h-5" />
                 </Link>
                 <Link to="/exercises" className="btn bg-white/10 text-white hover:bg-white/20 btn-lg">
-                  Browse Exercises
+                  {t('landing.cta.browseExercises')}
                 </Link>
               </div>
             </div>
@@ -106,10 +108,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
-              Everything You Need to Succeed
+              {t('landing.features.title')}
             </h2>
             <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
-              FitFlow provides all the tools you need to plan, execute, and track your fitness journey.
+              {t('landing.features.subtitle')}
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
@@ -135,11 +137,10 @@ const LandingPage = () => {
           <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
             <div>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
-                Why Choose FitFlow?
+                {t('landing.why.title')}
               </h2>
               <p className="text-base sm:text-lg text-gray-600 mb-6 sm:mb-8">
-                Stop juggling multiple apps and scattered notes. FitFlow brings everything together 
-                in one intuitive platform designed for fitness enthusiasts at every level.
+                {t('landing.why.description')}
               </p>
               <div className="space-y-3 sm:space-y-4">
                 {benefits.map((benefit, index) => (
@@ -154,22 +155,22 @@ const LandingPage = () => {
               <div className="bg-white p-6 rounded-2xl shadow-sm">
                 <Users className="w-10 h-10 text-primary-500 mb-3" />
                 <div className="text-3xl font-bold text-gray-900">500+</div>
-                <div className="text-gray-600">Active Users</div>
+                <div className="text-gray-600">{t('landing.stats.users')}</div>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm">
                 <Dumbbell className="w-10 h-10 text-primary-500 mb-3" />
                 <div className="text-3xl font-bold text-gray-900">50+</div>
-                <div className="text-gray-600">Exercises</div>
+                <div className="text-gray-600">{t('landing.stats.exercises')}</div>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm">
                 <Smartphone className="w-10 h-10 text-primary-500 mb-3" />
                 <div className="text-3xl font-bold text-gray-900">100%</div>
-                <div className="text-gray-600">Responsive</div>
+                <div className="text-gray-600">{t('landing.stats.responsive')}</div>
               </div>
               <div className="bg-white p-6 rounded-2xl shadow-sm">
                 <Zap className="w-10 h-10 text-primary-500 mb-3" />
-                <div className="text-3xl font-bold text-gray-900">Free</div>
-                <div className="text-gray-600">To Use</div>
+                <div className="text-3xl font-bold text-gray-900">{t('landing.stats.free')}</div>
+                <div className="text-gray-600">{t('landing.stats.toUse')}</div>
               </div>
             </div>
           </div>
@@ -180,18 +181,18 @@ const LandingPage = () => {
       <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-500">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Ready to Start Your Fitness Journey?
+            {t('landing.cta.ready')}
           </h2>
           <p className="text-lg text-primary-100 mb-8 max-w-2xl mx-auto">
-            Join FitFlow today and take control of your training. Create your first workout in minutes.
+            {t('landing.cta.description')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/signup" className="btn bg-white text-primary-600 hover:bg-gray-100 btn-lg gap-2">
-              Create Free Account
+              {t('landing.cta.createAccount')}
               <ChevronRight className="w-5 h-5" />
             </Link>
             <Link to="/login" className="btn bg-primary-700 text-white hover:bg-primary-800 btn-lg">
-              Already have an account?
+              {t('landing.cta.haveAccount')}
             </Link>
           </div>
         </div>

@@ -11,8 +11,10 @@ import {
   Activity
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useTranslation } from 'react-i18next';
 
 const WorkoutHistory = () => {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -95,7 +97,7 @@ const WorkoutHistory = () => {
 
   return (
     <div className="page-container max-w-6xl">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Workout History</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">{t('history.title')}</h1>
 
       {/* Stats Overview */}
       {stats && (
@@ -103,27 +105,27 @@ const WorkoutHistory = () => {
           <div className="card p-3 sm:p-4 text-center">
             <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 mx-auto mb-1 sm:mb-2" />
             <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total_workouts || 0}</p>
-            <p className="text-xs sm:text-sm text-gray-500">Workouts</p>
+            <p className="text-xs sm:text-sm text-gray-500">{t('history.workouts')}</p>
           </div>
           <div className="card p-3 sm:p-4 text-center">
             <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mx-auto mb-1 sm:mb-2" />
             <p className="text-xl sm:text-2xl font-bold text-gray-900">{formatDuration(stats.total_minutes)}</p>
-            <p className="text-xs sm:text-sm text-gray-500">Total Time</p>
+            <p className="text-xs sm:text-sm text-gray-500">{t('history.totalTime')}</p>
           </div>
           <div className="card p-3 sm:p-4 text-center">
             <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 mx-auto mb-1 sm:mb-2" />
             <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total_exercises || 0}</p>
-            <p className="text-xs sm:text-sm text-gray-500">Exercises</p>
+            <p className="text-xs sm:text-sm text-gray-500">{t('common.exercises')}</p>
           </div>
           <div className="card p-3 sm:p-4 text-center">
             <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 mx-auto mb-1 sm:mb-2" />
             <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total_sets || 0}</p>
-            <p className="text-xs sm:text-sm text-gray-500">Total Sets</p>
+            <p className="text-xs sm:text-sm text-gray-500">{t('history.totalSets')}</p>
           </div>
           <div className="card p-3 sm:p-4 text-center">
             <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 mx-auto mb-1 sm:mb-2" />
             <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.currentStreak || 0}</p>
-            <p className="text-xs sm:text-sm text-gray-500">Day Streak</p>
+            <p className="text-xs sm:text-sm text-gray-500">{t('dashboard.dayStreak')}</p>
           </div>
         </div>
       )}
@@ -197,15 +199,15 @@ const WorkoutHistory = () => {
 
         {/* Recent Workouts List */}
         <div className="card p-4 sm:p-6">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Recent Workouts</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">{t('history.recent')}</h2>
           
           {!Array.isArray(logs) || logs.length === 0 ? (
             <div className="text-center py-8">
               <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No workouts logged yet</h3>
-              <p className="text-gray-500 mb-4">Start logging your workouts to track your progress!</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t('history.noLogs')}</h3>
+              <p className="text-gray-500 mb-4">{t('history.startLogging')}</p>
               <Link to="/my-workouts" className="btn-primary">
-                Go to Workouts
+                {t('history.goToWorkouts')}
               </Link>
             </div>
           ) : (

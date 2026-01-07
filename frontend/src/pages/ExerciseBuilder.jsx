@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { exerciseAPI } from '../services/api';
 import {
   ArrowLeft,
@@ -39,6 +40,7 @@ const DIFFICULTIES = [
 const ExerciseBuilder = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const isEditing = Boolean(id);
   
   const [loading, setLoading] = useState(isEditing);
@@ -169,7 +171,7 @@ const ExerciseBuilder = () => {
         className="inline-flex items-center gap-2 text-gray-600 hover:text-primary-600 mb-4 sm:mb-6 text-sm sm:text-base"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Exercises
+        {t('exerciseBuilder.backToExercises')}
       </Link>
 
       <div className="card p-4 sm:p-6">
@@ -179,9 +181,9 @@ const ExerciseBuilder = () => {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-              {isEditing ? 'Edit Exercise' : 'Create Custom Exercise'}
+              {isEditing ? t('exerciseBuilder.editExercise') : t('exerciseBuilder.createExercise')}
             </h1>
-            <p className="text-gray-500 text-sm sm:text-base">Add your own exercise to the library</p>
+            <p className="text-gray-500 text-sm sm:text-base">{t('exerciseBuilder.description')}</p>
           </div>
         </div>
 
@@ -196,7 +198,7 @@ const ExerciseBuilder = () => {
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Exercise Name *
+                {t('exerciseBuilder.exerciseName')} *
               </label>
               <input
                 type="text"
@@ -204,14 +206,14 @@ const ExerciseBuilder = () => {
                 value={formData.name}
                 onChange={handleChange}
                 className="input"
-                placeholder="e.g., Bulgarian Split Squat"
+                placeholder={t('exerciseBuilder.exerciseNamePlaceholder')}
                 required
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category *
+                {t('exerciseBuilder.category')} *
               </label>
               <select
                 name="category"
@@ -227,7 +229,7 @@ const ExerciseBuilder = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Difficulty
+                {t('exerciseBuilder.difficulty')}
               </label>
               <select
                 name="difficulty"
@@ -243,7 +245,7 @@ const ExerciseBuilder = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Primary Muscle Group
+                {t('exerciseBuilder.muscleGroup')}
               </label>
               <select
                 name="muscleGroup"
@@ -251,7 +253,7 @@ const ExerciseBuilder = () => {
                 onChange={handleChange}
                 className="input"
               >
-                <option value="">Select muscle group</option>
+                <option value="">{t('exerciseBuilder.muscleGroupPlaceholder')}</option>
                 {MUSCLE_GROUPS.map(muscle => (
                   <option key={muscle} value={muscle}>{muscle}</option>
                 ))}
@@ -260,7 +262,7 @@ const ExerciseBuilder = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Equipment
+                {t('exerciseBuilder.equipment')}
               </label>
               <select
                 name="equipment"
@@ -278,14 +280,14 @@ const ExerciseBuilder = () => {
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
+              {t('exerciseBuilder.description')}
             </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               className="input resize-none h-24"
-              placeholder="Describe what this exercise is and its benefits..."
+              placeholder={t('exerciseBuilder.descriptionPlaceholder')}
             />
           </div>
 
@@ -293,7 +295,7 @@ const ExerciseBuilder = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <ListOrdered className="w-4 h-4 inline mr-1" />
-              Step-by-Step Instructions
+              {t('exerciseBuilder.instructions')}
             </label>
             <div className="space-y-2">
               {instructionsList.map((instruction, index) => (
@@ -334,7 +336,7 @@ const ExerciseBuilder = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 <Image className="w-4 h-4 inline mr-1" />
-                Image URL
+                {t('exerciseBuilder.imageUrl')}
               </label>
               <input
                 type="url"
@@ -342,7 +344,7 @@ const ExerciseBuilder = () => {
                 value={formData.imageUrl}
                 onChange={handleChange}
                 className="input"
-                placeholder="https://example.com/image.jpg"
+                placeholder={t('exerciseBuilder.imageUrlPlaceholder')}
               />
               {formData.imageUrl && (
                 <div className="mt-2 relative aspect-video rounded-lg overflow-hidden bg-gray-100">
@@ -359,7 +361,7 @@ const ExerciseBuilder = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 <Video className="w-4 h-4 inline mr-1" />
-                Video URL
+                {t('exerciseBuilder.videoUrl')}
               </label>
               <input
                 type="url"
@@ -367,7 +369,7 @@ const ExerciseBuilder = () => {
                 value={formData.videoUrl}
                 onChange={handleChange}
                 className="input"
-                placeholder="https://youtube.com/watch?v=..."
+                placeholder={t('exerciseBuilder.videoUrlPlaceholder')}
               />
               <p className="text-xs text-gray-500 mt-1">
                 YouTube or direct video link
@@ -382,7 +384,7 @@ const ExerciseBuilder = () => {
               onClick={() => navigate('/exercises')}
               className="btn-secondary flex-1"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
