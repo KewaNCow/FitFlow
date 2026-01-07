@@ -49,87 +49,93 @@ async function addMoreContent() {
     // =====================================================
     console.log('💪 Adding strength workouts...');
 
+    // Helper function to add workout exercises
+    const addWorkoutExercises = async (workoutId, exercises) => {
+      for (const ex of exercises) {
+        const [exercise] = await connection.query(
+          'SELECT id FROM exercises WHERE name = ? LIMIT 1',
+          [ex.name]
+        );
+        if (exercise.length > 0) {
+          await connection.query(
+            'INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration, rest_time) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [workoutId, exercise[0].id, ex.order, ex.sets, ex.reps || null, ex.duration || null, ex.rest]
+          );
+        }
+      }
+    };
+
     // Upper Body Hypertrophy
     const [upperBodyHypertrophy] = await connection.query(
       `INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES (?, 'Upper Body Hypertrophy', 'Volume-focused upper body workout for muscle growth. 8-12 rep range for maximum hypertrophy.', 'strength', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) 
-       SELECT ?, id, 1, 4, 10, 90 FROM exercises WHERE name = 'Bench Press' LIMIT 1
-       UNION ALL SELECT ?, id, 2, 3, 12, 75 FROM exercises WHERE name = 'Incline Bench Press' LIMIT 1
-       UNION ALL SELECT ?, id, 3, 4, 10, 90 FROM exercises WHERE name = 'Barbell Row' LIMIT 1
-       UNION ALL SELECT ?, id, 4, 3, 12, 60 FROM exercises WHERE name = 'Lat Pulldown' LIMIT 1
-       UNION ALL SELECT ?, id, 5, 3, 10, 75 FROM exercises WHERE name = 'Overhead Press' LIMIT 1
-       UNION ALL SELECT ?, id, 6, 3, 15, 45 FROM exercises WHERE name = 'Lateral Raises' LIMIT 1
-       UNION ALL SELECT ?, id, 7, 3, 12, 60 FROM exercises WHERE name = 'Barbell Curl' LIMIT 1
-       UNION ALL SELECT ?, id, 8, 3, 12, 60 FROM exercises WHERE name = 'Tricep Pushdown' LIMIT 1`,
-      [upperBodyHypertrophy.insertId, upperBodyHypertrophy.insertId, upperBodyHypertrophy.insertId, upperBodyHypertrophy.insertId, upperBodyHypertrophy.insertId, upperBodyHypertrophy.insertId, upperBodyHypertrophy.insertId, upperBodyHypertrophy.insertId]
-    );
+    await addWorkoutExercises(upperBodyHypertrophy.insertId, [
+      { name: 'Bench Press', order: 1, sets: 4, reps: 10, rest: 90 },
+      { name: 'Incline Bench Press', order: 2, sets: 3, reps: 12, rest: 75 },
+      { name: 'Barbell Row', order: 3, sets: 4, reps: 10, rest: 90 },
+      { name: 'Lat Pulldown', order: 4, sets: 3, reps: 12, rest: 60 },
+      { name: 'Overhead Press', order: 5, sets: 3, reps: 10, rest: 75 },
+      { name: 'Lateral Raises', order: 6, sets: 3, reps: 15, rest: 45 },
+      { name: 'Barbell Curl', order: 7, sets: 3, reps: 12, rest: 60 },
+      { name: 'Tricep Pushdown', order: 8, sets: 3, reps: 12, rest: 60 }
+    ]);
 
     // Lower Body Hypertrophy
     const [lowerBodyHypertrophy] = await connection.query(
       `INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES (?, 'Lower Body Hypertrophy', 'High-volume leg workout for building bigger, stronger legs. Focus on quad and hamstring development.', 'strength', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) 
-       SELECT ?, id, 1, 4, 10, 120 FROM exercises WHERE name = 'Barbell Squat' LIMIT 1
-       UNION ALL SELECT ?, id, 2, 4, 10, 90 FROM exercises WHERE name = 'Romanian Deadlift' LIMIT 1
-       UNION ALL SELECT ?, id, 3, 4, 15, 90 FROM exercises WHERE name = 'Leg Press' LIMIT 1
-       UNION ALL SELECT ?, id, 4, 3, 12, 60 FROM exercises WHERE name = 'Lunges' LIMIT 1
-       UNION ALL SELECT ?, id, 5, 3, 15, 60 FROM exercises WHERE name = 'Leg Extension' LIMIT 1
-       UNION ALL SELECT ?, id, 6, 3, 15, 60 FROM exercises WHERE name = 'Leg Curl' LIMIT 1
-       UNION ALL SELECT ?, id, 7, 4, 20, 45 FROM exercises WHERE name = 'Calf Raises' LIMIT 1`,
-      [lowerBodyHypertrophy.insertId, lowerBodyHypertrophy.insertId, lowerBodyHypertrophy.insertId, lowerBodyHypertrophy.insertId, lowerBodyHypertrophy.insertId, lowerBodyHypertrophy.insertId, lowerBodyHypertrophy.insertId]
-    );
+    await addWorkoutExercises(lowerBodyHypertrophy.insertId, [
+      { name: 'Barbell Squat', order: 1, sets: 4, reps: 10, rest: 120 },
+      { name: 'Romanian Deadlift', order: 2, sets: 4, reps: 10, rest: 90 },
+      { name: 'Leg Press', order: 3, sets: 4, reps: 15, rest: 90 },
+      { name: 'Lunges', order: 4, sets: 3, reps: 12, rest: 60 },
+      { name: 'Leg Extension', order: 5, sets: 3, reps: 15, rest: 60 },
+      { name: 'Leg Curl', order: 6, sets: 3, reps: 15, rest: 60 },
+      { name: 'Calf Raises', order: 7, sets: 4, reps: 20, rest: 45 }
+    ]);
 
     // Arms & Core Blast
     const [armsCore] = await connection.query(
       `INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES (?, 'Arms & Core Blast', 'Dedicated arm and core workout. Perfect as an accessory day or to finish your week strong.', 'strength', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) 
-       SELECT ?, id, 1, 3, 10, 60 FROM exercises WHERE name = 'Barbell Curl' LIMIT 1
-       UNION ALL SELECT ?, id, 2, 3, 12, 60 FROM exercises WHERE name = 'Hammer Curl' LIMIT 1
-       UNION ALL SELECT ?, id, 3, 3, 12, 60 FROM exercises WHERE name = 'Tricep Pushdown' LIMIT 1
-       UNION ALL SELECT ?, id, 4, 3, 12, 60 FROM exercises WHERE name = 'Overhead Tricep Extension' LIMIT 1
-       UNION ALL SELECT ?, id, 5, 3, 1, 45 FROM exercises WHERE name = 'Plank' LIMIT 1
-       UNION ALL SELECT ?, id, 6, 3, 20, 45 FROM exercises WHERE name = 'Crunches' LIMIT 1`,
-      [armsCore.insertId, armsCore.insertId, armsCore.insertId, armsCore.insertId, armsCore.insertId, armsCore.insertId]
-    );
+    await addWorkoutExercises(armsCore.insertId, [
+      { name: 'Barbell Curl', order: 1, sets: 3, reps: 10, rest: 60 },
+      { name: 'Hammer Curl', order: 2, sets: 3, reps: 12, rest: 60 },
+      { name: 'Tricep Pushdown', order: 3, sets: 3, reps: 12, rest: 60 },
+      { name: 'Overhead Tricep Extension', order: 4, sets: 3, reps: 12, rest: 60 },
+      { name: 'Plank', order: 5, sets: 3, reps: 1, rest: 45 },
+      { name: 'Crunches', order: 6, sets: 3, reps: 20, rest: 45 }
+    ]);
 
     // Chest & Back Superset
     const [chestBack] = await connection.query(
       `INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES (?, 'Chest & Back Superset', 'Antagonistic superset workout for chest and back. Efficient and effective upper body training.', 'strength', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) 
-       SELECT ?, id, 1, 4, 8, 90 FROM exercises WHERE name = 'Bench Press' LIMIT 1
-       UNION ALL SELECT ?, id, 2, 4, 8, 90 FROM exercises WHERE name = 'Barbell Row' LIMIT 1
-       UNION ALL SELECT ?, id, 3, 3, 10, 75 FROM exercises WHERE name = 'Incline Bench Press' LIMIT 1
-       UNION ALL SELECT ?, id, 4, 3, 10, 75 FROM exercises WHERE name = 'Pull-ups' LIMIT 1
-       UNION ALL SELECT ?, id, 5, 3, 12, 60 FROM exercises WHERE name = 'Dumbbell Flyes' LIMIT 1
-       UNION ALL SELECT ?, id, 6, 3, 12, 60 FROM exercises WHERE name = 'Seated Cable Row' LIMIT 1`,
-      [chestBack.insertId, chestBack.insertId, chestBack.insertId, chestBack.insertId, chestBack.insertId, chestBack.insertId]
-    );
+    await addWorkoutExercises(chestBack.insertId, [
+      { name: 'Bench Press', order: 1, sets: 4, reps: 8, rest: 90 },
+      { name: 'Barbell Row', order: 2, sets: 4, reps: 8, rest: 90 },
+      { name: 'Incline Bench Press', order: 3, sets: 3, reps: 10, rest: 75 },
+      { name: 'Pull-ups', order: 4, sets: 3, reps: 10, rest: 75 },
+      { name: 'Dumbbell Flyes', order: 5, sets: 3, reps: 12, rest: 60 },
+      { name: 'Seated Cable Row', order: 6, sets: 3, reps: 12, rest: 60 }
+    ]);
 
     // Shoulders & Traps
     const [shouldersTraps] = await connection.query(
       `INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES (?, 'Shoulders & Traps', 'Complete shoulder and trap development. Build boulder shoulders and a strong neck base.', 'strength', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) 
-       SELECT ?, id, 1, 4, 8, 90 FROM exercises WHERE name = 'Overhead Press' LIMIT 1
-       UNION ALL SELECT ?, id, 2, 3, 10, 75 FROM exercises WHERE name = 'Dumbbell Shoulder Press' LIMIT 1
-       UNION ALL SELECT ?, id, 3, 4, 12, 60 FROM exercises WHERE name = 'Lateral Raises' LIMIT 1
-       UNION ALL SELECT ?, id, 4, 3, 12, 60 FROM exercises WHERE name = 'Front Raises' LIMIT 1
-       UNION ALL SELECT ?, id, 5, 3, 15, 45 FROM exercises WHERE name = 'Face Pulls' LIMIT 1`,
-      [shouldersTraps.insertId, shouldersTraps.insertId, shouldersTraps.insertId, shouldersTraps.insertId, shouldersTraps.insertId]
-    );
+    await addWorkoutExercises(shouldersTraps.insertId, [
+      { name: 'Overhead Press', order: 1, sets: 4, reps: 8, rest: 90 },
+      { name: 'Dumbbell Shoulder Press', order: 2, sets: 3, reps: 10, rest: 75 },
+      { name: 'Lateral Raises', order: 3, sets: 4, reps: 12, rest: 60 },
+      { name: 'Front Raises', order: 4, sets: 3, reps: 12, rest: 60 },
+      { name: 'Face Pulls', order: 5, sets: 3, reps: 15, rest: 45 }
+    ]);
 
     // =====================================================
     // CARDIO & MIXED WORKOUTS
@@ -141,55 +147,47 @@ async function addMoreContent() {
       `INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES (?, 'Full Body Circuit Training', 'High-intensity circuit combining strength and cardio. Burn calories while building muscle.', 'mixed', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) 
-       SELECT ?, id, 1, 3, 15, 30 FROM exercises WHERE name = 'Burpees' LIMIT 1
-       UNION ALL SELECT ?, id, 2, 3, 20, 30 FROM exercises WHERE name = 'Kettlebell Swings' LIMIT 1
-       UNION ALL SELECT ?, id, 3, 3, 15, 30 FROM exercises WHERE name = 'Push-ups' LIMIT 1
-       UNION ALL SELECT ?, id, 4, 3, 12, 30 FROM exercises WHERE name = 'Box Jumps' LIMIT 1
-       UNION ALL SELECT ?, id, 5, 3, 30, 30 FROM exercises WHERE name = 'Mountain Climbers' LIMIT 1`,
-      [fullBodyCircuit.insertId, fullBodyCircuit.insertId, fullBodyCircuit.insertId, fullBodyCircuit.insertId, fullBodyCircuit.insertId]
-    );
+    await addWorkoutExercises(fullBodyCircuit.insertId, [
+      { name: 'Burpees', order: 1, sets: 3, reps: 15, rest: 30 },
+      { name: 'Kettlebell Swings', order: 2, sets: 3, reps: 20, rest: 30 },
+      { name: 'Push-ups', order: 3, sets: 3, reps: 15, rest: 30 },
+      { name: 'Box Jumps', order: 4, sets: 3, reps: 12, rest: 30 },
+      { name: 'Mountain Climbers', order: 5, sets: 3, reps: 30, rest: 30 }
+    ]);
 
     // Tabata HIIT
     const [tabata] = await connection.query(
       `INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES (?, 'Tabata HIIT Protocol', 'Classic Tabata intervals: 20 seconds max effort, 10 seconds rest. 8 rounds of pure intensity.', 'cardio', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, duration, rest_time) 
-       SELECT ?, id, 1, 8, 20, 10 FROM exercises WHERE name = 'Burpees' LIMIT 1
-       UNION ALL SELECT ?, id, 2, 8, 20, 10 FROM exercises WHERE name = 'Jump Squats' LIMIT 1
-       UNION ALL SELECT ?, id, 3, 8, 20, 10 FROM exercises WHERE name = 'Mountain Climbers' LIMIT 1
-       UNION ALL SELECT ?, id, 4, 8, 20, 10 FROM exercises WHERE name = 'High Knees' LIMIT 1`,
-      [tabata.insertId, tabata.insertId, tabata.insertId, tabata.insertId]
-    );
+    await addWorkoutExercises(tabata.insertId, [
+      { name: 'Burpees', order: 1, sets: 8, duration: 20, rest: 10 },
+      { name: 'Jump Squats', order: 2, sets: 8, duration: 20, rest: 10 },
+      { name: 'Mountain Climbers', order: 3, sets: 8, duration: 20, rest: 10 },
+      { name: 'High Knees', order: 4, sets: 8, duration: 20, rest: 10 }
+    ]);
 
     // Steady State Endurance
     const [steadyState] = await connection.query(
       `INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES (?, 'Steady State Endurance', 'Moderate intensity cardio for building aerobic base and burning fat. Sustainable pace for longer duration.', 'cardio', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, duration, rest_time) 
-       SELECT ?, id, 1, 1, 1800, 0 FROM exercises WHERE name = 'Treadmill Running' LIMIT 1
-       UNION ALL SELECT ?, id, 2, 1, 600, 120 FROM exercises WHERE name = 'Stationary Bike' LIMIT 1
-       UNION ALL SELECT ?, id, 3, 1, 600, 0 FROM exercises WHERE name = 'Rowing Machine' LIMIT 1`,
-      [steadyState.insertId, steadyState.insertId, steadyState.insertId]
-    );
+    await addWorkoutExercises(steadyState.insertId, [
+      { name: 'Treadmill Running', order: 1, sets: 1, duration: 1800, rest: 0 },
+      { name: 'Stationary Bike', order: 2, sets: 1, duration: 600, rest: 120 },
+      { name: 'Rowing Machine', order: 3, sets: 1, duration: 600, rest: 0 }
+    ]);
 
     // Deep Stretch Recovery
     const [deepStretch] = await connection.query(
       `INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES (?, 'Deep Stretch Recovery', 'Long-hold stretches for maximum flexibility gains. Perfect for rest days or post-workout recovery.', 'flexibility', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, duration, rest_time) 
-       SELECT ?, id, 1, 2, 60, 30 FROM exercises WHERE name = 'Hamstring Stretch' LIMIT 1
-       UNION ALL SELECT ?, id, 2, 2, 60, 30 FROM exercises WHERE name = 'Hip Flexor Stretch' LIMIT 1
-       UNION ALL SELECT ?, id, 3, 2, 60, 30 FROM exercises WHERE name = 'Quad Stretch' LIMIT 1`,
-      [deepStretch.insertId, deepStretch.insertId, deepStretch.insertId]
-    );
+    await addWorkoutExercises(deepStretch.insertId, [
+      { name: 'Hamstring Stretch', order: 1, sets: 2, duration: 60, rest: 30 },
+      { name: 'Hip Flexor Stretch', order: 2, sets: 2, duration: 60, rest: 30 },
+      { name: 'Quad Stretch', order: 3, sets: 2, duration: 60, rest: 30 }
+    ]);
 
     // Morning Yoga Flow
     const [yogaFlow] = await connection.query(
@@ -204,79 +202,85 @@ async function addMoreContent() {
     // =====================================================
     console.log('📋 Adding programs...');
 
+    // Helper function to add program workouts
+    const addProgramWorkouts = async (programId, workouts) => {
+      for (const workout of workouts) {
+        const [workoutData] = await connection.query(
+          'SELECT id FROM workouts WHERE name = ? AND is_predefined = TRUE LIMIT 1',
+          [workout.name]
+        );
+        if (workoutData.length > 0) {
+          await connection.query(
+            'INSERT INTO program_workouts (program_id, workout_id, day_of_week, order_index) VALUES (?, ?, ?, ?)',
+            [programId, workoutData[0].id, workout.day, workout.order]
+          );
+        }
+      }
+    };
+
     // Classic Bodybuilding Split
     const [bodybuildingSplit] = await connection.query(
       `INSERT INTO programs (user_id, name, description, duration_weeks, difficulty, is_predefined) VALUES (?, 'Classic Bodybuilding Split', 'Traditional bodybuilding program with dedicated muscle group days. Build size and definition with proven methods.', 12, 'intermediate', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO program_workouts (program_id, workout_id, day_of_week, order_index)
-       SELECT ?, id, 1, 1 FROM workouts WHERE name = 'Chest & Back Superset' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 2, 2 FROM workouts WHERE name = 'Shoulders & Traps' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 3, 3 FROM workouts WHERE name = 'Lower Body Hypertrophy' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 4, 4 FROM workouts WHERE name = 'Arms & Core Blast' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 6, 5 FROM workouts WHERE name = 'Deep Stretch Recovery' AND is_predefined = TRUE LIMIT 1`,
-      [bodybuildingSplit.insertId, bodybuildingSplit.insertId, bodybuildingSplit.insertId, bodybuildingSplit.insertId, bodybuildingSplit.insertId]
-    );
+    await addProgramWorkouts(bodybuildingSplit.insertId, [
+      { name: 'Chest & Back Superset', day: 1, order: 1 },
+      { name: 'Shoulders & Traps', day: 2, order: 2 },
+      { name: 'Lower Body Hypertrophy', day: 3, order: 3 },
+      { name: 'Arms & Core Blast', day: 4, order: 4 },
+      { name: 'Deep Stretch Recovery', day: 6, order: 5 }
+    ]);
 
     // 8-Week Fat Shredder
     const [fatShredder] = await connection.query(
       `INSERT INTO programs (user_id, name, description, duration_weeks, difficulty, is_predefined) VALUES (?, '8-Week Fat Shredder', 'Aggressive fat loss program combining strength training and metabolic conditioning. Get lean while preserving muscle.', 8, 'intermediate', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO program_workouts (program_id, workout_id, day_of_week, order_index)
-       SELECT ?, id, 1, 1 FROM workouts WHERE name = 'Full Body Circuit Training' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 2, 2 FROM workouts WHERE name = 'Tabata HIIT Protocol' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 3, 3 FROM workouts WHERE name = 'Upper Body Hypertrophy' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 4, 4 FROM workouts WHERE name = 'Tabata HIIT Protocol' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 5, 5 FROM workouts WHERE name = 'Lower Body Hypertrophy' AND is_predefined = TRUE LIMIT 1`,
-      [fatShredder.insertId, fatShredder.insertId, fatShredder.insertId, fatShredder.insertId, fatShredder.insertId]
-    );
+    await addProgramWorkouts(fatShredder.insertId, [
+      { name: 'Full Body Circuit Training', day: 1, order: 1 },
+      { name: 'Tabata HIIT Protocol', day: 2, order: 2 },
+      { name: 'Upper Body Hypertrophy', day: 3, order: 3 },
+      { name: 'Tabata HIIT Protocol', day: 4, order: 4 },
+      { name: 'Lower Body Hypertrophy', day: 5, order: 5 }
+    ]);
 
     // Power & Hypertrophy
     const [powerHypertrophy] = await connection.query(
       `INSERT INTO programs (user_id, name, description, duration_weeks, difficulty, is_predefined) VALUES (?, 'Power & Hypertrophy', 'Get the best of both worlds. Build maximum strength and muscle size with this hybrid program.', 10, 'advanced', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO program_workouts (program_id, workout_id, day_of_week, order_index)
-       SELECT ?, id, 1, 1 FROM workouts WHERE name = 'Intermediate Push Day' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 2, 2 FROM workouts WHERE name = 'Intermediate Pull Day' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 3, 3 FROM workouts WHERE name = 'Intermediate Leg Day' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 4, 4 FROM workouts WHERE name = 'Upper Body Hypertrophy' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 5, 5 FROM workouts WHERE name = 'Arms & Core Blast' AND is_predefined = TRUE LIMIT 1`,
-      [powerHypertrophy.insertId, powerHypertrophy.insertId, powerHypertrophy.insertId, powerHypertrophy.insertId, powerHypertrophy.insertId]
-    );
+    await addProgramWorkouts(powerHypertrophy.insertId, [
+      { name: 'Intermediate Push Day', day: 1, order: 1 },
+      { name: 'Intermediate Pull Day', day: 2, order: 2 },
+      { name: 'Intermediate Leg Day', day: 3, order: 3 },
+      { name: 'Upper Body Hypertrophy', day: 4, order: 4 },
+      { name: 'Arms & Core Blast', day: 5, order: 5 }
+    ]);
 
     // Busy Professional
     const [busyProfessional] = await connection.query(
       `INSERT INTO programs (user_id, name, description, duration_weeks, difficulty, is_predefined) VALUES (?, 'Busy Professional Fitness', 'Time-efficient program for people with demanding schedules. Only 3-4 workouts per week, maximum results.', 6, 'beginner', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO program_workouts (program_id, workout_id, day_of_week, order_index)
-       SELECT ?, id, 1, 1 FROM workouts WHERE name = 'Beginner Full Body A' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 3, 2 FROM workouts WHERE name = 'Steady State Endurance' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 5, 3 FROM workouts WHERE name = 'Beginner Full Body B' AND is_predefined = TRUE LIMIT 1`,
-      [busyProfessional.insertId, busyProfessional.insertId, busyProfessional.insertId]
-    );
+    await addProgramWorkouts(busyProfessional.insertId, [
+      { name: 'Beginner Full Body A', day: 1, order: 1 },
+      { name: 'Steady State Endurance', day: 3, order: 2 },
+      { name: 'Beginner Full Body B', day: 5, order: 3 }
+    ]);
 
     // Summer Shred Challenge
     const [summerShred] = await connection.query(
       `INSERT INTO programs (user_id, name, description, duration_weeks, difficulty, is_predefined) VALUES (?, 'Summer Shred Challenge', 'Get beach-ready with this high-intensity 6-week program. Combination of strength, cardio, and ab work for a shredded physique.', 6, 'intermediate', TRUE)`,
       [systemUserId]
     );
-    await connection.query(
-      `INSERT INTO program_workouts (program_id, workout_id, day_of_week, order_index)
-       SELECT ?, id, 0, 1 FROM workouts WHERE name = 'Upper Body Hypertrophy' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 1, 2 FROM workouts WHERE name = 'Tabata HIIT Protocol' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 2, 3 FROM workouts WHERE name = 'Lower Body Hypertrophy' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 3, 4 FROM workouts WHERE name = 'Full Body Circuit Training' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 4, 5 FROM workouts WHERE name = 'Arms & Core Blast' AND is_predefined = TRUE LIMIT 1
-       UNION ALL SELECT ?, id, 6, 6 FROM workouts WHERE name = 'Morning Yoga Flow' AND is_predefined = TRUE LIMIT 1`,
-      [summerShred.insertId, summerShred.insertId, summerShred.insertId, summerShred.insertId, summerShred.insertId, summerShred.insertId]
-    );
+    await addProgramWorkouts(summerShred.insertId, [
+      { name: 'Upper Body Hypertrophy', day: 0, order: 1 },
+      { name: 'Tabata HIIT Protocol', day: 1, order: 2 },
+      { name: 'Lower Body Hypertrophy', day: 2, order: 3 },
+      { name: 'Full Body Circuit Training', day: 3, order: 4 },
+      { name: 'Arms & Core Blast', day: 4, order: 5 },
+      { name: 'Morning Yoga Flow', day: 6, order: 6 }
+    ]);
 
     console.log('✅ Added 5 additional programs!');
     console.log('');
