@@ -134,27 +134,47 @@ router.get('/exercise/:exerciseId', auth, async (req, res) => {
       let totalReps = 0;
       
       // Try to parse JSON data first (new format)
-      if (log.weight_per_set && log.reps_per_set) {
+      if (log.weight_per_set) {
         try {
-          const weights = JSON.parse(log.weight_per_set);
-          const reps = JSON.parse(log.reps_per_set);
-          // Calculate average weight across sets
-          weight = weights.reduce((sum, w) => sum + (parseFloat(w) || 0), 0) / weights.length || 0;
+          const weightsRaw = typeof log.weight_per_set === 'string' 
+            ? JSON.parse(log.weight_per_set) 
+            : log.weight_per_set;
+          const weights = Array.isArray(weightsRaw) ? weightsRaw : [];
+          
+          if (weights.length > 0) {
+            const validWeights = weights.filter(w => w != null && parseFloat(w) > 0);
+            if (validWeights.length > 0) {
+              weight = validWeights.reduce((sum, w) => sum + parseFloat(w), 0) / validWeights.length;
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing weight_per_set:', e, log.weight_per_set);
+        }
+      }
+      
+      if (log.reps_per_set) {
+        try {
+          const repsRaw = typeof log.reps_per_set === 'string' 
+            ? JSON.parse(log.reps_per_set) 
+            : log.reps_per_set;
+          const reps = Array.isArray(repsRaw) ? repsRaw : [];
           totalReps = reps.reduce((sum, r) => sum + (parseInt(r) || 0), 0);
         } catch (e) {
-          // Fall back to old format
-          weight = parseFloat(log.weight_used) || 0;
-          totalReps = parseInt(log.reps_completed) || 0;
+          console.error('Error parsing reps_per_set:', e, log.reps_per_set);
         }
-      } else {
-        // Use old format
+      }
+      
+      // Fall back to old format if no valid data
+      if (weight === 0 && log.weight_used) {
         weight = parseFloat(log.weight_used) || 0;
+      }
+      if (totalReps === 0 && log.reps_completed) {
         totalReps = parseInt(log.reps_completed) || 0;
       }
       
       return {
         date: log.date,
-        weight: weight,
+        weight: Math.round(weight * 10) / 10,
         sets: log.sets_completed,
         reps: totalReps
       };
@@ -166,49 +186,60 @@ router.get('/exercise/:exerciseId', auth, async (req, res) => {
     let maxReps = 0;
 
     progressData.forEach(log => {
-      let weight = 0;
-      let totalReps = 0;
       let sets = log.sets_completed || 0;
       
       // Try to parse JSON data first (new format)
-      if (log.weight_per_set && log.reps_per_set) {
+      if (log.weight_per_set) {
         try {
-          const weights = JSON.parse(log.weight_per_set);
-          const reps = JSON.parse(log.reps_per_set);
+          const weightsRaw = typeof log.weight_per_set === 'string' 
+            ? JSON.parse(log.weight_per_set) 
+            : log.weight_per_set;
+          const weights = Array.isArray(weightsRaw) ? weightsRaw : [];
+          
+          const repsRaw = log.reps_per_set 
+            ? (typeof log.reps_per_set === 'string' ? JSON.parse(log.reps_per_set) : log.reps_per_set)
+            : [];
+          const reps = Array.isArray(repsRaw) ? repsRaw : [];
           
           // Find max weight across all sets
-          const maxWeightInLog = Math.max(...weights.filter(w => w > 0));
-          weight = maxWeightInLog || 0;
-          
-          // Calculate total reps
-          totalReps = reps.reduce((sum, r) => sum + (parseInt(r) || 0), 0);
+          const validWeights = weights.filter(w => w != null && parseFloat(w) > 0);
+          if (validWeights.length > 0) {
+            const maxWeightInLog = Math.max(...validWeights.map(w => parseFloat(w)));
+            if (maxWeightInLog > maxWeight) maxWeight = maxWeightInLog;
+          }
           
           // Calculate total volume
           let volume = 0;
           for (let i = 0; i < Math.min(weights.length, reps.length); i++) {
-            volume += (parseFloat(weights[i]) || 0) * (parseInt(reps[i]) || 0);
+            const w = parseFloat(weights[i]) || 0;
+            const r = parseInt(reps[i]) || 0;
+            if (w > 0 && r > 0) {
+              volume += w * r;
+            }
           }
-          
-          if (weight > maxWeight) maxWeight = weight;
           if (volume > maxVolume) maxVolume = volume;
           
           // Find max reps in a single set
-          const maxRepsInLog = Math.max(...reps.filter(r => r > 0));
-          if (maxRepsInLog > maxReps) maxReps = maxRepsInLog;
+          const validReps = reps.filter(r => r != null && parseInt(r) > 0);
+          if (validReps.length > 0) {
+            const maxRepsInLog = Math.max(...validReps.map(r => parseInt(r)));
+            if (maxRepsInLog > maxReps) maxReps = maxRepsInLog;
+          }
         } catch (e) {
+          console.error('Error parsing exercise log JSON:', e);
           // Fall back to old format
-          weight = parseFloat(log.weight_used) || 0;
-          totalReps = parseInt(log.reps_completed) || 0;
+          const weight = parseFloat(log.weight_used) || 0;
+          const totalReps = parseInt(log.reps_completed) || 0;
           const volume = weight * sets * totalReps;
           
           if (weight > maxWeight) maxWeight = weight;
           if (volume > maxVolume) maxVolume = volume;
           if (totalReps > maxReps) maxReps = totalReps;
         }
-      } else {
+      } else if (log.weight_used) {
         // Use old format
-        weight = parseFloat(log.weight_used) || 0;
-        totalReps = parseInt(log.reps_completed) || 0;
+        const weight = parseFloat(log.weight_used) || 0;
+        const totalReps = parseInt(log.reps_completed) || 0;
         const volume = weight * sets * totalReps;
         
         if (weight > maxWeight) maxWeight = weight;
@@ -280,19 +311,24 @@ router.get('/exercises/progress', auth, async (req, res) => {
         logs.forEach(log => {
           if (log.weight_per_set) {
             try {
-              const weights = JSON.parse(log.weight_per_set);
+              const weightsRaw = typeof log.weight_per_set === 'string' 
+                ? JSON.parse(log.weight_per_set) 
+                : log.weight_per_set;
+              const weights = Array.isArray(weightsRaw) ? weightsRaw : [];
+              
               weights.forEach(w => {
                 const weight = parseFloat(w);
-                if (weight > 0) {
+                if (!isNaN(weight) && weight > 0) {
                   if (weight > maxWeight) maxWeight = weight;
                   totalWeight += weight;
                   weightCount++;
                 }
               });
             } catch (e) {
+              console.error('Error parsing weight_per_set in exercises/progress:', e);
               // Fall back to old format
               const weight = parseFloat(log.weight_used);
-              if (weight > 0) {
+              if (!isNaN(weight) && weight > 0) {
                 if (weight > maxWeight) maxWeight = weight;
                 totalWeight += weight;
                 weightCount++;
@@ -300,7 +336,7 @@ router.get('/exercises/progress', auth, async (req, res) => {
             }
           } else if (log.weight_used) {
             const weight = parseFloat(log.weight_used);
-            if (weight > 0) {
+            if (!isNaN(weight) && weight > 0) {
               if (weight > maxWeight) maxWeight = weight;
               totalWeight += weight;
               weightCount++;
@@ -364,20 +400,33 @@ router.get('/volume', auth, async (req, res) => {
       let volume = 0;
       
       // Try to parse JSON data first (new format)
-      if (log.weight_per_set && log.reps_per_set) {
+      if (log.weight_per_set) {
         try {
-          const weights = JSON.parse(log.weight_per_set);
-          const reps = JSON.parse(log.reps_per_set);
+          const weightsRaw = typeof log.weight_per_set === 'string' 
+            ? JSON.parse(log.weight_per_set) 
+            : log.weight_per_set;
+          const weights = Array.isArray(weightsRaw) ? weightsRaw : [];
+          
+          const repsRaw = log.reps_per_set 
+            ? (typeof log.reps_per_set === 'string' ? JSON.parse(log.reps_per_set) : log.reps_per_set)
+            : [];
+          const reps = Array.isArray(repsRaw) ? repsRaw : [];
+          
           for (let i = 0; i < Math.min(weights.length, reps.length); i++) {
-            volume += (parseFloat(weights[i]) || 0) * (parseInt(reps[i]) || 0);
+            const w = parseFloat(weights[i]) || 0;
+            const r = parseInt(reps[i]) || 0;
+            if (w > 0 && r > 0) {
+              volume += w * r;
+            }
           }
         } catch (e) {
+          console.error('Error parsing volume data:', e);
           // Fall back to old format
           volume = (parseFloat(log.weight_used) || 0) * 
                    (parseInt(log.reps_completed) || 0) * 
                    (log.sets_completed || 0);
         }
-      } else {
+      } else if (log.weight_used) {
         // Use old format
         volume = (parseFloat(log.weight_used) || 0) * 
                  (parseInt(log.reps_completed) || 0) * 
@@ -407,12 +456,24 @@ router.get('/volume', auth, async (req, res) => {
       let volume = 0;
       
       // Try to parse JSON data first (new format)
-      if (log.weight_per_set && log.reps_per_set) {
+      if (log.weight_per_set) {
         try {
-          const weights = JSON.parse(log.weight_per_set);
-          const reps = JSON.parse(log.reps_per_set);
+          const weightsRaw = typeof log.weight_per_set === 'string' 
+            ? JSON.parse(log.weight_per_set) 
+            : log.weight_per_set;
+          const weights = Array.isArray(weightsRaw) ? weightsRaw : [];
+          
+          const repsRaw = log.reps_per_set 
+            ? (typeof log.reps_per_set === 'string' ? JSON.parse(log.reps_per_set) : log.reps_per_set)
+            : [];
+          const reps = Array.isArray(repsRaw) ? repsRaw : [];
+          
           for (let i = 0; i < Math.min(weights.length, reps.length); i++) {
-            volume += (parseFloat(weights[i]) || 0) * (parseInt(reps[i]) || 0);
+            const w = parseFloat(weights[i]) || 0;
+            const r = parseInt(reps[i]) || 0;
+            if (w > 0 && r > 0) {
+              volume += w * r;
+            }
           }
         } catch (e) {
           // Fall back to old format
@@ -420,10 +481,12 @@ router.get('/volume', auth, async (req, res) => {
                    (parseInt(log.reps_completed) || 0) * 
                    (log.sets_completed || 0);
         }
-      } else {
+      } else if (log.weight_used) {
         // Use old format
         volume = (parseFloat(log.weight_used) || 0) * 
                  (parseInt(log.reps_completed) || 0) * 
+                 (log.sets_completed || 0);
+      } 
                  (log.sets_completed || 0);
       }
       
@@ -563,18 +626,29 @@ router.get('/records', auth, async (req, res) => {
     // Process to find max weights per exercise
     const exerciseWeights = {};
     heaviestLifts.forEach(log => {
+      if (!log.weight_per_set) return;
+      
       try {
-        const weights = JSON.parse(log.weight_per_set);
-        const maxWeight = Math.max(...weights.filter(w => w > 0));
+        const weightsRaw = typeof log.weight_per_set === 'string' 
+          ? JSON.parse(log.weight_per_set) 
+          : log.weight_per_set;
+        const weights = Array.isArray(weightsRaw) ? weightsRaw : [];
+        
+        const validWeights = weights.filter(w => w != null && parseFloat(w) > 0);
+        if (validWeights.length === 0) return;
+        
+        const maxWeight = Math.max(...validWeights.map(w => parseFloat(w)));
+        
         if (!exerciseWeights[log.exercise_name] || maxWeight > exerciseWeights[log.exercise_name].max_weight) {
           exerciseWeights[log.exercise_name] = {
             exercise_name: log.exercise_name,
             muscle_group: log.muscle_group,
-            max_weight: maxWeight,
+            max_weight: Math.round(maxWeight * 10) / 10,
             date_achieved: log.date_achieved
           };
         }
       } catch (e) {
+        console.error('Error parsing weight_per_set in records:', e);
         // Skip invalid JSON
       }
     });
@@ -600,9 +674,19 @@ router.get('/records', auth, async (req, res) => {
     // Process to find max reps per exercise
     const exerciseReps = {};
     mostRepsData.forEach(log => {
+      if (!log.reps_per_set) return;
+      
       try {
-        const reps = JSON.parse(log.reps_per_set);
-        const maxReps = Math.max(...reps.filter(r => r > 0));
+        const repsRaw = typeof log.reps_per_set === 'string' 
+          ? JSON.parse(log.reps_per_set) 
+          : log.reps_per_set;
+        const reps = Array.isArray(repsRaw) ? repsRaw : [];
+        
+        const validReps = reps.filter(r => r != null && parseInt(r) > 0);
+        if (validReps.length === 0) return;
+        
+        const maxReps = Math.max(...validReps.map(r => parseInt(r)));
+        
         if (!exerciseReps[log.exercise_name] || maxReps > exerciseReps[log.exercise_name].max_reps) {
           exerciseReps[log.exercise_name] = {
             exercise_name: log.exercise_name,
@@ -611,6 +695,7 @@ router.get('/records', auth, async (req, res) => {
           };
         }
       } catch (e) {
+        console.error('Error parsing reps_per_set in records:', e);
         // Skip invalid JSON
       }
     });
@@ -646,13 +731,28 @@ router.get('/records', auth, async (req, res) => {
 
     let totalVolume = 0;
     volumeData.forEach(log => {
+      if (!log.weight_per_set) return;
+      
       try {
-        const weights = JSON.parse(log.weight_per_set);
-        const reps = JSON.parse(log.reps_per_set);
+        const weightsRaw = typeof log.weight_per_set === 'string' 
+          ? JSON.parse(log.weight_per_set) 
+          : log.weight_per_set;
+        const weights = Array.isArray(weightsRaw) ? weightsRaw : [];
+        
+        const repsRaw = log.reps_per_set 
+          ? (typeof log.reps_per_set === 'string' ? JSON.parse(log.reps_per_set) : log.reps_per_set)
+          : [];
+        const reps = Array.isArray(repsRaw) ? repsRaw : [];
+        
         for (let i = 0; i < Math.min(weights.length, reps.length); i++) {
-          totalVolume += (weights[i] || 0) * (reps[i] || 0);
+          const w = parseFloat(weights[i]) || 0;
+          const r = parseInt(reps[i]) || 0;
+          if (w > 0 && r > 0) {
+            totalVolume += w * r;
+          }
         }
       } catch (e) {
+        console.error('Error parsing volume data in records:', e);
         // Skip invalid JSON
       }
     });
