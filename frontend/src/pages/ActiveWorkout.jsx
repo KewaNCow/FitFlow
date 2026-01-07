@@ -93,6 +93,7 @@ const ActiveWorkout = () => {
     try {
       const response = await exerciseAPI.getAll();
       const exercisesData = response.data.data;
+      console.log('Available exercises fetched:', exercisesData);
       setAvailableExercises(Array.isArray(exercisesData) ? exercisesData : []);
     } catch (error) {
       console.error('Error fetching exercises:', error);
@@ -257,6 +258,10 @@ const ActiveWorkout = () => {
     ex.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     ex.muscle_group?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  console.log('Available exercises:', availableExercises.length);
+  console.log('Search query:', searchQuery);
+  console.log('Filtered exercises:', filteredExercises.length);
 
   if (loading) {
     return (
@@ -326,7 +331,12 @@ const ActiveWorkout = () => {
           <div key={exIdx} className="card p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{exercise.name}</h3>
+                <Link 
+                  to={`/exercises/${exercise.exercise_id}`}
+                  className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors"
+                >
+                  {exercise.name}
+                </Link>
                 <p className="text-sm text-gray-500">{exercise.muscle_group}</p>
               </div>
               <button
@@ -481,20 +491,33 @@ const ActiveWorkout = () => {
               autoFocus
             />
             
-            <div className="flex-1 overflow-y-auto space-y-2">
-              {filteredExercises.map(exercise => (
-                <button
-                  key={exercise.id}
-                  onClick={() => addExerciseToWorkout(exercise)}
-                  className="w-full p-3 text-left rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors"
-                >
-                  <div className="font-medium text-gray-900">{exercise.name}</div>
-                  <div className="text-sm text-gray-500">{exercise.muscle_group}</div>
-                </button>
-              ))}
-              
-              {filteredExercises.length === 0 && (
-                <p className="text-center text-gray-500 py-8">No exercises found</p>
+            <div className="text-sm text-gray-500 mb-2">
+              Showing {filteredExercises.length} exercise{filteredExercises.length !== 1 ? 's' : ''}
+            </div>
+            
+            <div className="flex-1 overflow-y-auto space-y-2 min-h-[200px]">
+              {filteredExercises.length > 0 ? (
+                filteredExercises.map(exercise => (
+                  <button
+                    key={exercise.id}
+                    onClick={() => addExerciseToWorkout(exercise)}
+                    className="w-full p-3 text-left rounded-lg hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 transition-colors"
+                  >
+                    <div className="font-medium text-gray-900">{exercise.name}</div>
+                    <div className="text-sm text-gray-500">{exercise.muscle_group}</div>
+                  </button>
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  {availableExercises.length === 0 ? (
+                    <>
+                      <Dumbbell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <p>Loading exercises...</p>
+                    </>
+                  ) : (
+                    <p>No exercises found matching "{searchQuery}"</p>
+                  )}
+                </div>
               )}
             </div>
           </div>
