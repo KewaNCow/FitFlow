@@ -82,6 +82,24 @@ const WorkoutBuilder = () => {
     try {
       const response = await workoutAPI.getById(id);
       const data = response.data.data;
+      
+      // If this is a predefined workout, automatically copy it and redirect to edit the copy
+      if (data.is_predefined) {
+        console.log('Predefined workout detected, creating copy...');
+        try {
+          const copyResponse = await workoutAPI.copy(id);
+          const newWorkoutId = copyResponse.data.data.id;
+          console.log('Created copy with ID:', newWorkoutId);
+          navigate(`/my-workouts/${newWorkoutId}/edit`, { replace: true });
+          return;
+        } catch (copyError) {
+          console.error('Error copying predefined workout:', copyError);
+          setError('Cannot edit predefined workout. Please try copying it first.');
+          setTimeout(() => navigate('/my-workouts'), 2000);
+          return;
+        }
+      }
+      
       setWorkout({
         name: data.name,
         description: data.description || '',
