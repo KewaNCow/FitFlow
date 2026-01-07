@@ -650,7 +650,7 @@ const WorkoutBuilder = () => {
                           <span className={`text-xs px-2 py-0.5 rounded-full ${
                             isCardio ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
                           }`}>
-                            {exercise.category}
+                            {t(`common.categories.${exercise.category}`)}
                           </span>
                         </div>
                         <p className="text-sm text-gray-500">

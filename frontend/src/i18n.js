@@ -65,6 +65,19 @@ const resources = {
           friday: 'Friday',
           saturday: 'Saturday',
           sunday: 'Sunday'
+        },
+        categories: {
+          strength: 'Strength',
+          cardio: 'Cardio',
+          flexibility: 'Flexibility',
+          bodyweight: 'Bodyweight',
+          machine: 'Machine',
+          mixed: 'Mixed'
+        },
+        difficulties: {
+          beginner: 'Beginner',
+          intermediate: 'Intermediate',
+          advanced: 'Advanced'
         }
       },
       
@@ -743,6 +756,19 @@ const resources = {
           friday: 'Fredag',
           saturday: 'Lördag',
           sunday: 'Söndag'
+        },
+        categories: {
+          strength: 'Styrka',
+          cardio: 'Kondition',
+          flexibility: 'Flexibilitet',
+          bodyweight: 'Kroppsvikt',
+          machine: 'Maskin',
+          mixed: 'Blandat'
+        },
+        difficulties: {
+          beginner: 'Nybörjare',
+          intermediate: 'Medel',
+          advanced: 'Avancerad'
         }
       },
             // Exercises

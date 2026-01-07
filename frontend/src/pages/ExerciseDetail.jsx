@@ -106,11 +106,11 @@ const ExerciseDetail = () => {
         <div>
           <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
             <span className={`badge text-xs ${getCategoryColor(exercise.category)}`}>
-              {exercise.category}
+              {t(`common.categories.${exercise.category}`)}
             </span>
             {exercise.difficulty && (
               <span className={`badge text-xs ${getDifficultyColor(exercise.difficulty)}`}>
-                {exercise.difficulty}
+                {t(`common.difficulties.${exercise.difficulty}`)}
               </span>
             )}
           </div>

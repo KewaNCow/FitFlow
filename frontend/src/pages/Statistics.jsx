@@ -608,7 +608,7 @@ const Statistics = () => {
                           )}
                         </td>
                         <td className="py-2 sm:py-3 px-2 sm:px-4">
-                          <span className="badge bg-gray-100 text-gray-700 text-xs">{exercise.category}</span>
+                          <span className="badge bg-gray-100 text-gray-700 text-xs">{t(`common.categories.${exercise.category}`)}</span>
                         </td>
                         <td className="py-2 sm:py-3 px-2 sm:px-4 text-center font-medium text-sm">{exercise.times_performed}</td>
                         <td className="py-2 sm:py-3 px-2 sm:px-4 text-center text-sm">

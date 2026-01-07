@@ -339,7 +339,7 @@ const ExerciseLibrary = () => {
                   )}
                   <div className="absolute top-2 left-2 flex gap-2">
                     <span className={`badge text-xs ${getCategoryColor(exercise.category)}`}>
-                      {exercise.category}
+                      {t(`common.categories.${exercise.category}`)}
                     </span>
                     {exercise.is_custom && (
                       <span className="badge bg-purple-100 text-purple-700">
