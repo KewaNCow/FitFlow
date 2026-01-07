@@ -325,33 +325,74 @@ router.get('/records', auth, async (req, res) => {
       `SELECT 
         e.name as exercise_name,
         e.muscle_group,
-        MAX(JSON_EXTRACT(el.weight_per_set, '$[0]')) as max_weight,
-        wl.completed_at as date_achieved
-       FROM exercise_logs el
-       JOIN exercises e ON el.exercise_id = e.id
-       JOIN workout_logs wl ON el.workout_log_id = wl.id
-       WHERE wl.user_id = ? 
-       GROUP BY e.id, e.name, e.muscle_group
-       ORDER BY max_weight DESC
-       LIMIT 10`,
-      [req.user.id]
-    );
-
-    // Most reps in a set
-    const [mostReps] = await pool.query(
-      `SELECT 
-        e.name as exercise_name,
-        MAX(JSON_EXTRACT(el.reps_per_set, '$[0]')) as max_reps,
+        el.weight_per_set,
         wl.completed_at as date_achieved
        FROM exercise_logs el
        JOIN exercises e ON el.exercise_id = e.id
        JOIN workout_logs wl ON el.workout_log_id = wl.id
        WHERE wl.user_id = ?
-       GROUP BY e.id, e.name
-       ORDER BY max_reps DESC
-       LIMIT 10`,
+       ORDER BY el.id DESC
+       LIMIT 100`,
       [req.user.id]
     );
+
+    // Process to find max weights per exercise
+    const exerciseWeights = {};
+    heaviestLifts.forEach(log => {
+      try {
+        const weights = JSON.parse(log.weight_per_set);
+        const maxWeight = Math.max(...weights.filter(w => w > 0));
+        if (!exerciseWeights[log.exercise_name] || maxWeight > exerciseWeights[log.exercise_name].max_weight) {
+          exerciseWeights[log.exercise_name] = {
+            exercise_name: log.exercise_name,
+            muscle_group: log.muscle_group,
+            max_weight: maxWeight,
+            date_achieved: log.date_achieved
+          };
+        }
+      } catch (e) {
+        // Skip invalid JSON
+      }
+    });
+    const topHeaviestLifts = Object.values(exerciseWeights)
+      .sort((a, b) => b.max_weight - a.max_weight)
+      .slice(0, 10);
+
+    // Most reps in a set
+    const [mostRepsData] = await pool.query(
+      `SELECT 
+        e.name as exercise_name,
+        el.reps_per_set,
+        wl.completed_at as date_achieved
+       FROM exercise_logs el
+       JOIN exercises e ON el.exercise_id = e.id
+       JOIN workout_logs wl ON el.workout_log_id = wl.id
+       WHERE wl.user_id = ?
+       ORDER BY el.id DESC
+       LIMIT 100`,
+      [req.user.id]
+    );
+
+    // Process to find max reps per exercise
+    const exerciseReps = {};
+    mostRepsData.forEach(log => {
+      try {
+        const reps = JSON.parse(log.reps_per_set);
+        const maxReps = Math.max(...reps.filter(r => r > 0));
+        if (!exerciseReps[log.exercise_name] || maxReps > exerciseReps[log.exercise_name].max_reps) {
+          exerciseReps[log.exercise_name] = {
+            exercise_name: log.exercise_name,
+            max_reps: maxReps,
+            date_achieved: log.date_achieved
+          };
+        }
+      } catch (e) {
+        // Skip invalid JSON
+      }
+    });
+    const topMostReps = Object.values(exerciseReps)
+      .sort((a, b) => b.max_reps - a.max_reps)
+      .slice(0, 10);
 
     // Longest workout
     const [longestWorkout] = await pool.query(
@@ -367,27 +408,38 @@ router.get('/records', auth, async (req, res) => {
       [req.user.id]
     );
 
-    // Total volume lifted
-    const [totalVolume] = await pool.query(
+    // Total volume lifted (calculate from all logs)
+    const [volumeData] = await pool.query(
       `SELECT 
-        SUM(
-          JSON_EXTRACT(el.weight_per_set, '$[0]') * 
-          JSON_EXTRACT(el.reps_per_set, '$[0]') * 
-          el.sets_completed
-        ) as total_volume
+        el.weight_per_set,
+        el.reps_per_set,
+        el.sets_completed
        FROM exercise_logs el
        JOIN workout_logs wl ON el.workout_log_id = wl.id
        WHERE wl.user_id = ?`,
       [req.user.id]
     );
 
+    let totalVolume = 0;
+    volumeData.forEach(log => {
+      try {
+        const weights = JSON.parse(log.weight_per_set);
+        const reps = JSON.parse(log.reps_per_set);
+        for (let i = 0; i < Math.min(weights.length, reps.length); i++) {
+          totalVolume += (weights[i] || 0) * (reps[i] || 0);
+        }
+      } catch (e) {
+        // Skip invalid JSON
+      }
+    });
+
     res.json({
       success: true,
       data: {
-        heaviest_lifts: heaviestLifts,
-        most_reps: mostReps,
-        longest_workout: longestWorkout[0],
-        total_volume: totalVolume[0]?.total_volume || 0
+        heaviest_lifts: topHeaviestLifts,
+        most_reps: topMostReps,
+        longest_workout: longestWorkout[0] || null,
+        total_volume: Math.round(totalVolume)
       }
     });
   } catch (error) {
