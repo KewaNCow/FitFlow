@@ -486,8 +486,6 @@ router.get('/volume', auth, async (req, res) => {
         volume = (parseFloat(log.weight_used) || 0) * 
                  (parseInt(log.reps_completed) || 0) * 
                  (log.sets_completed || 0);
-      } 
-                 (log.sets_completed || 0);
       }
       
       if (!weeklyVolumeMap[yearWeek]) {

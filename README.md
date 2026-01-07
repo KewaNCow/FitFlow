@@ -83,7 +83,7 @@ FitFlow is a comprehensive fitness application that helps users plan, track, and
 
 ## Live Demo
 
-**Live Application**: [https://fit-flow-psi.vercel.app](https://fit-flow-psi.vercel.app)
+**Live Application**: [https://fitflow-plum.vercel.app](https://fitflow-plum.vercel.app)
 
 **Demo Credentials**:
 - Email: `demo@fitflow.app`
