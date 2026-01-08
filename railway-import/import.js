@@ -16,7 +16,8 @@ async function importDatabase() {
 
   console.log('✅ Connected!');
 
-  const sqlFile = path.join(__dirname, 'deploy_complete.sql');
+  // Use the complete installation file (fitflow_complete.sql)
+  const sqlFile = path.join(__dirname, 'fitflow_complete.sql');
   console.log('📄 Reading SQL file:', sqlFile);
   
   const sql = fs.readFileSync(sqlFile, 'utf8');

@@ -4,6 +4,12 @@ const pool = require('../config/database');
 const { auth } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
 
+// Helper function to parse JSON fields that might already be parsed by MySQL driver
+const parseJsonField = (field) => {
+  if (!field) return [];
+  return typeof field === 'string' ? JSON.parse(field) : field;
+};
+
 // Get all routes for user
 router.get('/', auth, async (req, res) => {
   try {
@@ -12,16 +18,12 @@ router.get('/', auth, async (req, res) => {
       [req.user.id]
     );
     
-    // Parse waypoints JSON for each route (handle if already parsed by MySQL driver)
-    const parsedRoutes = routes.map(route => {
-      let waypoints = [];
-      if (route.waypoints) {
-        waypoints = typeof route.waypoints === 'string' 
-          ? JSON.parse(route.waypoints) 
-          : route.waypoints;
-      }
-      return { ...route, waypoints };
-    });
+    // Parse JSON fields for each route
+    const parsedRoutes = routes.map(route => ({
+      ...route,
+      waypoints: parseJsonField(route.waypoints),
+      routed_path: parseJsonField(route.routed_path)
+    }));
     
     res.json({ success: true, data: parsedRoutes });
   } catch (error) {
@@ -42,17 +44,10 @@ router.get('/:id', auth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Route not found' });
     }
     
-    // Handle waypoints - might already be parsed by MySQL driver
-    let waypoints = [];
-    if (routes[0].waypoints) {
-      waypoints = typeof routes[0].waypoints === 'string' 
-        ? JSON.parse(routes[0].waypoints) 
-        : routes[0].waypoints;
-    }
-    
     const route = {
       ...routes[0],
-      waypoints
+      waypoints: parseJsonField(routes[0].waypoints),
+      routed_path: parseJsonField(routes[0].routed_path)
     };
     
     res.json({ success: true, data: route });
@@ -110,19 +105,12 @@ router.post('/', auth, [
 
     const [newRoute] = await pool.execute('SELECT * FROM routes WHERE id = ?', [result.insertId]);
     
-    // Handle waypoints - might already be parsed by MySQL driver
-    let parsedWaypoints = [];
-    if (newRoute[0].waypoints) {
-      parsedWaypoints = typeof newRoute[0].waypoints === 'string' 
-        ? JSON.parse(newRoute[0].waypoints) 
-        : newRoute[0].waypoints;
-    }
-    
     res.status(201).json({ 
       success: true, 
       data: {
         ...newRoute[0],
-        waypoints: parsedWaypoints
+        waypoints: parseJsonField(newRoute[0].waypoints),
+        routed_path: parseJsonField(newRoute[0].routed_path)
       }
     });
   } catch (error) {
@@ -190,19 +178,12 @@ router.put('/:id', auth, async (req, res) => {
 
     const [updated] = await pool.execute('SELECT * FROM routes WHERE id = ?', [req.params.id]);
     
-    // Handle waypoints - might already be parsed by MySQL driver
-    let parsedWaypoints = [];
-    if (updated[0].waypoints) {
-      parsedWaypoints = typeof updated[0].waypoints === 'string' 
-        ? JSON.parse(updated[0].waypoints) 
-        : updated[0].waypoints;
-    }
-    
     res.json({ 
       success: true, 
       data: {
         ...updated[0],
-        waypoints: parsedWaypoints
+        waypoints: parseJsonField(updated[0].waypoints),
+        routed_path: parseJsonField(updated[0].routed_path)
       }
     });
   } catch (error) {

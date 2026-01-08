@@ -1,39 +1,38 @@
 -- =====================================================
--- FitFlow Complete Database Deployment Script
--- Version: 1.0 - Production Ready
+-- FitFlow Complete Database Setup
+-- Version: 2.0 (Railway/MySQL)
 -- 
--- This single file contains EVERYTHING needed:
--- 1. Schema (all tables)
--- 2. Seed data (exercises, equipment)
--- 3. Predefined workouts & programs
--- 4. Admin user
--- 
--- INSTRUCTIONS:
--- 1. Create a new database (or use Railway's default)
--- 2. Run this entire script
--- 
--- TEST ACCOUNTS:
--- Demo User: demo@fitflow.com / demo123
--- Admin User: admin@fitflow.com / admin123
+-- This single file creates the entire database schema
+-- and seeds all data for FitFlow application.
+--
+-- Usage (Railway):
+-- 1. Deploy this file to railway-import/
+-- 2. Run: node import.js
+--
+-- Test Accounts:
+-- Demo: demo@fitflow.com / demo123
+-- Admin: admin@fitflow.com / admin123
 -- =====================================================
 
 -- =====================================================
--- SCHEMA
+-- SCHEMA: TABLES
 -- =====================================================
 
+-- Users table
 CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    is_admin BOOLEAN DEFAULT FALSE,
     profile_image VARCHAR(500),
+    is_admin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Equipment table
 CREATE TABLE IF NOT EXISTS equipment (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NULL,
@@ -45,9 +44,11 @@ CREATE TABLE IF NOT EXISTS equipment (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_category (category)
+    INDEX idx_category (category),
+    INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Exercises table
 CREATE TABLE IF NOT EXISTS exercises (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT DEFAULT NULL,
@@ -71,9 +72,11 @@ CREATE TABLE IF NOT EXISTS exercises (
     FOREIGN KEY (equipment_id) REFERENCES equipment(id) ON DELETE SET NULL,
     INDEX idx_category (category),
     INDEX idx_muscle_group (muscle_group),
-    INDEX idx_name (name)
+    INDEX idx_name (name),
+    INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Exercise images table
 CREATE TABLE IF NOT EXISTS exercise_images (
     id INT PRIMARY KEY AUTO_INCREMENT,
     exercise_id INT NOT NULL,
@@ -81,9 +84,11 @@ CREATE TABLE IF NOT EXISTS exercise_images (
     display_order INT DEFAULT 0,
     caption VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE CASCADE
+    FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE CASCADE,
+    INDEX idx_exercise_id (exercise_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Routes table (for cardio route planning)
 CREATE TABLE IF NOT EXISTS routes (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -94,6 +99,7 @@ CREATE TABLE IF NOT EXISTS routes (
     estimated_duration INT,
     elevation_gain INT,
     waypoints JSON,
+    routed_path JSON,
     start_location VARCHAR(255),
     end_location VARCHAR(255),
     is_favorite BOOLEAN DEFAULT FALSE,
@@ -101,9 +107,11 @@ CREATE TABLE IF NOT EXISTS routes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_user_id (user_id)
+    INDEX idx_user_id (user_id),
+    INDEX idx_activity_type (activity_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Workouts table
 CREATE TABLE IF NOT EXISTS workouts (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -119,6 +127,7 @@ CREATE TABLE IF NOT EXISTS workouts (
     INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Workout exercises junction table
 CREATE TABLE IF NOT EXISTS workout_exercises (
     id INT PRIMARY KEY AUTO_INCREMENT,
     workout_id INT NOT NULL,
@@ -139,6 +148,7 @@ CREATE TABLE IF NOT EXISTS workout_exercises (
     INDEX idx_workout_id (workout_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Programs table
 CREATE TABLE IF NOT EXISTS programs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT,
@@ -154,9 +164,11 @@ CREATE TABLE IF NOT EXISTS programs (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
-    INDEX idx_predefined (is_predefined)
+    INDEX idx_predefined (is_predefined),
+    INDEX idx_category (category)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Program workouts junction table
 CREATE TABLE IF NOT EXISTS program_workouts (
     id INT PRIMARY KEY AUTO_INCREMENT,
     program_id INT NOT NULL,
@@ -170,6 +182,7 @@ CREATE TABLE IF NOT EXISTS program_workouts (
     INDEX idx_program_id (program_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Workout logs table
 CREATE TABLE IF NOT EXISTS workout_logs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -178,7 +191,7 @@ CREATE TABLE IF NOT EXISTS workout_logs (
     duration_minutes INT,
     calories_burned INT,
     notes TEXT,
-    rating INT,
+    rating INT CHECK (rating >= 1 AND rating <= 5),
     completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE SET NULL,
@@ -187,6 +200,7 @@ CREATE TABLE IF NOT EXISTS workout_logs (
     INDEX idx_completed_at (completed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Exercise logs table
 CREATE TABLE IF NOT EXISTS exercise_logs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     workout_log_id INT NOT NULL,
@@ -207,6 +221,7 @@ CREATE TABLE IF NOT EXISTS exercise_logs (
     INDEX idx_workout_log_id (workout_log_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Route logs table
 CREATE TABLE IF NOT EXISTS route_logs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -223,6 +238,7 @@ CREATE TABLE IF NOT EXISTS route_logs (
     INDEX idx_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- User program progress table
 CREATE TABLE IF NOT EXISTS user_program_progress (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
@@ -238,7 +254,7 @@ CREATE TABLE IF NOT EXISTS user_program_progress (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- USERS (Demo + Admin)
+-- SEED DATA: USERS
 -- =====================================================
 
 INSERT INTO users (email, password, first_name, last_name, is_admin) VALUES
@@ -247,7 +263,7 @@ INSERT INTO users (email, password, first_name, last_name, is_admin) VALUES
 ('system@fitflow.app', '$2a$10$ylX0rsdHRyetUA/8ZhNBJe3/sv3PajogzId7ls7oFQZg81qtV62/q', 'FitFlow', 'System', FALSE);
 
 -- =====================================================
--- EQUIPMENT
+-- SEED DATA: EQUIPMENT
 -- =====================================================
 
 INSERT INTO equipment (name, description, category, is_public) VALUES
@@ -281,7 +297,7 @@ INSERT INTO equipment (name, description, category, is_public) VALUES
 ('Medicine Ball', 'Weighted ball for functional training', 'accessories', TRUE);
 
 -- =====================================================
--- EXERCISES (100+)
+-- SEED DATA: EXERCISES (85+)
 -- =====================================================
 
 -- CHEST
@@ -385,214 +401,139 @@ INSERT INTO exercises (name, description, category, exercise_type, muscle_group,
 ('Downward Dog', 'Full body yoga pose', 'flexibility', 'flexibility', 'Full Body', 'None', 'beginner', 'Form inverted V. Press heels toward ground.');
 
 -- =====================================================
--- PREDEFINED WORKOUTS
+-- SEED DATA: PREDEFINED WORKOUTS
 -- =====================================================
 
--- Get system user ID
 SET @system_user_id = (SELECT id FROM users WHERE email = 'system@fitflow.app');
 
 -- Beginner Full Body A
 INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
 (@system_user_id, 'Beginner Full Body A', 'Foundational full body workout focusing on compound movements', 'strength', TRUE);
 SET @workout_id = LAST_INSERT_ID();
-
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 1, 3, 12, 60 FROM exercises WHERE name = 'Goblet Squat' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 2, 3, 10, 60 FROM exercises WHERE name = 'Dumbbell Bench Press' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 3, 3, 10, 60 FROM exercises WHERE name = 'Dumbbell Row' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 4, 3, 10, 60 FROM exercises WHERE name = 'Dumbbell Shoulder Press' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 5, 3, 1, 45 FROM exercises WHERE name = 'Plank' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 1, 3, 12, 60 FROM exercises WHERE name = 'Goblet Squat' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 2, 3, 10, 60 FROM exercises WHERE name = 'Dumbbell Bench Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 3, 3, 10, 60 FROM exercises WHERE name = 'Dumbbell Row' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 4, 3, 10, 60 FROM exercises WHERE name = 'Dumbbell Shoulder Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 5, 3, 1, 45 FROM exercises WHERE name = 'Plank' LIMIT 1;
 
 -- Beginner Full Body B
 INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
 (@system_user_id, 'Beginner Full Body B', 'Foundational full body workout - variation B', 'strength', TRUE);
 SET @workout_id = LAST_INSERT_ID();
-
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 1, 3, 10, 60 FROM exercises WHERE name = 'Lunges' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 2, 3, 10, 60 FROM exercises WHERE name = 'Push-ups' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 3, 3, 10, 60 FROM exercises WHERE name = 'Lat Pulldown' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 4, 3, 12, 45 FROM exercises WHERE name = 'Lateral Raises' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 5, 3, 15, 45 FROM exercises WHERE name = 'Crunches' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 1, 3, 10, 60 FROM exercises WHERE name = 'Lunges' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 2, 3, 10, 60 FROM exercises WHERE name = 'Push-ups' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 3, 3, 10, 60 FROM exercises WHERE name = 'Lat Pulldown' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 4, 3, 12, 45 FROM exercises WHERE name = 'Lateral Raises' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 5, 3, 15, 45 FROM exercises WHERE name = 'Crunches' LIMIT 1;
 
 -- Intermediate Push Day
 INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
 (@system_user_id, 'Intermediate Push Day', 'Chest, shoulders, and triceps focused workout', 'strength', TRUE);
 SET @workout_id = LAST_INSERT_ID();
-
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 1, 4, 8, 90 FROM exercises WHERE name = 'Bench Press' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 2, 3, 10, 90 FROM exercises WHERE name = 'Incline Bench Press' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 3, 4, 8, 90 FROM exercises WHERE name = 'Overhead Press' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 4, 3, 12, 60 FROM exercises WHERE name = 'Dumbbell Flyes' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 5, 3, 15, 45 FROM exercises WHERE name = 'Lateral Raises' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 6, 3, 12, 45 FROM exercises WHERE name = 'Tricep Pushdown' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 1, 4, 8, 90 FROM exercises WHERE name = 'Bench Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 2, 3, 10, 90 FROM exercises WHERE name = 'Incline Bench Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 3, 4, 8, 90 FROM exercises WHERE name = 'Overhead Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 4, 3, 12, 60 FROM exercises WHERE name = 'Dumbbell Flyes' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 5, 3, 15, 45 FROM exercises WHERE name = 'Lateral Raises' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 6, 3, 12, 45 FROM exercises WHERE name = 'Tricep Pushdown' LIMIT 1;
 
 -- Intermediate Pull Day
 INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
 (@system_user_id, 'Intermediate Pull Day', 'Back and biceps focused workout', 'strength', TRUE);
 SET @workout_id = LAST_INSERT_ID();
-
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 1, 4, 8, 90 FROM exercises WHERE name = 'Barbell Row' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 2, 4, 8, 90 FROM exercises WHERE name = 'Pull-ups' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 3, 3, 10, 60 FROM exercises WHERE name = 'Seated Cable Row' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 4, 3, 15, 45 FROM exercises WHERE name = 'Face Pulls' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 5, 3, 10, 60 FROM exercises WHERE name = 'Barbell Curl' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 6, 3, 12, 45 FROM exercises WHERE name = 'Hammer Curl' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 1, 4, 8, 90 FROM exercises WHERE name = 'Barbell Row' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 2, 4, 8, 90 FROM exercises WHERE name = 'Pull-ups' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 3, 3, 10, 60 FROM exercises WHERE name = 'Seated Cable Row' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 4, 3, 15, 45 FROM exercises WHERE name = 'Face Pulls' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 5, 3, 10, 60 FROM exercises WHERE name = 'Barbell Curl' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 6, 3, 12, 45 FROM exercises WHERE name = 'Hammer Curl' LIMIT 1;
 
 -- Intermediate Leg Day
 INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
 (@system_user_id, 'Intermediate Leg Day', 'Complete lower body workout', 'strength', TRUE);
 SET @workout_id = LAST_INSERT_ID();
-
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 1, 4, 8, 120 FROM exercises WHERE name = 'Barbell Squat' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 2, 4, 10, 90 FROM exercises WHERE name = 'Romanian Deadlift' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 3, 3, 12, 90 FROM exercises WHERE name = 'Leg Press' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 4, 3, 15, 60 FROM exercises WHERE name = 'Leg Extension' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 5, 3, 12, 60 FROM exercises WHERE name = 'Leg Curl' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 6, 4, 15, 45 FROM exercises WHERE name = 'Calf Raises' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 1, 4, 8, 120 FROM exercises WHERE name = 'Barbell Squat' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 2, 4, 10, 90 FROM exercises WHERE name = 'Romanian Deadlift' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 3, 3, 12, 90 FROM exercises WHERE name = 'Leg Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 4, 3, 15, 60 FROM exercises WHERE name = 'Leg Extension' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 5, 3, 12, 60 FROM exercises WHERE name = 'Leg Curl' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 6, 4, 15, 45 FROM exercises WHERE name = 'Calf Raises' LIMIT 1;
 
 -- HIIT Session
 INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
 (@system_user_id, 'HIIT Cardio Session', 'High-intensity interval training for fat burning', 'cardio', TRUE);
 SET @workout_id = LAST_INSERT_ID();
-
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 1, 3, 20, 30 FROM exercises WHERE name = 'Jumping Jacks' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 2, 4, 10, 30 FROM exercises WHERE name = 'Burpees' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 3, 4, 20, 30 FROM exercises WHERE name = 'Mountain Climbers' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 4, 4, 30, 30 FROM exercises WHERE name = 'High Knees' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 5, 4, 15, 30 FROM exercises WHERE name = 'Jump Squats' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 1, 3, 20, 30 FROM exercises WHERE name = 'Jumping Jacks' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 2, 4, 10, 30 FROM exercises WHERE name = 'Burpees' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 3, 4, 20, 30 FROM exercises WHERE name = 'Mountain Climbers' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 4, 4, 30, 30 FROM exercises WHERE name = 'High Knees' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 5, 4, 15, 30 FROM exercises WHERE name = 'Jump Squats' LIMIT 1;
 
 -- Home Workout
 INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
 (@system_user_id, 'No Equipment Home Workout', 'Full body workout with no equipment needed', 'strength', TRUE);
 SET @workout_id = LAST_INSERT_ID();
-
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 1, 4, 15, 45 FROM exercises WHERE name = 'Bodyweight Squats' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 2, 4, 12, 45 FROM exercises WHERE name = 'Push-ups' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 3, 3, 12, 45 FROM exercises WHERE name = 'Lunges' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 4, 3, 10, 45 FROM exercises WHERE name = 'Pike Push-ups' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 5, 3, 1, 30 FROM exercises WHERE name = 'Plank' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time)
-SELECT @workout_id, id, 6, 3, 20, 45 FROM exercises WHERE name = 'Mountain Climbers' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 1, 4, 15, 45 FROM exercises WHERE name = 'Bodyweight Squats' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 2, 4, 12, 45 FROM exercises WHERE name = 'Push-ups' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 3, 3, 12, 45 FROM exercises WHERE name = 'Lunges' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 4, 3, 10, 45 FROM exercises WHERE name = 'Pike Push-ups' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 5, 3, 1, 30 FROM exercises WHERE name = 'Plank' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @workout_id, id, 6, 3, 20, 45 FROM exercises WHERE name = 'Mountain Climbers' LIMIT 1;
 
 -- Flexibility Routine
 INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
 (@system_user_id, 'Full Body Stretch', 'Complete flexibility routine for recovery', 'flexibility', TRUE);
 SET @workout_id = LAST_INSERT_ID();
-
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration)
-SELECT @workout_id, id, 1, 1, 1, 45 FROM exercises WHERE name = 'Standing Hamstring Stretch' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration)
-SELECT @workout_id, id, 2, 1, 1, 30 FROM exercises WHERE name = 'Quad Stretch' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration)
-SELECT @workout_id, id, 3, 1, 1, 30 FROM exercises WHERE name = 'Hip Flexor Stretch' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration)
-SELECT @workout_id, id, 4, 1, 1, 30 FROM exercises WHERE name = 'Chest Stretch' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration)
-SELECT @workout_id, id, 5, 1, 1, 30 FROM exercises WHERE name = 'Shoulder Stretch' LIMIT 1;
-INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration)
-SELECT @workout_id, id, 6, 1, 1, 60 FROM exercises WHERE name = 'Childs Pose' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration) SELECT @workout_id, id, 1, 1, 1, 45 FROM exercises WHERE name = 'Standing Hamstring Stretch' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration) SELECT @workout_id, id, 2, 1, 1, 30 FROM exercises WHERE name = 'Quad Stretch' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration) SELECT @workout_id, id, 3, 1, 1, 30 FROM exercises WHERE name = 'Hip Flexor Stretch' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration) SELECT @workout_id, id, 4, 1, 1, 30 FROM exercises WHERE name = 'Chest Stretch' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration) SELECT @workout_id, id, 5, 1, 1, 30 FROM exercises WHERE name = 'Shoulder Stretch' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, duration) SELECT @workout_id, id, 6, 1, 1, 60 FROM exercises WHERE name = 'Childs Pose' LIMIT 1;
 
 -- =====================================================
--- PREDEFINED PROGRAMS
+-- SEED DATA: PREDEFINED PROGRAMS
 -- =====================================================
 
 -- Beginner Strength Foundation
 INSERT INTO programs (user_id, name, description, category, duration_weeks, days_per_week, difficulty, is_predefined) VALUES
 (@system_user_id, 'Beginner Strength Foundation', 'Perfect for those new to weight training. Build a solid foundation with full-body workouts 3 days per week.', 'strength', 4, 3, 'beginner', TRUE);
 SET @program_id = LAST_INSERT_ID();
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 0, 1 FROM workouts WHERE name = 'Beginner Full Body A' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 2, 2 FROM workouts WHERE name = 'Beginner Full Body B' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 4, 3 FROM workouts WHERE name = 'Beginner Full Body A' AND is_predefined = TRUE LIMIT 1;
 
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 0, 1 FROM workouts WHERE name = 'Beginner Full Body A' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 2, 2 FROM workouts WHERE name = 'Beginner Full Body B' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 4, 3 FROM workouts WHERE name = 'Beginner Full Body A' AND is_predefined = TRUE LIMIT 1;
-
--- Intermediate PPL
+-- Push Pull Legs
 INSERT INTO programs (user_id, name, description, category, duration_weeks, days_per_week, difficulty, is_predefined) VALUES
 (@system_user_id, 'Push Pull Legs Split', 'Classic PPL split for intermediate lifters. Train 6 days per week hitting each muscle group twice.', 'muscle_gain', 6, 6, 'intermediate', TRUE);
 SET @program_id = LAST_INSERT_ID();
-
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 0, 1 FROM workouts WHERE name = 'Intermediate Push Day' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 1, 2 FROM workouts WHERE name = 'Intermediate Pull Day' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 2, 3 FROM workouts WHERE name = 'Intermediate Leg Day' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 3, 4 FROM workouts WHERE name = 'Intermediate Push Day' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 4, 5 FROM workouts WHERE name = 'Intermediate Pull Day' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 5, 6 FROM workouts WHERE name = 'Intermediate Leg Day' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 0, 1 FROM workouts WHERE name = 'Intermediate Push Day' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 1, 2 FROM workouts WHERE name = 'Intermediate Pull Day' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 2, 3 FROM workouts WHERE name = 'Intermediate Leg Day' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 3, 4 FROM workouts WHERE name = 'Intermediate Push Day' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 4, 5 FROM workouts WHERE name = 'Intermediate Pull Day' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 5, 6 FROM workouts WHERE name = 'Intermediate Leg Day' AND is_predefined = TRUE LIMIT 1;
 
 -- Home Transformation
 INSERT INTO programs (user_id, name, description, category, duration_weeks, days_per_week, difficulty, is_predefined) VALUES
 (@system_user_id, 'Home Body Transformation', 'No gym? No problem! Complete bodyweight program you can do anywhere.', 'general_fitness', 4, 4, 'beginner', TRUE);
 SET @program_id = LAST_INSERT_ID();
-
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 0, 1 FROM workouts WHERE name = 'No Equipment Home Workout' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 1, 2 FROM workouts WHERE name = 'Full Body Stretch' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 3, 3 FROM workouts WHERE name = 'No Equipment Home Workout' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 4, 4 FROM workouts WHERE name = 'HIIT Cardio Session' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 0, 1 FROM workouts WHERE name = 'No Equipment Home Workout' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 1, 2 FROM workouts WHERE name = 'Full Body Stretch' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 3, 3 FROM workouts WHERE name = 'No Equipment Home Workout' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 4, 4 FROM workouts WHERE name = 'HIIT Cardio Session' AND is_predefined = TRUE LIMIT 1;
 
 -- Fat Burning Cardio
 INSERT INTO programs (user_id, name, description, category, duration_weeks, days_per_week, difficulty, is_predefined) VALUES
 (@system_user_id, 'Fat Burning Cardio', 'High-energy cardio program designed for maximum calorie burn.', 'weight_loss', 4, 4, 'intermediate', TRUE);
 SET @program_id = LAST_INSERT_ID();
-
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 0, 1 FROM workouts WHERE name = 'HIIT Cardio Session' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 2, 2 FROM workouts WHERE name = 'No Equipment Home Workout' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 4, 3 FROM workouts WHERE name = 'HIIT Cardio Session' AND is_predefined = TRUE LIMIT 1;
-INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index)
-SELECT @program_id, id, 1, 6, 4 FROM workouts WHERE name = 'Full Body Stretch' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 0, 1 FROM workouts WHERE name = 'HIIT Cardio Session' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 2, 2 FROM workouts WHERE name = 'No Equipment Home Workout' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 4, 3 FROM workouts WHERE name = 'HIIT Cardio Session' AND is_predefined = TRUE LIMIT 1;
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index) SELECT @program_id, id, 1, 6, 4 FROM workouts WHERE name = 'Full Body Stretch' AND is_predefined = TRUE LIMIT 1;
 
 -- =====================================================
--- DEPLOYMENT COMPLETE!
+-- COMPLETE!
 -- 
 -- Summary:
 -- - 3 Users (demo, admin, system)
@@ -600,6 +541,7 @@ SELECT @program_id, id, 1, 6, 4 FROM workouts WHERE name = 'Full Body Stretch' A
 -- - 85+ Exercises
 -- - 8 Predefined Workouts
 -- - 4 Predefined Programs
+-- - All tables with proper indexes and foreign keys
 --
 -- Test Accounts:
 -- Demo: demo@fitflow.com / demo123

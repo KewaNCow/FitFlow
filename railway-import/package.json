@@ -1,13 +1,10 @@
 {
   "name": "railway-import",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "description": "Single-file database setup for FitFlow on Railway",
   "scripts": {
     "start": "node import.js",
-    "fix-password": "node fix_demo_password.js",
-    "add-images": "node add_images.js",
-    "add-real-images": "node add_real_images.js",
-    "add-more-content": "node add_more_content.js",
-    "add-routes-table": "node add_routes_table.js"
+    "import": "node import.js"
   },
   "dependencies": {
     "mysql2": "^3.6.0",

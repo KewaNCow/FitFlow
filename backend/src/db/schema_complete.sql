@@ -101,6 +101,7 @@ CREATE TABLE routes (
     estimated_duration INT,
     elevation_gain INT,
     waypoints JSON,
+    routed_path JSON,
     start_location VARCHAR(255),
     end_location VARCHAR(255),
     is_favorite BOOLEAN DEFAULT FALSE,
