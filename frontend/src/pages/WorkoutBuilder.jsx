@@ -144,6 +144,10 @@ const WorkoutBuilder = () => {
   const handleAddExercise = (exercise) => {
     const isCardio = isCardioExercise(exercise);
     
+    // If adding a cardio exercise and a route is selected, use route data
+    const routeDistance = selectedRoute?.distance_km ? parseFloat(selectedRoute.distance_km) : null;
+    const routeDuration = selectedRoute?.estimated_duration ? parseInt(selectedRoute.estimated_duration) * 60 : null;
+    
     setWorkout(prev => ({
       ...prev,
       exercises: [
@@ -158,12 +162,13 @@ const WorkoutBuilder = () => {
           reps: isCardio ? null : 10,
           weight: null,
           restTime: isCardio ? null : 60,
-          // Cardio fields
-          duration: isCardio ? (exercise.default_duration || 1800) : null,
-          distance: isCardio ? (exercise.default_distance || null) : null,
+          // Cardio fields - use route data if available for cardio exercises
+          duration: isCardio ? (routeDuration || exercise.default_duration || 1800) : null,
+          distance: isCardio ? (routeDistance || exercise.default_distance || null) : null,
           calories: null,
           intensity: isCardio ? 'moderate' : null,
-          notes: ''
+          notes: '',
+          linkedToRoute: isCardio && selectedRoute ? true : false
         }
       ]
     }));
@@ -173,6 +178,26 @@ const WorkoutBuilder = () => {
     
     setShowExerciseModal(false);
     setSearchTerm('');
+  };
+
+  // Apply route data to a cardio exercise
+  const applyRouteDataToExercise = (index) => {
+    if (!selectedRoute) return;
+    
+    const routeDistance = selectedRoute.distance_km ? parseFloat(selectedRoute.distance_km) : null;
+    const routeDuration = selectedRoute.estimated_duration ? parseInt(selectedRoute.estimated_duration) * 60 : null;
+    
+    setWorkout(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) =>
+        i === index ? { 
+          ...ex, 
+          distance: routeDistance,
+          duration: routeDuration,
+          linkedToRoute: true
+        } : ex
+      )
+    }));
   };
 
   const updateWorkoutType = (exercises) => {
@@ -332,8 +357,37 @@ const WorkoutBuilder = () => {
                     if (routeId) {
                       const route = allRoutes.find(r => r.id === parseInt(routeId));
                       setSelectedRoute(route);
+                      
+                      // Auto-update existing cardio exercises with new route data
+                      if (route) {
+                        const routeDistance = route.distance_km ? parseFloat(route.distance_km) : null;
+                        const routeDuration = route.estimated_duration ? parseInt(route.estimated_duration) * 60 : null;
+                        
+                        setWorkout(prev => ({
+                          ...prev,
+                          exercises: prev.exercises.map(ex => {
+                            if (isCardioExercise(ex)) {
+                              return {
+                                ...ex,
+                                distance: routeDistance,
+                                duration: routeDuration,
+                                linkedToRoute: true
+                              };
+                            }
+                            return ex;
+                          })
+                        }));
+                      }
                     } else {
                       setSelectedRoute(null);
+                      // Clear route link from exercises
+                      setWorkout(prev => ({
+                        ...prev,
+                        exercises: prev.exercises.map(ex => ({
+                          ...ex,
+                          linkedToRoute: false
+                        }))
+                      }));
                     }
                   }}
                   className="input flex-1"
@@ -442,7 +496,28 @@ const WorkoutBuilder = () => {
                       
                       {isCardio ? (
                         // Cardio-specific inputs
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="space-y-3">
+                          {/* Route Link Indicator */}
+                          {selectedRoute && (
+                            <div className="flex items-center gap-2 text-xs">
+                              {exercise.linkedToRoute ? (
+                                <span className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full">
+                                  <MapPin className="w-3 h-3" />
+                                  Using route: {selectedRoute.name}
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => applyRouteDataToExercise(index)}
+                                  className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
+                                >
+                                  <MapPin className="w-3 h-3" />
+                                  Apply route data ({parseFloat(selectedRoute.distance_km || 0).toFixed(1)} km)
+                                </button>
+                              )}
+                            </div>
+                          )}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           <div>
                             <label className="text-xs text-gray-500 flex items-center gap-1">
                               <Timer className="w-3 h-3" /> {t('workoutBuilder.duration')}
@@ -495,6 +570,7 @@ const WorkoutBuilder = () => {
                               <option value="high">{t('workoutBuilder.intensityHigh')}</option>
                               <option value="interval">Interval</option>
                             </select>
+                          </div>
                           </div>
                         </div>
                       ) : (
