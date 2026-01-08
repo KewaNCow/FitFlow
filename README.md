@@ -34,7 +34,7 @@ FitFlow is a comprehensive fitness application that helps users plan, track, and
   - Beginner Strength Foundation (4 weeks)
   - Push Pull Legs Split (6 weeks)
   - Classic Bodybuilding Split (12 weeks)
-  - 8-Week Fat Shredder
+  - 8-Week Fat Shredders
   - Power & Hypertrophy (10 weeks)
   - Busy Professional Fitness (6 weeks)
   - Upper Lower Split (8 weeks)
