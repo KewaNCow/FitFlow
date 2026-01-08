@@ -354,7 +354,7 @@ const resources = {
         weight: 'Weight (kg)',
         rest: 'Rest (sec)',
         duration: 'Duration (min)',
-        distance: 'Distance (km),
+        distance: 'Distance (km)',
         calories: 'Calories',
         intensity: 'Intensity',
         intensityLow: 'Low',
