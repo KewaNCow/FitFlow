@@ -14,7 +14,7 @@ import {
   X as CloseIcon,
   Dumbbell,
   Timer,
-  Heart,
+  Stretch,
   Target,
   TrendingUp,
   Activity,
@@ -30,7 +30,7 @@ const getProgramIcon = (category) => {
     case 'cardio':
       return { Icon: Timer, bgColor: 'bg-blue-100', iconColor: 'text-blue-600' };
     case 'flexibility':
-      return { Icon: Heart, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' };
+      return { Icon: Stretch, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' };
     case 'weight_loss':
       return { Icon: TrendingUp, bgColor: 'bg-green-100', iconColor: 'text-green-600' };
     case 'muscle_gain':

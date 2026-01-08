@@ -13,10 +13,12 @@ import {
   Filter,
   X as CloseIcon,
   Timer,
-  Route,
   Sparkles,
-  Heart,
-  Flame
+  Flame,
+  Stretch,
+  User,
+  Cog,
+  Activity
 } from 'lucide-react';
 
 // Helper to get workout icon based on workout_type
@@ -27,13 +29,17 @@ const getWorkoutIcon = (workoutType) => {
     case 'strength':
       return { Icon: Dumbbell, bgColor: 'bg-primary-100', iconColor: 'text-primary-600' };
     case 'flexibility':
-      return { Icon: Heart, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' };
+      return { Icon: Stretch, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' };
+    case 'bodyweight':
+      return { Icon: User, bgColor: 'bg-green-100', iconColor: 'text-green-600' };
+    case 'machine':
+      return { Icon: Cog, bgColor: 'bg-gray-200', iconColor: 'text-gray-600' };
     case 'hiit':
       return { Icon: Flame, bgColor: 'bg-orange-100', iconColor: 'text-orange-600' };
     case 'mixed':
       return { Icon: Sparkles, bgColor: 'bg-purple-100', iconColor: 'text-purple-600' };
     default:
-      return { Icon: Dumbbell, bgColor: 'bg-primary-100', iconColor: 'text-primary-600' };
+      return { Icon: Activity, bgColor: 'bg-primary-100', iconColor: 'text-primary-600' };
   }
 };
 import LoadingSpinner from '../components/LoadingSpinner';
