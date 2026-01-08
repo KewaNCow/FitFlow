@@ -116,26 +116,30 @@ const ActiveWorkout = () => {
       const routeDistance = hasRoute ? parseFloat(workoutData.route_distance) : null;
       
       // Get exercise IDs for fetching last weights
+      // Note: use exercise_id (from workout_exercises table), not id (which is the row id)
       const exerciseIds = (Array.isArray(workoutData.exercises) ? workoutData.exercises : [])
-        .map(ex => ex.id || ex.exercise_id)
+        .map(ex => ex.exercise_id)
         .filter(id => id);
       
       // Fetch last logged weights for these exercises
       let lastWeights = {};
       if (exerciseIds.length > 0) {
         try {
+          console.log('Fetching last weights for exercise IDs:', exerciseIds);
           const weightsRes = await workoutLogAPI.getLastWeights(exerciseIds);
+          console.log('Last weights API response:', weightsRes.data);
           lastWeights = weightsRes.data.data || {};
-          console.log('Last weights fetched:', lastWeights);
+          console.log('Last weights parsed:', lastWeights);
         } catch (err) {
-          console.log('Could not fetch last weights:', err);
+          console.error('Could not fetch last weights:', err);
         }
       }
       
       // Initialize exercises with tracking structure
       const initialExercises = (Array.isArray(workoutData.exercises) ? workoutData.exercises : []).map(ex => {
         const isCardio = isCardioExercise(ex);
-        const exerciseId = ex.id || ex.exercise_id;
+        // Use exercise_id (the actual exercise ID), not id (which is the workout_exercises row id)
+        const exerciseId = ex.exercise_id;
         const previousData = lastWeights[exerciseId];
         
         if (isCardio) {

@@ -208,6 +208,8 @@ router.get('/last-weights', auth, async (req, res) => {
   try {
     const { exerciseIds } = req.query;
     
+    console.log('Last weights request - exerciseIds:', exerciseIds, 'userId:', req.user.id);
+    
     if (!exerciseIds) {
       return res.status(400).json({
         success: false,
@@ -218,41 +220,67 @@ router.get('/last-weights', auth, async (req, res) => {
     // Parse exerciseIds (comma-separated string)
     const ids = exerciseIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
     
+    console.log('Parsed IDs:', ids);
+    
     if (ids.length === 0) {
       return res.json({ success: true, data: {} });
     }
 
-    // Get the most recent exercise log for each exercise
+    // Get the most recent exercise log for each exercise (without NULL checks to catch all data)
     const placeholders = ids.map(() => '?').join(',');
-    const [results] = await pool.query(
-      `SELECT el.exercise_id, el.sets_completed, el.reps_per_set, el.weight_per_set, wl.completed_at
+    const query = `SELECT el.exercise_id, el.sets_completed, el.reps_per_set, el.weight_per_set, wl.completed_at
        FROM exercise_logs el
        INNER JOIN workout_logs wl ON el.workout_log_id = wl.id
        WHERE wl.user_id = ? 
          AND el.exercise_id IN (${placeholders})
-         AND el.reps_per_set IS NOT NULL
-         AND el.weight_per_set IS NOT NULL
-       ORDER BY wl.completed_at DESC`,
-      [req.user.id, ...ids]
-    );
+       ORDER BY wl.completed_at DESC`;
+    
+    console.log('Query:', query);
+    console.log('Params:', [req.user.id, ...ids]);
+    
+    const [results] = await pool.query(query, [req.user.id, ...ids]);
+    
+    console.log('Query results count:', results.length);
+    console.log('Query results:', JSON.stringify(results.slice(0, 5), null, 2));
 
     // Group by exercise_id and take only the most recent for each
     const lastWeights = {};
     for (const row of results) {
       if (!lastWeights[row.exercise_id]) {
-        lastWeights[row.exercise_id] = {
-          exerciseId: row.exercise_id,
-          setsCompleted: row.sets_completed,
-          repsPerSet: typeof row.reps_per_set === 'string' 
-            ? JSON.parse(row.reps_per_set) 
-            : row.reps_per_set,
-          weightPerSet: typeof row.weight_per_set === 'string' 
-            ? JSON.parse(row.weight_per_set) 
-            : row.weight_per_set,
-          completedAt: row.completed_at
-        };
+        // Parse the JSON arrays, handling both string and already-parsed formats
+        let repsPerSet = null;
+        let weightPerSet = null;
+        
+        try {
+          if (row.reps_per_set) {
+            repsPerSet = typeof row.reps_per_set === 'string' 
+              ? JSON.parse(row.reps_per_set) 
+              : row.reps_per_set;
+          }
+          if (row.weight_per_set) {
+            weightPerSet = typeof row.weight_per_set === 'string' 
+              ? JSON.parse(row.weight_per_set) 
+              : row.weight_per_set;
+          }
+        } catch (parseErr) {
+          console.error('Error parsing JSON for exercise', row.exercise_id, parseErr);
+          continue;
+        }
+        
+        // Only include if we have actual weight data
+        if (weightPerSet && Array.isArray(weightPerSet) && weightPerSet.length > 0) {
+          lastWeights[row.exercise_id] = {
+            exerciseId: row.exercise_id,
+            setsCompleted: row.sets_completed,
+            repsPerSet: repsPerSet || [],
+            weightPerSet: weightPerSet,
+            completedAt: row.completed_at
+          };
+        }
       }
     }
+
+    console.log('Returning lastWeights:', JSON.stringify(lastWeights, null, 2));
 
     res.json({
       success: true,
