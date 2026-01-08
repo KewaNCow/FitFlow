@@ -743,6 +743,8 @@ const resources = {
         accessories: 'Accessories',
         other: 'Other',
         errorSaving: 'Error saving item',
+        nameRequired: 'Name is required',
+        durationRequired: 'Duration (weeks) is required and must be at least 1',
         // User tracking
         platformStats: 'Platform Statistics',
         totalWorkoutsLogged: 'Total Workouts Logged',
@@ -1646,6 +1648,8 @@ const resources = {
         accessories: 'Tillbehör',
         other: 'Övrigt',
         errorSaving: 'Fel vid sparande',
+        nameRequired: 'Namn krävs',
+        durationRequired: 'Längd (veckor) krävs och måste vara minst 1',
         // User tracking
         platformStats: 'Plattformsstatistik',
         totalWorkoutsLogged: 'Totalt loggade träningspass',

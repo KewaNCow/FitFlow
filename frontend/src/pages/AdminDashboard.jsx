@@ -347,6 +347,17 @@ const AdminDashboard = () => {
     e.preventDefault();
     setError('');
 
+    // Client-side validation
+    if (!formData.name || formData.name.trim() === '') {
+      setError(t('admin.nameRequired'));
+      return;
+    }
+
+    if (activeTab === 'programs' && (!formData.duration_weeks || formData.duration_weeks < 1)) {
+      setError(t('admin.durationRequired'));
+      return;
+    }
+
     try {
       let response;
       if (editingItem) {
