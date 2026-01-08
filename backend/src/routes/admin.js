@@ -49,8 +49,8 @@ router.post('/workouts', [
 
     const [result] = await pool.query(
       `INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) 
-       VALUES (?, ?, ?, ?, TRUE)`,
-      [req.user.id, name, description || null, workout_type || 'strength']
+       VALUES (NULL, ?, ?, ?, TRUE)`,
+      [name, description || null, workout_type || 'strength']
     );
 
     const [newWorkout] = await pool.query(
@@ -364,12 +364,12 @@ router.post('/programs', [
   body('name').trim().notEmpty().withMessage('Program name is required'),
 ], validate, async (req, res) => {
   try {
-    const { name, description, duration_weeks, difficulty } = req.body;
+    const { name, description, duration_weeks, difficulty, category } = req.body;
 
     const [result] = await pool.query(
-      `INSERT INTO programs (user_id, name, description, duration_weeks, difficulty, is_predefined) 
-       VALUES (?, ?, ?, ?, ?, TRUE)`,
-      [req.user.id, name, description || null, duration_weeks || null, difficulty || 'intermediate']
+      `INSERT INTO programs (user_id, name, description, duration_weeks, difficulty, category, is_predefined) 
+       VALUES (NULL, ?, ?, ?, ?, ?, TRUE)`,
+      [name, description || null, duration_weeks || null, difficulty || 'intermediate', category || 'general_fitness']
     );
 
     const [newProgram] = await pool.query(
@@ -394,7 +394,7 @@ router.post('/programs', [
 router.put('/programs/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, duration_weeks, difficulty } = req.body;
+    const { name, description, duration_weeks, difficulty, category } = req.body;
 
     const [existing] = await pool.query(
       'SELECT * FROM programs WHERE id = ? AND is_predefined = TRUE',
@@ -409,8 +409,8 @@ router.put('/programs/:id', async (req, res) => {
     }
 
     await pool.query(
-      `UPDATE programs SET name = ?, description = ?, duration_weeks = ?, difficulty = ? WHERE id = ?`,
-      [name || existing[0].name, description, duration_weeks, difficulty || existing[0].difficulty, id]
+      `UPDATE programs SET name = ?, description = ?, duration_weeks = ?, difficulty = ?, category = ? WHERE id = ?`,
+      [name || existing[0].name, description, duration_weeks, difficulty || existing[0].difficulty, category || existing[0].category, id]
     );
 
     const [updated] = await pool.query('SELECT * FROM programs WHERE id = ?', [id]);

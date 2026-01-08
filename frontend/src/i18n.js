@@ -745,6 +745,11 @@ const resources = {
         errorSaving: 'Error saving item',
         nameRequired: 'Name is required',
         durationRequired: 'Duration (weeks) is required and must be at least 1',
+        programCategory: 'Program Category',
+        weightLoss: 'Weight Loss',
+        muscleGain: 'Muscle Gain',
+        generalFitness: 'General Fitness',
+        sportSpecific: 'Sport Specific',
         // User tracking
         platformStats: 'Platform Statistics',
         totalWorkoutsLogged: 'Total Workouts Logged',
@@ -1650,6 +1655,11 @@ const resources = {
         errorSaving: 'Fel vid sparande',
         nameRequired: 'Namn krävs',
         durationRequired: 'Längd (veckor) krävs och måste vara minst 1',
+        programCategory: 'Programkategori',
+        weightLoss: 'Viktminskning',
+        muscleGain: 'Muskelbyggande',
+        generalFitness: 'Allmän fitness',
+        sportSpecific: 'Sportspecifik',
         // User tracking
         platformStats: 'Plattformsstatistik',
         totalWorkoutsLogged: 'Totalt loggade träningspass',

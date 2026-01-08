@@ -486,7 +486,7 @@ const AdminDashboard = () => {
       case 'workouts':
         return { name: '', description: '', workout_type: 'strength' };
       case 'programs':
-        return { name: '', description: '', duration_weeks: '', difficulty: 'intermediate' };
+        return { name: '', description: '', duration_weeks: '', difficulty: 'intermediate', category: 'general_fitness' };
       case 'exercises':
         return { name: '', description: '', category: 'strength', muscle_group: '', difficulty: 'intermediate' };
       case 'equipment':
@@ -1361,17 +1361,37 @@ const AdminDashboard = () => {
                       min="1"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.difficulty')}</label>
-                    <select
-                      value={formData.difficulty || 'intermediate'}
-                      onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
-                      className="input"
-                    >
-                      <option value="beginner">{t('admin.beginner')}</option>
-                      <option value="intermediate">{t('admin.intermediate')}</option>
-                      <option value="advanced">{t('admin.advanced')}</option>
-                    </select>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.difficulty')}</label>
+                      <select
+                        value={formData.difficulty || 'intermediate'}
+                        onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+                        className="input"
+                      >
+                        <option value="beginner">{t('admin.beginner')}</option>
+                        <option value="intermediate">{t('admin.intermediate')}</option>
+                        <option value="advanced">{t('admin.advanced')}</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.programCategory')}</label>
+                      <select
+                        value={formData.category || 'general_fitness'}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        className="input"
+                      >
+                        <option value="strength">{t('admin.strength')}</option>
+                        <option value="cardio">{t('admin.cardio')}</option>
+                        <option value="flexibility">{t('admin.flexibility')}</option>
+                        <option value="weight_loss">{t('admin.weightLoss')}</option>
+                        <option value="muscle_gain">{t('admin.muscleGain')}</option>
+                        <option value="general_fitness">{t('admin.generalFitness')}</option>
+                        <option value="sport_specific">{t('admin.sportSpecific')}</option>
+                      </select>
+                    </div>
                   </div>
                   
                   {/* Program Workouts Section */}
