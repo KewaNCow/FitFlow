@@ -111,19 +111,24 @@ const ActiveWorkout = () => {
       console.log('Exercises:', workoutData.exercises);
       setWorkout(workoutData);
       
+      // Check if workout is linked to a route
+      const hasRoute = workoutData.route_id && workoutData.route_distance;
+      const routeDistance = hasRoute ? parseFloat(workoutData.route_distance) : null;
+      
       // Initialize exercises with tracking structure
       const initialExercises = (Array.isArray(workoutData.exercises) ? workoutData.exercises : []).map(ex => {
         const isCardio = isCardioExercise(ex);
         
         if (isCardio) {
           // Cardio exercise: single "set" representing the cardio session
+          // Use route distance if workout is linked to a route
           return {
             ...ex,
             isCardio: true,
             completed: false,
-            // Cardio tracking data
+            // Cardio tracking data - prioritize route distance over exercise distance
             actualDuration: ex.duration || 30,
-            actualDistance: ex.distance || null,
+            actualDistance: ex.distance || routeDistance || null,
             actualCalories: ex.calories || null,
             actualIntensity: ex.intensity || 'moderate',
             // Keep sets array for compatibility but with single entry
