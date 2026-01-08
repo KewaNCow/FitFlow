@@ -8,7 +8,10 @@ import {
   CheckCircle2,
   Users,
   Smartphone,
-  Zap
+  Zap,
+  MapPin,
+  Timer,
+  Flame
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -27,9 +30,19 @@ const LandingPage = () => {
       description: t('landing.features.workout.description')
     },
     {
+      icon: MapPin,
+      title: t('landing.features.routes.title'),
+      description: t('landing.features.routes.description')
+    },
+    {
       icon: Calendar,
       title: t('landing.features.program.title'),
       description: t('landing.features.program.description')
+    },
+    {
+      icon: Timer,
+      title: t('landing.features.cardio.title'),
+      description: t('landing.features.cardio.description')
     },
     {
       icon: BarChart3,
@@ -44,7 +57,9 @@ const LandingPage = () => {
     t('landing.benefits.2'),
     t('landing.benefits.3'),
     t('landing.benefits.4'),
-    t('landing.benefits.5')
+    t('landing.benefits.5'),
+    t('landing.benefits.6'),
+    t('landing.benefits.7')
   ];
 
   return (
@@ -84,20 +99,41 @@ const LandingPage = () => {
                       <Dumbbell className="w-6 h-6 text-primary-400" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">Push Day</h3>
-                      <p className="text-sm text-gray-400">6 exercises • 45 min</p>
+                      <h3 className="font-semibold">{t('landing.preview.strength.title')}</h3>
+                      <p className="text-sm text-gray-400">{t('landing.preview.strength.subtitle')}</p>
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    {['Bench Press', 'Incline Dumbbell Press', 'Overhead Press', 'Lateral Raises'].map((exercise, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 bg-gray-700/50 rounded-lg">
-                        <div className="w-8 h-8 bg-primary-500/20 rounded-lg flex items-center justify-center text-sm font-medium text-primary-400">
+                  <div className="space-y-2 mb-4">
+                    {[t('landing.preview.strength.ex1'), t('landing.preview.strength.ex2'), t('landing.preview.strength.ex3')].map((exercise, i) => (
+                      <div key={i} className="flex items-center gap-3 p-2 bg-gray-700/50 rounded-lg">
+                        <div className="w-6 h-6 bg-primary-500/20 rounded flex items-center justify-center text-xs font-medium text-primary-400">
                           {i + 1}
                         </div>
                         <span className="text-sm">{exercise}</span>
                         <span className="ml-auto text-xs text-gray-400">4x12</span>
                       </div>
                     ))}
+                  </div>
+                  <div className="border-t border-gray-700 pt-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                        <Timer className="w-6 h-6 text-orange-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{t('landing.preview.cardio.title')}</h3>
+                        <p className="text-sm text-gray-400">{t('landing.preview.cardio.subtitle')}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4 text-orange-400" />
+                        <span>5.2 km</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Flame className="w-4 h-4 text-orange-400" />
+                        <span>~320 kcal</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -117,7 +153,7 @@ const LandingPage = () => {
               {t('landing.features.subtitle')}
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {features.map((feature, index) => (
               <div 
                 key={index} 

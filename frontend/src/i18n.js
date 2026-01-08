@@ -146,9 +146,17 @@ const resources = {
             title: 'Custom Workouts',
             description: 'Build personalized workouts by selecting exercises and configuring sets, reps, and rest times.'
           },
+          routes: {
+            title: 'Route Planning',
+            description: 'Plan running, cycling, and walking routes on an interactive map with distance and elevation tracking.'
+          },
           program: {
             title: 'Training Programs',
             description: 'Combine workouts into structured weekly programs or follow our predefined plans.'
+          },
+          cardio: {
+            title: 'Cardio Tracking',
+            description: 'Track cardio exercises with automatic calorie estimation based on intensity and duration.'
           },
           tracking: {
             title: 'Track Progress',
@@ -164,8 +172,10 @@ const resources = {
           1: 'Access your workouts anywhere, anytime',
           2: 'Follow structured programs or create your own',
           3: 'Track your progress and stay motivated',
-          4: 'Works on all devices - desktop, tablet, mobile',
-          5: 'Free to use with all core features'
+          4: 'Plan outdoor routes with calorie estimation',
+          5: 'Support for both strength and cardio training',
+          6: 'Works on all devices - desktop, tablet, mobile',
+          7: 'Free to use with all core features'
         },
         stats: {
           users: 'Active Users',
@@ -173,6 +183,19 @@ const resources = {
           responsive: 'Responsive',
           free: 'Free',
           toUse: 'To Use'
+        },
+        preview: {
+          strength: {
+            title: 'Push Day',
+            subtitle: '4 exercises • 45 min',
+            ex1: 'Bench Press',
+            ex2: 'Overhead Press',
+            ex3: 'Lateral Raises'
+          },
+          cardio: {
+            title: 'Morning Run',
+            subtitle: 'Route planned'
+          }
         }
       },
       
@@ -842,9 +865,17 @@ const resources = {
             title: 'Anpassade Träningspass',
             description: 'Bygg personliga träningspass genom att välja övningar och konfigurera set, repetitioner och vilotider.'
           },
+          routes: {
+            title: 'Ruttplanering',
+            description: 'Planera löp-, cykel- och promenadstråk på en interaktiv karta med avstånd och höjdspårning.'
+          },
           program: {
             title: 'Träningsprogram',
             description: 'Kombinera träningspass till strukturerade veckoprogram eller följ våra fördefinierade planer.'
+          },
+          cardio: {
+            title: 'Konditionsspårning',
+            description: 'Spåra konditionsövningar med automatisk kaloriuppskattning baserat på intensitet och varaktighet.'
           },
           tracking: {
             title: 'Spåra Framsteg',
@@ -860,8 +891,10 @@ const resources = {
           1: 'Kom åt dina träningspass var som helst, när som helst',
           2: 'Följ strukturerade program eller skapa egna',
           3: 'Spåra dina framsteg och håll motivationen',
-          4: 'Fungerar på alla enheter - dator, surfplatta, mobil',
-          5: 'Gratis att använda med alla kärnfunktioner'
+          4: 'Planera utomhusrutter med kaloriuppskattning',
+          5: 'Stöd för både styrke- och konditionsträning',
+          6: 'Fungerar på alla enheter - dator, surfplatta, mobil',
+          7: 'Gratis att använda med alla kärnfunktioner'
         },
         stats: {
           users: 'Aktiva Användare',
@@ -869,6 +902,19 @@ const resources = {
           responsive: 'Responsiv',
           free: 'Gratis',
           toUse: 'Att Använda'
+        },
+        preview: {
+          strength: {
+            title: 'Tryckdag',
+            subtitle: '4 övningar • 45 min',
+            ex1: 'Bänkpress',
+            ex2: 'Axelpress',
+            ex3: 'Sidolyft'
+          },
+          cardio: {
+            title: 'Morgonlöpning',
+            subtitle: 'Rutt planerad'
+          }
         }
       },
       
