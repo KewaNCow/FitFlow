@@ -493,51 +493,51 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Popular Exercises */}
-          <div className="card overflow-hidden">
-            <div className="p-4 border-b bg-gray-50">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                <Target className="w-4 h-4 text-orange-600" />
-                {t('admin.popularExercises')}
-              </h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">#</th>
-                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
-                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 hidden sm:table-cell">{t('admin.muscleGroup')}</th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.usageCount')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {stats.popularExercises?.length > 0 ? (
-                    stats.popularExercises.map((exercise, idx) => (
-                      <tr key={exercise.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-sm text-gray-500">{idx + 1}</td>
-                        <td className="px-4 py-2">
-                          <p className="font-medium text-gray-900 text-sm">{exercise.name}</p>
-                        </td>
-                        <td className="px-4 py-2 hidden sm:table-cell">
-                          <span className="badge bg-gray-100 text-gray-700">{exercise.muscle_group || '–'}</span>
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          <span className="badge bg-orange-100 text-orange-700">{exercise.usage_count}</span>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="4" className="px-4 py-8 text-center text-gray-500 text-sm">
-                        {t('admin.noData')}
+        {/* Popular Exercises */}
+        <div className="card overflow-hidden">
+          <div className="p-4 border-b bg-gray-50">
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Target className="w-4 h-4 text-orange-600" />
+              {t('admin.popularExercises')}
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b">
+                <tr>
+                  <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">#</th>
+                  <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
+                  <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 hidden sm:table-cell">{t('admin.muscleGroup')}</th>
+                  <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.usageCount')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {stats.popularExercises?.length > 0 ? (
+                  stats.popularExercises.map((exercise, idx) => (
+                    <tr key={exercise.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 text-sm text-gray-500">{idx + 1}</td>
+                      <td className="px-4 py-2">
+                        <p className="font-medium text-gray-900 text-sm">{exercise.name}</p>
+                      </td>
+                      <td className="px-4 py-2 hidden sm:table-cell">
+                        <span className="badge bg-gray-100 text-gray-700">{exercise.muscle_group || '–'}</span>
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        <span className="badge bg-orange-100 text-orange-700">{exercise.usage_count}</span>
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="px-4 py-8 text-center text-gray-500 text-sm">
+                      {t('admin.noData')}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
