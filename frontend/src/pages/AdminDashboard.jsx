@@ -34,6 +34,14 @@ import LoadingSpinner from '../components/LoadingSpinner';
 // Days of the week for program scheduling
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+// Mapping from plural tab names to singular translation keys
+const TAB_TO_SINGULAR = {
+  workouts: 'workout',
+  programs: 'program',
+  exercises: 'exercise',
+  equipment: 'equipment'
+};
+
 const AdminDashboard = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
@@ -328,6 +336,7 @@ const AdminDashboard = () => {
         setItems(prev => prev.map(item => 
           item.id === editingItem.id ? response.data.data : item
         ));
+        setShowModal(false);
       } else {
         switch (activeTab) {
           case 'workouts':
@@ -343,9 +352,19 @@ const AdminDashboard = () => {
             response = await adminAPI.createEquipment(formData);
             break;
         }
-        setItems(prev => [response.data.data, ...prev]);
+        const newItem = response.data.data;
+        setItems(prev => [newItem, ...prev]);
+        
+        // For workouts and programs, stay in modal and switch to edit mode
+        // so user can immediately add exercises/workouts
+        if (activeTab === 'workouts' || activeTab === 'programs') {
+          setEditingItem(newItem);
+          setFormData(newItem);
+          // Keep modal open - user is now in edit mode
+        } else {
+          setShowModal(false);
+        }
       }
-      setShowModal(false);
       fetchStats();
     } catch (error) {
       setError(error.response?.data?.message || t('admin.errorSaving'));
@@ -833,7 +852,7 @@ const AdminDashboard = () => {
           <div className="flex justify-end mb-4">
             <button onClick={handleCreate} className="btn-primary gap-2">
               <Plus className="w-5 h-5" />
-              {t('admin.add')} {t(`admin.singular.${activeTab.slice(0, -1)}`)}
+              {t('admin.add')} {t(`admin.singular.${TAB_TO_SINGULAR[activeTab]}`)}
             </button>
           </div>
 

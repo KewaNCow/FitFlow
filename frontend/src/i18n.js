@@ -711,8 +711,8 @@ const resources = {
         singular: {
           workout: 'Workout',
           program: 'Program',
-          exercis: 'Exercise',
-          equipmen: 'Equipment'
+          exercise: 'Exercise',
+          equipment: 'Equipment'
         },
         noItems: 'No {{items}} found',
         name: 'Name',
@@ -1614,8 +1614,8 @@ const resources = {
         singular: {
           workout: 'Träningspass',
           program: 'Program',
-          exercis: 'Övning',
-          equipmen: 'Utrustning'
+          exercise: 'Övning',
+          equipment: 'Utrustning'
         },
         noItems: 'Inga {{items}} hittades',
         name: 'Namn',
