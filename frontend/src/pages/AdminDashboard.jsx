@@ -23,9 +23,16 @@ import {
   UserPlus,
   BarChart3,
   Search,
-  GripVertical
+  GripVertical,
+  Timer,
+  Zap,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+
+// Days of the week for program scheduling
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const AdminDashboard = () => {
   const { t } = useTranslation();
@@ -47,6 +54,10 @@ const AdminDashboard = () => {
   const [workoutSearch, setWorkoutSearch] = useState('');
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
+  
+  // State for enhanced workout/program editing
+  const [expandedExercise, setExpandedExercise] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(0); // For program workout day selection
 
   useEffect(() => {
     fetchStats();
@@ -139,20 +150,70 @@ const AdminDashboard = () => {
 
   const handleAddExerciseToWorkout = async (exercise) => {
     if (!editingItem) return;
+    
+    // Check if exercise is cardio type
+    const isCardio = exercise.category === 'cardio' || exercise.exercise_type === 'cardio';
+    
     try {
       const response = await adminAPI.addWorkoutExercise(editingItem.id, {
         exercise_id: exercise.id,
-        sets: 3,
-        reps: 10,
-        rest_time: 60
+        // Strength fields
+        sets: isCardio ? null : 3,
+        reps: isCardio ? null : 10,
+        weight: null,
+        rest_time: isCardio ? null : 60,
+        // Cardio fields
+        duration: isCardio ? 30 : null,
+        distance: null,
+        calories: null,
+        intensity: isCardio ? 'moderate' : null,
+        notes: null
       });
       setWorkoutExercises(prev => [...prev, response.data.data]);
       setShowExercisePicker(false);
       setExerciseSearch('');
+      // Auto-expand the newly added exercise for configuration
+      setExpandedExercise(response.data.data.id);
     } catch (error) {
       console.error('Error adding exercise:', error);
       setError(t('admin.errorSaving'));
     }
+  };
+
+  // Helper function to check if exercise is cardio
+  const isCardioExercise = (exercise) => {
+    return exercise.category === 'cardio' || exercise.exercise_type === 'cardio';
+  };
+
+  // Update exercise details in a workout
+  const handleUpdateExerciseDetails = async (exerciseId, updates) => {
+    if (!editingItem) return;
+    try {
+      const response = await adminAPI.updateWorkoutExercise(editingItem.id, exerciseId, updates);
+      setWorkoutExercises(prev => prev.map(ex => 
+        ex.id === exerciseId ? response.data.data : ex
+      ));
+    } catch (error) {
+      console.error('Error updating exercise:', error);
+    }
+  };
+
+  // Update program workout (e.g., change day)
+  const handleUpdateProgramWorkout = async (workoutId, updates) => {
+    if (!editingItem) return;
+    try {
+      const response = await adminAPI.updateProgramWorkout(editingItem.id, workoutId, updates);
+      setProgramWorkouts(prev => prev.map(w => 
+        w.id === workoutId ? response.data.data : w
+      ));
+    } catch (error) {
+      console.error('Error updating program workout:', error);
+    }
+  };
+
+  // Get workouts for a specific day in the program
+  const getWorkoutsForDay = (dayIndex) => {
+    return programWorkouts.filter(w => w.day_of_week === dayIndex);
   };
 
   const handleRemoveExerciseFromWorkout = async (exerciseId) => {
@@ -165,12 +226,13 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleAddWorkoutToProgram = async (workout, dayOfWeek = 0) => {
+  const handleAddWorkoutToProgram = async (workout) => {
     if (!editingItem) return;
     try {
       const response = await adminAPI.addProgramWorkout(editingItem.id, {
         workout_id: workout.id,
-        day_of_week: dayOfWeek
+        day_of_week: selectedDay,
+        notes: null
       });
       setProgramWorkouts(prev => [...prev, response.data.data]);
       setShowWorkoutPicker(false);
@@ -196,6 +258,8 @@ const AdminDashboard = () => {
     setFormData(getDefaultFormData());
     setWorkoutExercises([]);
     setProgramWorkouts([]);
+    setExpandedExercise(null);
+    setSelectedDay(0);
     setShowModal(true);
     setError('');
   };
@@ -203,6 +267,8 @@ const AdminDashboard = () => {
   const handleEdit = async (item) => {
     setEditingItem(item);
     setFormData(item);
+    setExpandedExercise(null);
+    setSelectedDay(0);
     setShowModal(true);
     setError('');
     
@@ -838,7 +904,11 @@ const AdminDashboard = () => {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div className={`bg-white rounded-2xl w-full max-h-[90vh] overflow-y-auto ${
+            (activeTab === 'programs' || activeTab === 'workouts') && editingItem 
+              ? 'max-w-2xl' 
+              : 'max-w-md'
+          }`}>
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg font-semibold">
                 {editingItem ? t('admin.edit') : t('admin.create')} {t(`admin.${activeTab}`).toLowerCase().slice(0, -1)}
@@ -897,8 +967,8 @@ const AdminDashboard = () => {
                     </select>
                   </div>
                 
-                  {/* Workout Exercises Section - Only show when editing */}
-                  {editingItem && (
+                  {/* Workout Exercises Section */}
+                  {editingItem ? (
                   <div className="border-t pt-4 mt-4">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-medium text-gray-900 flex items-center gap-2">
@@ -942,7 +1012,14 @@ const AdminDashboard = () => {
                                 onClick={() => handleAddExerciseToWorkout(exercise)}
                                 className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary-50 text-sm flex items-center justify-between"
                               >
-                                <span>{exercise.name}</span>
+                                <div className="flex items-center gap-2">
+                                  {(exercise.category === 'cardio' || exercise.exercise_type === 'cardio') ? (
+                                    <Flame className="w-3 h-3 text-orange-500" />
+                                  ) : (
+                                    <Dumbbell className="w-3 h-3 text-primary-500" />
+                                  )}
+                                  <span>{exercise.name}</span>
+                                </div>
                                 <span className="text-xs text-gray-500">{exercise.muscle_group || exercise.category}</span>
                               </button>
                             ))}
@@ -950,34 +1027,204 @@ const AdminDashboard = () => {
                       </div>
                     )}
                     
-                    {/* Exercise List */}
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {/* Enhanced Exercise List with Inline Editing */}
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
                       {workoutExercises.length === 0 ? (
                         <p className="text-sm text-gray-500 text-center py-4">{t('admin.noExercisesAdded')}</p>
                       ) : (
-                        workoutExercises.map((exercise, idx) => (
-                          <div key={exercise.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                            <GripVertical className="w-4 h-4 text-gray-400" />
-                            <span className="text-xs text-gray-500 w-5">{idx + 1}</span>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">{exercise.name}</p>
-                              <p className="text-xs text-gray-500">
-                                {exercise.sets}×{exercise.reps} • {exercise.muscle_group || exercise.category}
-                              </p>
+                        workoutExercises.map((exercise, idx) => {
+                          const isCardio = isCardioExercise(exercise);
+                          const isExpanded = expandedExercise === exercise.id;
+                          
+                          return (
+                            <div key={exercise.id} className="bg-gray-50 rounded-lg overflow-hidden">
+                              {/* Exercise Header */}
+                              <div 
+                                className="flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-100"
+                                onClick={() => setExpandedExercise(isExpanded ? null : exercise.id)}
+                              >
+                                <GripVertical className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                <span className="text-xs text-gray-500 w-5 flex-shrink-0">{idx + 1}</span>
+                                {isCardio ? (
+                                  <Flame className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                                ) : (
+                                  <Dumbbell className="w-4 h-4 text-primary-500 flex-shrink-0" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">{exercise.name}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {isCardio ? (
+                                      <>{exercise.duration || 0} {t('admin.min')} • {exercise.intensity || 'moderate'}</>
+                                    ) : (
+                                      <>{exercise.sets}×{exercise.reps} {exercise.weight ? `• ${exercise.weight}kg` : ''}</>
+                                    )}
+                                  </p>
+                                </div>
+                                {isExpanded ? (
+                                  <ChevronUp className="w-4 h-4 text-gray-400" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveExerciseFromWorkout(exercise.id);
+                                  }}
+                                  className="p-1 text-gray-400 hover:text-red-500"
+                                  title={t('admin.removeExercise')}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                              
+                              {/* Expanded Configuration Panel */}
+                              {isExpanded && (
+                                <div className="px-3 pb-3 border-t border-gray-200 bg-white">
+                                  {isCardio ? (
+                                    /* Cardio Exercise Fields */
+                                    <div className="grid grid-cols-2 gap-3 pt-3">
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                          <Clock className="w-3 h-3 inline mr-1" />
+                                          {t('admin.duration')} ({t('admin.min')})
+                                        </label>
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          value={exercise.duration || ''}
+                                          onChange={(e) => handleUpdateExerciseDetails(exercise.id, { duration: parseInt(e.target.value) || null })}
+                                          className="input text-sm py-1"
+                                          placeholder="30"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                          <MapPin className="w-3 h-3 inline mr-1" />
+                                          {t('admin.distance')} (km)
+                                        </label>
+                                        <input
+                                          type="number"
+                                          step="0.1"
+                                          min="0"
+                                          value={exercise.distance || ''}
+                                          onChange={(e) => handleUpdateExerciseDetails(exercise.id, { distance: parseFloat(e.target.value) || null })}
+                                          className="input text-sm py-1"
+                                          placeholder="5.0"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                          <Zap className="w-3 h-3 inline mr-1" />
+                                          {t('admin.intensity')}
+                                        </label>
+                                        <select
+                                          value={exercise.intensity || 'moderate'}
+                                          onChange={(e) => handleUpdateExerciseDetails(exercise.id, { intensity: e.target.value })}
+                                          className="input text-sm py-1"
+                                        >
+                                          <option value="low">{t('admin.intensityLow')}</option>
+                                          <option value="moderate">{t('admin.intensityModerate')}</option>
+                                          <option value="high">{t('admin.intensityHigh')}</option>
+                                          <option value="very_high">{t('admin.intensityVeryHigh')}</option>
+                                        </select>
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                          <Flame className="w-3 h-3 inline mr-1" />
+                                          {t('admin.calories')}
+                                        </label>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          value={exercise.calories || ''}
+                                          onChange={(e) => handleUpdateExerciseDetails(exercise.id, { calories: parseInt(e.target.value) || null })}
+                                          className="input text-sm py-1"
+                                          placeholder="300"
+                                        />
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    /* Strength Exercise Fields */
+                                    <div className="grid grid-cols-2 gap-3 pt-3">
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('admin.sets')}</label>
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          value={exercise.sets || ''}
+                                          onChange={(e) => handleUpdateExerciseDetails(exercise.id, { sets: parseInt(e.target.value) || 3 })}
+                                          className="input text-sm py-1"
+                                          placeholder="3"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('admin.reps')}</label>
+                                        <input
+                                          type="number"
+                                          min="1"
+                                          value={exercise.reps || ''}
+                                          onChange={(e) => handleUpdateExerciseDetails(exercise.id, { reps: parseInt(e.target.value) || 10 })}
+                                          className="input text-sm py-1"
+                                          placeholder="10"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('admin.weight')} (kg)</label>
+                                        <input
+                                          type="number"
+                                          step="0.5"
+                                          min="0"
+                                          value={exercise.weight || ''}
+                                          onChange={(e) => handleUpdateExerciseDetails(exercise.id, { weight: parseFloat(e.target.value) || null })}
+                                          className="input text-sm py-1"
+                                          placeholder="20"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                          <Timer className="w-3 h-3 inline mr-1" />
+                                          {t('admin.restTime')} ({t('admin.sec')})
+                                        </label>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="5"
+                                          value={exercise.rest_time || ''}
+                                          onChange={(e) => handleUpdateExerciseDetails(exercise.id, { rest_time: parseInt(e.target.value) || 60 })}
+                                          className="input text-sm py-1"
+                                          placeholder="60"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Notes field for both types */}
+                                  <div className="mt-3">
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">{t('admin.notes')}</label>
+                                    <input
+                                      type="text"
+                                      value={exercise.notes || ''}
+                                      onChange={(e) => handleUpdateExerciseDetails(exercise.id, { notes: e.target.value || null })}
+                                      className="input text-sm py-1"
+                                      placeholder={t('admin.notesPlaceholder')}
+                                    />
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveExerciseFromWorkout(exercise.id)}
-                              className="p-1 text-gray-400 hover:text-red-500"
-                              title={t('admin.removeExercise')}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
                   </div>
+                  ) : (
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-lg">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        <p className="text-sm">{t('admin.saveToAddExercises')}</p>
+                      </div>
+                    </div>
                   )}
                 </>
               )}
@@ -1007,82 +1254,136 @@ const AdminDashboard = () => {
                     </select>
                   </div>
                   
-                  {/* Program Workouts Section - Only show when editing */}
-                  {editingItem && (
+                  {/* Program Workouts Section */}
+                  {editingItem ? (
                     <div className="border-t pt-4 mt-4">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                          <Dumbbell className="w-4 h-4 text-green-500" />
-                          {t('admin.programWorkouts')}
+                          <Calendar className="w-4 h-4 text-purple-500" />
+                          {t('admin.weeklySchedule')}
                         </h3>
-                        <button
-                          type="button"
-                          onClick={() => setShowWorkoutPicker(!showWorkoutPicker)}
-                          className="btn-secondary text-sm py-1 px-2 gap-1"
-                        >
-                          <Plus className="w-4 h-4" />
-                          {t('admin.addWorkout')}
-                        </button>
                       </div>
                       
-                      {/* Workout Picker Dropdown */}
-                      {showWorkoutPicker && (
-                        <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
-                          <div className="relative mb-2">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input
-                              type="text"
-                              value={workoutSearch}
-                              onChange={(e) => setWorkoutSearch(e.target.value)}
-                              placeholder={t('admin.searchWorkouts')}
-                              className="input pl-9 text-sm"
-                            />
-                          </div>
-                          <div className="max-h-40 overflow-y-auto space-y-1">
-                            {allWorkouts
-                              .filter(w => 
-                                w.name.toLowerCase().includes(workoutSearch.toLowerCase())
-                              )
-                              .slice(0, 10)
-                              .map(workout => (
+                      {/* Weekly Schedule Grid */}
+                      <div className="space-y-2 max-h-80 overflow-y-auto">
+                        {DAYS.map((day, dayIndex) => {
+                          const dayWorkouts = getWorkoutsForDay(dayIndex);
+                          return (
+                            <div key={day} className="bg-gray-50 rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="text-sm font-medium text-gray-700">{t(`admin.days.${day.toLowerCase()}`)}</h4>
                                 <button
-                                  key={workout.id}
                                   type="button"
-                                  onClick={() => handleAddWorkoutToProgram(workout)}
-                                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary-50 text-sm flex items-center justify-between"
+                                  onClick={() => {
+                                    setSelectedDay(dayIndex);
+                                    setShowWorkoutPicker(true);
+                                  }}
+                                  className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1"
                                 >
-                                  <span>{workout.name}</span>
-                                  <span className="text-xs text-gray-500">{workout.workout_type}</span>
+                                  <Plus className="w-3 h-3" />
+                                  {t('admin.addWorkout')}
                                 </button>
-                              ))}
+                              </div>
+                              
+                              {dayWorkouts.length === 0 ? (
+                                <p className="text-xs text-gray-400 italic">{t('admin.restDay')}</p>
+                              ) : (
+                                <div className="space-y-1">
+                                  {dayWorkouts.map((workout) => (
+                                    <div key={workout.id} className="flex items-center gap-2 bg-white rounded-lg p-2">
+                                      <Dumbbell className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 truncate">{workout.workout_name}</p>
+                                        <p className="text-xs text-gray-500">{workout.workout_type}</p>
+                                      </div>
+                                      {/* Day Change Dropdown */}
+                                      <select
+                                        value={workout.day_of_week}
+                                        onChange={(e) => handleUpdateProgramWorkout(workout.id, { day_of_week: parseInt(e.target.value) })}
+                                        className="text-xs border rounded px-1 py-0.5 bg-white"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        {DAYS.map((d, i) => (
+                                          <option key={i} value={i}>{t(`admin.days.${d.toLowerCase()}`).slice(0, 3)}</option>
+                                        ))}
+                                      </select>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveWorkoutFromProgram(workout.id)}
+                                        className="p-1 text-gray-400 hover:text-red-500"
+                                        title={t('admin.removeWorkout')}
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Workout Picker Modal */}
+                      {showWorkoutPicker && (
+                        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[60] p-4">
+                          <div className="bg-white rounded-xl w-full max-w-sm shadow-xl">
+                            <div className="p-3 border-b flex items-center justify-between">
+                              <h4 className="font-medium text-gray-900">
+                                {t('admin.addWorkoutTo')} {t(`admin.days.${DAYS[selectedDay].toLowerCase()}`)}
+                              </h4>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowWorkoutPicker(false);
+                                  setWorkoutSearch('');
+                                }}
+                                className="p-1 hover:bg-gray-100 rounded"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <div className="p-3 border-b">
+                              <div className="relative">
+                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                  type="text"
+                                  value={workoutSearch}
+                                  onChange={(e) => setWorkoutSearch(e.target.value)}
+                                  placeholder={t('admin.searchWorkouts')}
+                                  className="input pl-9 text-sm"
+                                  autoFocus
+                                />
+                              </div>
+                            </div>
+                            <div className="max-h-60 overflow-y-auto p-2">
+                              {allWorkouts
+                                .filter(w => w.name.toLowerCase().includes(workoutSearch.toLowerCase()))
+                                .slice(0, 15)
+                                .map(workout => (
+                                  <button
+                                    key={workout.id}
+                                    type="button"
+                                    onClick={() => handleAddWorkoutToProgram(workout)}
+                                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary-50 text-sm flex items-center gap-3"
+                                  >
+                                    <Dumbbell className="w-4 h-4 text-green-500" />
+                                    <div className="flex-1">
+                                      <p className="font-medium text-gray-900">{workout.name}</p>
+                                      <p className="text-xs text-gray-500">{workout.workout_type}</p>
+                                    </div>
+                                  </button>
+                                ))}
+                            </div>
                           </div>
                         </div>
                       )}
-                      
-                      {/* Workout List */}
-                      <div className="space-y-2 max-h-48 overflow-y-auto">
-                        {programWorkouts.length === 0 ? (
-                          <p className="text-sm text-gray-500 text-center py-4">{t('admin.noWorkoutsAdded')}</p>
-                        ) : (
-                          programWorkouts.map((workout) => (
-                            <div key={workout.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">{workout.workout_name}</p>
-                                <p className="text-xs text-gray-500">
-                                  {t('admin.dayOfWeek')}: {workout.day_of_week + 1} • {workout.workout_type}
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveWorkoutFromProgram(workout.id)}
-                                className="p-1 text-gray-400 hover:text-red-500"
-                                title={t('admin.removeWorkout')}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ))
-                        )}
+                    </div>
+                  ) : (
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-lg">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        <p className="text-sm">{t('admin.saveToAddWorkouts')}</p>
                       </div>
                     </div>
                   )}
