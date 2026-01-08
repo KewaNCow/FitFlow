@@ -81,7 +81,18 @@ const WorkoutDetail = () => {
   }
 
   const totalSets = workout.exercises?.reduce((sum, ex) => sum + (ex.sets || 0), 0) || 0;
-  const estimatedTime = workout.exercises?.length * 5 || 0;
+  
+  // Calculate estimated time: cardio exercises use their duration, strength exercises estimate 5 min each
+  const estimatedTime = workout.exercises?.reduce((total, ex) => {
+    // If exercise has duration (cardio), use it (duration is in minutes)
+    if (ex.duration) {
+      return total + ex.duration;
+    }
+    // For strength exercises, estimate based on sets × 1.5 min per set + rest time
+    const sets = ex.sets || 3;
+    const restSeconds = ex.rest_time || 60;
+    return total + Math.ceil((sets * 1.5) + ((sets - 1) * restSeconds / 60));
+  }, 0) || 0;
 
   return (
     <div className="page-container max-w-3xl">
@@ -165,10 +176,15 @@ const WorkoutDetail = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {workout.exercises.map((exercise, index) => (
+          {workout.exercises.map((exercise, index) => {
+            const isCardio = exercise.category === 'cardio' || exercise.exercise_type === 'cardio' || exercise.duration;
+            
+            return (
             <div key={index} className="card p-3 sm:p-4">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 font-semibold text-sm sm:text-base">
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center font-semibold text-sm sm:text-base ${
+                  isCardio ? 'bg-blue-100 text-blue-600' : 'bg-primary-100 text-primary-600'
+                }`}>
                   {index + 1}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -179,19 +195,51 @@ const WorkoutDetail = () => {
                     {exercise.name}
                   </Link>
                   <div className="flex flex-wrap gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-gray-500">
-                    <span>{exercise.sets} {t('workoutDetail.sets')}</span>
-                    <span>×</span>
-                    <span>{exercise.reps} {t('workoutDetail.reps')}</span>
-                    {exercise.weight && (
+                    {isCardio ? (
                       <>
-                        <span>×</span>
-                        <span>{exercise.weight} kg</span>
+                        {exercise.duration && (
+                          <span>{exercise.duration} min</span>
+                        )}
+                        {exercise.distance && (
+                          <>
+                            <span>•</span>
+                            <span>{parseFloat(exercise.distance).toFixed(1)} km</span>
+                          </>
+                        )}
+                        {exercise.calories && (
+                          <>
+                            <span>•</span>
+                            <span>{exercise.calories} kcal</span>
+                          </>
+                        )}
+                        {exercise.intensity && (
+                          <>
+                            <span>•</span>
+                            <span className={`capitalize ${
+                              exercise.intensity === 'high' ? 'text-red-500' :
+                              exercise.intensity === 'moderate' ? 'text-yellow-600' :
+                              'text-green-500'
+                            }`}>{exercise.intensity}</span>
+                          </>
+                        )}
                       </>
-                    )}
-                    {exercise.rest_time && (
+                    ) : (
                       <>
-                        <span>•</span>
-                        <span>{exercise.rest_time}s {t('workoutDetail.rest')}</span>
+                        <span>{exercise.sets} {t('workoutDetail.sets')}</span>
+                        <span>×</span>
+                        <span>{exercise.reps} {t('workoutDetail.reps')}</span>
+                        {exercise.weight && (
+                          <>
+                            <span>×</span>
+                            <span>{exercise.weight} kg</span>
+                          </>
+                        )}
+                        {exercise.rest_time && (
+                          <>
+                            <span>•</span>
+                            <span>{exercise.rest_time}s {t('workoutDetail.rest')}</span>
+                          </>
+                        )}
                       </>
                     )}
                   </div>
@@ -201,7 +249,7 @@ const WorkoutDetail = () => {
                 <p className="text-xs sm:text-sm text-gray-400 mt-2 ml-11 sm:ml-14">{exercise.notes}</p>
               )}
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>

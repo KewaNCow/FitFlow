@@ -13,9 +13,17 @@ import {
   Timer,
   Dumbbell,
   Save,
-  X
+  X,
+  Route,
+  Flame,
+  Zap
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+
+// Helper to determine if an exercise is cardio-based
+const isCardioExercise = (exercise) => {
+  return exercise?.category === 'cardio' || exercise?.exercise_type === 'cardio' || exercise?.duration;
+};
 
 const ActiveWorkout = () => {
   const { id } = useParams();
@@ -104,19 +112,45 @@ const ActiveWorkout = () => {
       setWorkout(workoutData);
       
       // Initialize exercises with tracking structure
-      const initialExercises = (Array.isArray(workoutData.exercises) ? workoutData.exercises : []).map(ex => ({
-        ...ex,
-        completed: false,
-        sets: Array.from({ length: ex.sets || 3 }, (_, i) => ({
-          setNumber: i + 1,
-          targetReps: ex.reps || 10,
-          targetWeight: ex.weight || 0,
-          actualReps: null,
-          actualWeight: ex.weight || 0,
-          completed: false,
-          notes: ''
-        }))
-      }));
+      const initialExercises = (Array.isArray(workoutData.exercises) ? workoutData.exercises : []).map(ex => {
+        const isCardio = isCardioExercise(ex);
+        
+        if (isCardio) {
+          // Cardio exercise: single "set" representing the cardio session
+          return {
+            ...ex,
+            isCardio: true,
+            completed: false,
+            // Cardio tracking data
+            actualDuration: ex.duration || 30,
+            actualDistance: ex.distance || null,
+            actualCalories: ex.calories || null,
+            actualIntensity: ex.intensity || 'moderate',
+            // Keep sets array for compatibility but with single entry
+            sets: [{
+              setNumber: 1,
+              completed: false,
+              notes: ''
+            }]
+          };
+        } else {
+          // Strength exercise: multiple sets
+          return {
+            ...ex,
+            isCardio: false,
+            completed: false,
+            sets: Array.from({ length: ex.sets || 3 }, (_, i) => ({
+              setNumber: i + 1,
+              targetReps: ex.reps || 10,
+              targetWeight: ex.weight || 0,
+              actualReps: null,
+              actualWeight: ex.weight || 0,
+              completed: false,
+              notes: ''
+            }))
+          };
+        }
+      });
       
       console.log('Initialized exercises:', initialExercises);
       setExercises(initialExercises);
@@ -163,7 +197,17 @@ const ActiveWorkout = () => {
   const completeSet = (exerciseIndex, setIndex) => {
     setExercises(prev => {
       const updated = [...prev];
-      const set = updated[exerciseIndex].sets[setIndex];
+      const exercise = updated[exerciseIndex];
+      
+      // For cardio exercises, toggle the whole exercise completion
+      if (exercise.isCardio) {
+        exercise.completed = !exercise.completed;
+        exercise.sets[0].completed = exercise.completed;
+        return updated;
+      }
+      
+      // For strength exercises
+      const set = exercise.sets[setIndex];
       
       if (!set.completed) {
         // Mark as complete with default values if not edited
@@ -177,7 +221,48 @@ const ActiveWorkout = () => {
       }
       
       // Check if all sets complete
-      updated[exerciseIndex].completed = updated[exerciseIndex].sets.every(s => s.completed);
+      exercise.completed = exercise.sets.every(s => s.completed);
+      
+      return updated;
+    });
+  };
+
+  // Update cardio exercise data
+  const updateCardioData = (exerciseIndex, field, value) => {
+    setExercises(prev => {
+      const updated = [...prev];
+      updated[exerciseIndex][field] = value;
+      
+      // Auto-recalculate intensity from pace when duration or distance changes
+      if ((field === 'actualDuration' || field === 'actualDistance')) {
+        const duration = field === 'actualDuration' ? value : updated[exerciseIndex].actualDuration;
+        const distance = field === 'actualDistance' ? value : updated[exerciseIndex].actualDistance;
+        
+        if (duration && distance && distance > 0) {
+          const paceMinPerKm = duration / distance;
+          if (paceMinPerKm < 5) {
+            updated[exerciseIndex].actualIntensity = 'high';
+          } else if (paceMinPerKm < 6.5) {
+            updated[exerciseIndex].actualIntensity = 'moderate';
+          } else {
+            updated[exerciseIndex].actualIntensity = 'low';
+          }
+        }
+        
+        // Auto-calculate calories
+        if (duration) {
+          const exerciseName = updated[exerciseIndex].name?.toLowerCase() || '';
+          const activityType = exerciseName.includes('run') ? 'running' : 
+                               exerciseName.includes('cycl') || exerciseName.includes('bik') ? 'biking' :
+                               exerciseName.includes('walk') ? 'walking' : 'running';
+          const intensity = updated[exerciseIndex].actualIntensity || 'moderate';
+          const caloriesPerMinute = { running: 11, biking: 8, walking: 5, hiking: 7 };
+          const intensityMultiplier = { low: 0.7, moderate: 1.0, high: 1.3, interval: 1.4 };
+          const baseRate = caloriesPerMinute[activityType] || 8;
+          const multiplier = intensityMultiplier[intensity] || 1.0;
+          updated[exerciseIndex].actualCalories = Math.round(duration * baseRate * multiplier);
+        }
+      }
       
       return updated;
     });
@@ -492,12 +577,19 @@ const ActiveWorkout = () => {
           <div key={exIdx} className="card p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <Link 
-                  to={`/exercises/${exercise.exercise_id}`}
-                  className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors"
-                >
-                  {exercise.name}
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link 
+                    to={`/exercises/${exercise.exercise_id}`}
+                    className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors"
+                  >
+                    {exercise.name}
+                  </Link>
+                  {exercise.isCardio && (
+                    <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                      {t('workoutBuilder.cardio')}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-gray-500">{exercise.muscle_group}</p>
               </div>
               <button
@@ -509,72 +601,161 @@ const ActiveWorkout = () => {
               </button>
             </div>
 
-            {/* Sets */}
-            <div className="space-y-2">
-              {Array.isArray(exercise.sets) && exercise.sets.map((set, setIdx) => (
+            {exercise.isCardio ? (
+              /* Cardio exercise UI */
+              <div className="space-y-3">
                 <div
-                  key={setIdx}
-                  className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${
-                    set.completed
+                  className={`p-4 rounded-lg border-2 transition-colors ${
+                    exercise.completed
                       ? 'bg-green-50 border-green-500'
-                      : 'bg-gray-50 border-gray-200'
+                      : 'bg-blue-50 border-blue-200'
                   }`}
                 >
-                  <button
-                    onClick={() => completeSet(exIdx, setIdx)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${
-                      set.completed
-                        ? 'bg-green-500 border-green-500 text-white'
-                        : 'border-gray-300 hover:border-primary-500'
-                    }`}
-                  >
-                    {set.completed && <Check className="w-5 h-5" />}
-                  </button>
-                  
-                  <div className="flex-1 flex items-center gap-4">
-                    <span className="text-sm font-medium text-gray-600 w-12">
-                      {t('activeWorkout.set')} {set.setNumber}
+                  <div className="flex items-center gap-3 mb-3">
+                    <button
+                      onClick={() => completeSet(exIdx, 0)}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${
+                        exercise.completed
+                          ? 'bg-green-500 border-green-500 text-white'
+                          : 'border-blue-300 hover:border-blue-500'
+                      }`}
+                    >
+                      {exercise.completed && <Check className="w-5 h-5" />}
+                    </button>
+                    <span className="font-medium text-gray-700">
+                      {exercise.completed ? t('activeWorkout.completed') : t('activeWorkout.markComplete')}
                     </span>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="font-medium">
-                        {set.actualReps !== null ? set.actualReps : set.targetReps} {t('workoutDetail.reps')}
-                      </span>
-                      {set.actualWeight > 0 && (
-                        <>
-                          <span className="text-gray-400">×</span>
-                          <span className="font-medium">{set.actualWeight} kg</span>
-                        </>
-                      )}
-                    </div>
                   </div>
                   
-                  <button
-                    onClick={() => editSet(exIdx, setIdx)}
-                    className="text-gray-400 hover:text-primary-600 p-1"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  
-                  {exercise.sets.length > 1 && (
-                    <button
-                      onClick={() => removeSet(exIdx, setIdx)}
-                      className="text-gray-400 hover:text-red-600 p-1"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-500 flex items-center gap-1">
+                        <Timer className="w-3 h-3" /> {t('workoutBuilder.duration')}
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={exercise.actualDuration || ''}
+                        onChange={(e) => updateCardioData(exIdx, 'actualDuration', parseInt(e.target.value) || 0)}
+                        className="input text-sm py-1.5 mt-1"
+                        placeholder="30"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 flex items-center gap-1">
+                        <Route className="w-3 h-3" /> {t('workoutBuilder.distance')}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={exercise.actualDistance || ''}
+                        onChange={(e) => updateCardioData(exIdx, 'actualDistance', parseFloat(e.target.value) || 0)}
+                        className="input text-sm py-1.5 mt-1"
+                        placeholder="5.0"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 flex items-center gap-1">
+                        <Flame className="w-3 h-3" /> {t('workoutBuilder.calories')}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={exercise.actualCalories || ''}
+                        onChange={(e) => updateCardioData(exIdx, 'actualCalories', parseInt(e.target.value) || 0)}
+                        className="input text-sm py-1.5 mt-1"
+                        placeholder="300"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 flex items-center gap-1">
+                        <Zap className="w-3 h-3" /> {t('workoutBuilder.intensity')}
+                      </label>
+                      <select
+                        value={exercise.actualIntensity || 'moderate'}
+                        onChange={(e) => updateCardioData(exIdx, 'actualIntensity', e.target.value)}
+                        className="input text-sm py-1.5 mt-1"
+                      >
+                        <option value="low">{t('workoutBuilder.intensityLow')}</option>
+                        <option value="moderate">{t('workoutBuilder.intensityModerate')}</option>
+                        <option value="high">{t('workoutBuilder.intensityHigh')}</option>
+                        <option value="interval">Interval</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              /* Strength exercise UI */
+              <>
+                <div className="space-y-2">
+                  {Array.isArray(exercise.sets) && exercise.sets.map((set, setIdx) => (
+                    <div
+                      key={setIdx}
+                      className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-colors ${
+                        set.completed
+                          ? 'bg-green-50 border-green-500'
+                          : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <button
+                        onClick={() => completeSet(exIdx, setIdx)}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors ${
+                          set.completed
+                            ? 'bg-green-500 border-green-500 text-white'
+                            : 'border-gray-300 hover:border-primary-500'
+                        }`}
+                      >
+                        {set.completed && <Check className="w-5 h-5" />}
+                      </button>
+                      
+                      <div className="flex-1 flex items-center gap-4">
+                        <span className="text-sm font-medium text-gray-600 w-12">
+                          {t('activeWorkout.set')} {set.setNumber}
+                        </span>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium">
+                            {set.actualReps !== null ? set.actualReps : set.targetReps} {t('workoutDetail.reps')}
+                          </span>
+                          {set.actualWeight > 0 && (
+                            <>
+                              <span className="text-gray-400">×</span>
+                              <span className="font-medium">{set.actualWeight} kg</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={() => editSet(exIdx, setIdx)}
+                        className="text-gray-400 hover:text-primary-600 p-1"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      
+                      {exercise.sets.length > 1 && (
+                        <button
+                          onClick={() => removeSet(exIdx, setIdx)}
+                          className="text-gray-400 hover:text-red-600 p-1"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
 
-            {/* Add set button */}
-            <button
-              onClick={() => addSet(exIdx)}
-              className="w-full mt-2 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary-500 hover:text-primary-600 flex items-center justify-center gap-2 text-sm"
-            >
-              <Plus className="w-4 h-4" />
-              {t('activeWorkout.addSet')}
-            </button>
+                {/* Add set button - only for strength exercises */}
+                <button
+                  onClick={() => addSet(exIdx)}
+                  className="w-full mt-2 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-primary-500 hover:text-primary-600 flex items-center justify-center gap-2 text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t('activeWorkout.addSet')}
+                </button>
+              </>
+            )}
           </div>
         ))}
       </div>

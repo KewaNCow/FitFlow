@@ -282,9 +282,30 @@ const WorkoutBuilder = () => {
   const handleExerciseChange = (index, field, value) => {
     setWorkout(prev => ({
       ...prev,
-      exercises: prev.exercises.map((ex, i) =>
-        i === index ? { ...ex, [field]: value } : ex
-      )
+      exercises: prev.exercises.map((ex, i) => {
+        if (i !== index) return ex;
+        
+        const updatedEx = { ...ex, [field]: value };
+        
+        // Auto-recalculate intensity and calories when duration or distance changes for cardio
+        if ((field === 'duration' || field === 'distance') && isCardioExercise(ex)) {
+          const duration = field === 'duration' ? value : ex.duration;
+          const distance = field === 'distance' ? value : ex.distance;
+          
+          // Recalculate intensity from pace if both values exist
+          if (duration && distance && distance > 0) {
+            updatedEx.intensity = estimateIntensityFromPace(distance, duration);
+          }
+          
+          // Recalculate calories
+          if (duration) {
+            const activityType = selectedRoute?.activity_type || ex.name?.toLowerCase() || 'running';
+            updatedEx.calories = estimateCalories(duration, activityType, updatedEx.intensity || 'moderate');
+          }
+        }
+        
+        return updatedEx;
+      })
     }));
   };
 
