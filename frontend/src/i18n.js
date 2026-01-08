@@ -512,7 +512,9 @@ const resources = {
         yesterday: 'Yesterday',
         daysAgo: '{{count}}d ago',
         lastActivity: 'Last activity',
-        noActivity: 'Not logged yet'
+        noActivity: 'Not logged yet',
+        noLogsForWorkout: 'No logs for this workout',
+        tryDifferentWorkout: 'Try selecting a different workout or complete this one'
       },
       
       // Workouts
@@ -988,6 +990,7 @@ const resources = {
         view: 'Visa',
         viewAll: 'Visa alla',
         showLess: 'Visa mindre',
+        clearFilter: 'Rensa filter',
         details: 'Detaljer',
         exercises: 'övningar',
         log: 'Logg',
@@ -1442,6 +1445,8 @@ const resources = {
         yesterday: 'Igår',
         lastActivity: 'Senast loggad',
         noActivity: 'Inte loggad än',
+        noLogsForWorkout: 'Inga loggar för detta träningspass',
+        tryDifferentWorkout: 'Prova att välja ett annat träningspass eller slutför detta',
         daysAgo: '{{count}}d sedan'
       },
       

@@ -12,7 +12,9 @@ import {
   Flame,
   Target,
   History,
-  Play
+  Play,
+  Filter,
+  X
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +27,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAllLogs, setShowAllLogs] = useState(false);
+  const [filterWorkoutId, setFilterWorkoutId] = useState(null);
   
   // Number of quick action items (dynamic)
   const QUICK_ACTION_COUNT = 4;
@@ -251,15 +254,25 @@ const Dashboard = () => {
                       </p>
                     </div>
                     {latestLog ? (
-                      <Link
-                        to={`/workout-history?logId=${latestLog.id}`}
-                        className="flex flex-col items-end text-right"
+                      <button
+                        onClick={() => {
+                          setFilterWorkoutId(filterWorkoutId === workout.id ? null : workout.id);
+                          setShowAllLogs(true);
+                        }}
+                        className={`flex flex-col items-end text-right px-2 py-1 rounded-lg transition-colors ${
+                          filterWorkoutId === workout.id 
+                            ? 'bg-primary-100 ring-2 ring-primary-500' 
+                            : 'hover:bg-gray-100'
+                        }`}
                       >
-                        <span className="text-xs text-gray-500">{t('dashboard.lastActivity')}</span>
+                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                          <Filter className="w-3 h-3" />
+                          {t('dashboard.lastActivity')}
+                        </span>
                         <span className="text-xs sm:text-sm font-medium text-primary-600">
                           {formatTimeAgo(latestLog.completed_at || latestLog.created_at)}
                         </span>
-                      </Link>
+                      </button>
                     ) : (
                       <span className="text-xs text-gray-400">{t('dashboard.noActivity')}</span>
                     )}
@@ -277,27 +290,74 @@ const Dashboard = () => {
           <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
             <History className="w-5 h-5 text-gray-500" />
             {t('dashboard.recentActivity')}
+            {filterWorkoutId && (
+              <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-full">
+                <Filter className="w-3 h-3" />
+                {workouts.find(w => w.id === filterWorkoutId)?.name}
+                <button
+                  onClick={() => setFilterWorkoutId(null)}
+                  className="ml-1 hover:bg-primary-200 rounded-full p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
           </h2>
-          {recentLogs.length > 5 && (
-            <button
-              onClick={() => setShowAllLogs(!showAllLogs)}
-              className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-            >
-              {showAllLogs ? t('common.showLess') : t('common.viewAll')} ({recentLogs.length})
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {filterWorkoutId && (
+              <button
+                onClick={() => setFilterWorkoutId(null)}
+                className="text-gray-500 hover:text-gray-700 text-sm"
+              >
+                {t('common.clearFilter')}
+              </button>
+            )}
+            {(filterWorkoutId ? recentLogs.filter(log => log.workout_id === filterWorkoutId) : recentLogs).length > 5 && (
+              <button
+                onClick={() => setShowAllLogs(!showAllLogs)}
+                className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+              >
+                {showAllLogs ? t('common.showLess') : t('common.viewAll')} ({(filterWorkoutId ? recentLogs.filter(log => log.workout_id === filterWorkoutId) : recentLogs).length})
+              </button>
+            )}
+          </div>
         </div>
 
-        {recentLogs.length === 0 ? (
-          <div className="card p-6 text-center">
-            <History className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm">{t('dashboard.noRecentActivity')}</p>
-            <p className="text-gray-400 text-xs mt-1">{t('dashboard.completeWorkoutToSee')}</p>
-          </div>
-        ) : (
-          <div className="card divide-y divide-gray-100">
-            {(showAllLogs ? recentLogs : recentLogs.slice(0, 5)).map((log) => (
-              <Link
+        {(() => {
+          const filteredLogs = filterWorkoutId 
+            ? recentLogs.filter(log => log.workout_id === filterWorkoutId)
+            : recentLogs;
+          const displayLogs = showAllLogs ? filteredLogs : filteredLogs.slice(0, 5);
+          
+          if (filteredLogs.length === 0) {
+            return (
+              <div className="card p-6 text-center">
+                <History className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">
+                  {filterWorkoutId ? t('dashboard.noLogsForWorkout') : t('dashboard.noRecentActivity')}
+                </p>
+                <p className="text-gray-400 text-xs mt-1">
+                  {filterWorkoutId 
+                    ? t('dashboard.tryDifferentWorkout')
+                    : t('dashboard.completeWorkoutToSee')
+                  }
+                </p>
+                {filterWorkoutId && (
+                  <button
+                    onClick={() => setFilterWorkoutId(null)}
+                    className="mt-3 text-primary-600 hover:text-primary-700 text-sm font-medium"
+                  >
+                    {t('common.clearFilter')}
+                  </button>
+                )}
+              </div>
+            );
+          }
+          
+          return (
+            <div className="card divide-y divide-gray-100">
+              {displayLogs.map((log) => (
+                <Link
                 key={log.id}
                 to={`/history?log=${log.id}`}
                 className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:bg-gray-50 transition-colors block"
@@ -333,9 +393,10 @@ const Dashboard = () => {
                   <p className="text-xs text-primary-600 mt-1">{t('dashboard.viewDetails')}</p>
                 </div>
               </Link>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
