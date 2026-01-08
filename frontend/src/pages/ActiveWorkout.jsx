@@ -716,11 +716,11 @@ const ActiveWorkout = () => {
                       <input
                         type="number"
                         min="0"
-                        step="0.1"
+                        step="0.01"
                         value={exercise.actualDistance || ''}
                         onChange={(e) => updateCardioData(exIdx, 'actualDistance', parseFloat(e.target.value) || 0)}
                         className="input text-sm py-1.5 mt-1"
-                        placeholder="5.0"
+                        placeholder="5.00"
                       />
                     </div>
                     <div>

@@ -673,11 +673,11 @@ const WorkoutBuilder = () => {
                             <input
                               type="number"
                               min="0"
-                              step="0.1"
+                              step="0.01"
                               value={exercise.distance || ''}
                               onChange={(e) => handleExerciseChange(index, 'distance', e.target.value ? parseFloat(e.target.value) : null)}
                               className="input text-sm py-1.5"
-                              placeholder="5.0"
+                              placeholder="5.00"
                             />
                           </div>
                           <div>
