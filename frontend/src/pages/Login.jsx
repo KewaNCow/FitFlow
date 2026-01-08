@@ -69,8 +69,12 @@ const Login = () => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div 
+              className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg flex items-start gap-3"
+              role="alert"
+              aria-live="polite"
+            >
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div className="flex-1">
                 <p className="font-medium">{t('auth.loginFailed')}</p>
                 <p className="text-sm mt-1">{error}</p>
@@ -79,8 +83,9 @@ const Login = () => {
                 type="button"
                 onClick={() => setError('')}
                 className="text-red-500 hover:text-red-700 flex-shrink-0"
+                aria-label="Dismiss error message"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
           )}
@@ -123,8 +128,9 @@ const Login = () => {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-5 h-5" aria-hidden="true" /> : <Eye className="w-5 h-5" aria-hidden="true" />}
                 </button>
               </div>
             </div>

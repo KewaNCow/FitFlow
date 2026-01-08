@@ -322,14 +322,22 @@ const EquipmentLibrary = () => {
                 <h2 className="text-xl font-bold text-gray-900">
                   {editingEquipment ? 'Edit Equipment' : 'Add Equipment'}
                 </h2>
-                <button onClick={closeModal} className="p-2 hover:bg-gray-100 rounded-lg">
-                  <X className="w-5 h-5" />
+                <button 
+                  onClick={closeModal} 
+                  className="p-2 hover:bg-gray-100 rounded-lg"
+                  aria-label="Close modal"
+                >
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                  <div 
+                    className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+                    role="alert"
+                    aria-live="polite"
+                  >
                     {error}
                   </div>
                 )}
@@ -466,14 +474,16 @@ const EquipmentCard = ({ item, user, onEdit, onDelete, getCategoryIcon, getCateg
             <button
               onClick={onEdit}
               className="p-2 bg-white rounded-lg hover:bg-gray-100"
+              aria-label={`Edit ${item.name}`}
             >
-              <Edit className="w-4 h-4 text-gray-700" />
+              <Edit className="w-4 h-4 text-gray-700" aria-hidden="true" />
             </button>
             <button
               onClick={onDelete}
               className="p-2 bg-white rounded-lg hover:bg-gray-100"
+              aria-label={`Delete ${item.name}`}
             >
-              <Trash2 className="w-4 h-4 text-red-500" />
+              <Trash2 className="w-4 h-4 text-red-500" aria-hidden="true" />
             </button>
           </div>
         )}

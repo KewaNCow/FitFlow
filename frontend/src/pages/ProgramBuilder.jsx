@@ -322,18 +322,24 @@ const ProgramBuilder = () => {
 
       {/* Add Workout Modal */}
       {showWorkoutModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="workout-modal-title"
+        >
           <div className="bg-white rounded-xl w-full max-w-lg max-h-[80vh] overflow-hidden animate-slide-up">
             <div className="p-4 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <h3 className="text-lg font-semibold">{t('programBuilder.addWorkout')} to {DAYS[selectedDay]}</h3>
+              <h3 id="workout-modal-title" className="text-lg font-semibold">{t('programBuilder.addWorkout')} to {DAYS[selectedDay]}</h3>
               <button
                 onClick={() => {
                   setShowWorkoutModal(false);
                   setSearchTerm('');
                 }}
                 className="p-1 hover:bg-gray-100 rounded-lg"
+                aria-label="Close modal"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
             <div className="p-4 border-b">

@@ -353,14 +353,16 @@ const ExerciseLibrary = () => {
                         to={`/exercises/${exercise.id}/edit`}
                         onClick={(e) => e.stopPropagation()}
                         className="p-1.5 bg-white/90 rounded-lg hover:bg-white shadow-sm"
+                        aria-label={`Edit ${exercise.name}`}
                       >
-                        <Edit className="w-4 h-4 text-gray-600" />
+                        <Edit className="w-4 h-4 text-gray-600" aria-hidden="true" />
                       </Link>
                       <button
                         onClick={(e) => handleDeleteExercise(exercise.id, e)}
                         className="p-1.5 bg-white/90 rounded-lg hover:bg-white shadow-sm"
+                        aria-label={`Delete ${exercise.name}`}
                       >
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                        <Trash2 className="w-4 h-4 text-red-500" aria-hidden="true" />
                       </button>
                     </div>
                   )}

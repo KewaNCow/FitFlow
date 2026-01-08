@@ -431,8 +431,9 @@ const ActiveWorkout = () => {
           <button
             onClick={cancelWorkout}
             className="text-gray-600 hover:text-red-600 flex items-center gap-2"
+            aria-label="Cancel workout"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
             <span>{t('activeWorkout.cancel')}</span>
           </button>
           
@@ -443,15 +444,18 @@ const ActiveWorkout = () => {
                 useCustomTime ? 'bg-indigo-100 text-indigo-600' : 'hover:bg-gray-100'
               }`}
               title="Set custom workout time"
+              aria-label="Set custom workout time"
             >
-              <Timer className="w-5 h-5" />
+              <Timer className="w-5 h-5" aria-hidden="true" />
             </button>
             <button
               onClick={() => setIsPaused(!isPaused)}
               className="p-2 rounded-lg hover:bg-gray-100"
               disabled={useCustomTime}
+              aria-label={isPaused ? 'Resume timer' : 'Pause timer'}
             >
-              {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
+              {isPaused ? <Play className="w-5 h-5" aria-hidden="true" /> : <Pause className="w-5 h-5" aria-hidden="true" />}
+            </button>
             </button>
             <div className="text-2xl font-mono font-bold text-primary-600">
               {useCustomTime ? `⏱️ ${t('activeWorkout.customTime')}` : formatTime(elapsedTime)}
@@ -500,8 +504,9 @@ const ActiveWorkout = () => {
               <button
                 onClick={() => removeExercise(exIdx)}
                 className="text-gray-400 hover:text-red-600 p-1"
+                aria-label={`Remove ${exercise.name} from workout`}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
 

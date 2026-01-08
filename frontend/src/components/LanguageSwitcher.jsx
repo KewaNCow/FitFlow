@@ -13,6 +13,7 @@ const LanguageSwitcher = () => {
     <button
       onClick={toggleLanguage}
       className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+      aria-label={i18n.language === 'en' ? 'Switch language to Swedish' : 'Byt språk till engelska'}
       title={i18n.language === 'en' ? 'Switch to Swedish' : 'Byt till engelska'}
     >
       <Globe className="w-4 h-4" />

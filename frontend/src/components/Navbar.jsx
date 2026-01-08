@@ -87,6 +87,9 @@ const Navbar = () => {
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  aria-expanded={showUserMenu}
+                  aria-haspopup="true"
+                  aria-label={`User menu for ${user?.firstName}`}
                 >
                   <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
                     <span className="text-sm font-medium text-primary-600">
@@ -144,7 +147,9 @@ const Navbar = () => {
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 rounded-lg text-gray-600 hover:bg-gray-100"
-              aria-label="Toggle menu"
+              aria-label={isOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isOpen}
+              aria-controls="mobile-menu"
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -154,7 +159,12 @@ const Navbar = () => {
 
       {/* Mobile Navigation */}
       {isOpen && (
-        <div className="md:hidden border-t bg-white animate-slide-up">
+        <div 
+          id="mobile-menu" 
+          className="md:hidden border-t bg-white animate-slide-up"
+          role="navigation"
+          aria-label="Mobile navigation"
+        >
           <div className="px-4 py-3 space-y-1">
             {currentLinks.map((link) => (
               <Link

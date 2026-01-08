@@ -130,15 +130,23 @@ const Profile = () => {
 
       {/* Error/Success Messages */}
       {error && (
-        <div className="mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+        <div 
+          className="mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3"
+          role="alert"
+          aria-live="polite"
+        >
+          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" aria-hidden="true" />
           <p className="text-red-700 text-sm sm:text-base">{error}</p>
         </div>
       )}
 
       {success && (
-        <div className="mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-          <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+        <div 
+          className="mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3"
+          role="status"
+          aria-live="polite"
+        >
+          <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" aria-hidden="true" />
           <p className="text-green-700 text-sm sm:text-base">{success}</p>
         </div>
       )}
@@ -264,8 +272,9 @@ const Profile = () => {
                 type="button"
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label={showCurrentPassword ? 'Hide current password' : 'Show current password'}
               >
-                {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showCurrentPassword ? <EyeOff className="w-5 h-5" aria-hidden="true" /> : <Eye className="w-5 h-5" aria-hidden="true" />}
               </button>
             </div>
           </div>
@@ -290,8 +299,9 @@ const Profile = () => {
                 type="button"
                 onClick={() => setShowNewPassword(!showNewPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
               >
-                {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showNewPassword ? <EyeOff className="w-5 h-5" aria-hidden="true" /> : <Eye className="w-5 h-5" aria-hidden="true" />}
               </button>
             </div>
           </div>

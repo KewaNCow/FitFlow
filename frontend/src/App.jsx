@@ -32,8 +32,12 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="min-h-screen flex flex-col">
+          {/* Skip link for keyboard navigation - accessibility */}
+          <a href="#main-content" className="skip-link">
+            Skip to main content
+          </a>
           <Navbar />
-          <main className="flex-grow">
+          <main id="main-content" className="flex-grow" role="main">
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<LandingPage />} />

@@ -336,14 +336,16 @@ const AdminDashboard = () => {
                             <button
                               onClick={() => handleEdit(item)}
                               className="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg"
+                              aria-label={`Edit ${item.name}`}
                             >
-                              <Edit className="w-4 h-4" />
+                              <Edit className="w-4 h-4" aria-hidden="true" />
                             </button>
                             <button
                               onClick={() => handleDelete(item.id)}
                               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                              aria-label={`Delete ${item.name}`}
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4" aria-hidden="true" />
                             </button>
                           </div>
                         </td>
@@ -365,8 +367,12 @@ const AdminDashboard = () => {
               <h2 className="text-lg font-semibold">
                 {editingItem ? 'Edit' : 'Create'} {activeTab.slice(0, -1)}
               </h2>
-              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
-                <X className="w-5 h-5" />
+              <button 
+                onClick={() => setShowModal(false)} 
+                className="p-2 hover:bg-gray-100 rounded-lg"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
             

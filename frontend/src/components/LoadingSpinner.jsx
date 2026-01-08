@@ -12,7 +12,9 @@ const LoadingSpinner = ({ size = 'md', className = '' }) => {
         className={`${sizeClasses[size]} border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin`}
         role="status"
         aria-label="Loading"
-      />
+      >
+        <span className="sr-only">Loading...</span>
+      </div>
     </div>
   );
 };

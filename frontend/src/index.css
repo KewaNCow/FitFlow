@@ -124,6 +124,60 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Screen reader only - visually hidden but accessible */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Show element when focused (for skip links) */
+  .sr-only-focusable:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0.5rem 1rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+}
+
+/* Enhanced focus styles for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid #22c55e;
+  outline-offset: 2px;
+}
+
+/* Skip link styles */
+.skip-link {
+  @apply sr-only sr-only-focusable;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  background: #22c55e;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 0 0 0.5rem 0;
+}
+
+.skip-link:focus {
+  position: fixed;
+  width: auto;
+  height: auto;
+  clip: auto;
+  white-space: normal;
 }
 
 /* Custom scrollbar */
