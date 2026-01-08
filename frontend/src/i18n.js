@@ -510,7 +510,9 @@ const resources = {
         minutesAgo: '{{count}}m ago',
         hoursAgo: '{{count}}h ago',
         yesterday: 'Yesterday',
-        daysAgo: '{{count}}d ago'
+        daysAgo: '{{count}}d ago',
+        lastActivity: 'Last activity',
+        noActivity: 'Not logged yet'
       },
       
       // Workouts
@@ -1438,6 +1440,8 @@ const resources = {
         minutesAgo: '{{count}}m sedan',
         hoursAgo: '{{count}}t sedan',
         yesterday: 'Igår',
+        lastActivity: 'Senast loggad',
+        noActivity: 'Inte loggad än',
         daysAgo: '{{count}}d sedan'
       },
       

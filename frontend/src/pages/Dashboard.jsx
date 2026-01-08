@@ -50,13 +50,9 @@ const Dashboard = () => {
     }
   };
 
-  const handleQuickLog = async (workoutId) => {
-    try {
-      await workoutLogAPI.create({ workoutId, durationMinutes: 45 });
-      fetchDashboardData();
-    } catch (error) {
-      console.error('Error logging workout:', error);
-    }
+  // Get the latest log for a specific workout
+  const getLatestLogForWorkout = (workoutId) => {
+    return recentLogs.find(log => log.workout_id === workoutId);
   };
 
   const formatTimeAgo = (dateStr) => {
@@ -236,30 +232,40 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {workouts.slice(0, QUICK_ACTION_COUNT).map((workout) => (
-                <div key={workout.id} className="card p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" />
+              {workouts.slice(0, QUICK_ACTION_COUNT).map((workout) => {
+                const latestLog = getLatestLogForWorkout(workout.id);
+                return (
+                  <div key={workout.id} className="card p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <Link 
+                        to={`/my-workouts/${workout.id}`}
+                        className="font-medium text-gray-900 hover:text-primary-600 text-sm sm:text-base"
+                      >
+                        {workout.name}
+                      </Link>
+                      <p className="text-xs sm:text-sm text-gray-500 truncate">
+                        {workout.exercise_count || 0} {t('common.exercises')}
+                      </p>
+                    </div>
+                    {latestLog ? (
+                      <Link
+                        to={`/workout-history?logId=${latestLog.id}`}
+                        className="flex flex-col items-end text-right"
+                      >
+                        <span className="text-xs text-gray-500">{t('dashboard.lastActivity')}</span>
+                        <span className="text-xs sm:text-sm font-medium text-primary-600">
+                          {formatTimeAgo(latestLog.completed_at || latestLog.created_at)}
+                        </span>
+                      </Link>
+                    ) : (
+                      <span className="text-xs text-gray-400">{t('dashboard.noActivity')}</span>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <Link 
-                      to={`/my-workouts/${workout.id}`}
-                      className="font-medium text-gray-900 hover:text-primary-600 text-sm sm:text-base"
-                    >
-                      {workout.name}
-                    </Link>
-                    <p className="text-xs sm:text-sm text-gray-500 truncate">
-                      {workout.exercise_count || 0} {t('common.exercises')}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleQuickLog(workout.id)}
-                    className="btn-primary btn-sm whitespace-nowrap text-xs sm:text-sm"
-                  >
-                    {t('common.log')}
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
