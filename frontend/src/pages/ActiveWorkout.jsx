@@ -730,7 +730,7 @@ const ActiveWorkout = () => {
                       <input
                         type="number"
                         min="0"
-                        value={exercise.actualCalories || ''}
+                        value={exercise.actualCalories !== undefined && exercise.actualCalories !== null ? exercise.actualCalories : ''}
                         onChange={(e) => updateCardioData(exIdx, 'actualCalories', parseInt(e.target.value) || 0)}
                         className="input text-sm py-1.5 mt-1"
                         placeholder="300"
@@ -786,12 +786,10 @@ const ActiveWorkout = () => {
                           <span className="font-medium">
                             {set.actualReps !== null ? set.actualReps : set.targetReps} {t('workoutDetail.reps')}
                           </span>
-                          {set.actualWeight > 0 && (
-                            <>
-                              <span className="text-gray-400">×</span>
-                              <span className="font-medium">{set.actualWeight} kg</span>
-                            </>
-                          )}
+                          <span className="text-gray-400">×</span>
+                          <span className={`font-medium ${!set.actualWeight && set.actualWeight !== 0 ? 'text-gray-400' : ''}`}>
+                            {set.actualWeight > 0 ? `${set.actualWeight} kg` : '– kg'}
+                          </span>
                         </div>
                       </div>
                       
