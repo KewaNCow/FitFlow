@@ -157,10 +157,33 @@ const AdminDashboard = () => {
   };
 
   const handleAddExerciseToWorkout = async (exercise) => {
-    if (!editingItem?.id) return;
-    
     // Check if exercise is cardio type
     const isCardio = exercise.category === 'cardio' || exercise.exercise_type === 'cardio';
+    
+    // If no workout ID yet, add to local state
+    if (!editingItem?.id) {
+      const tempExercise = {
+        id: `temp-${Date.now()}`,
+        exercise_id: exercise.id,
+        exercise_name: exercise.name,
+        muscle_group: exercise.muscle_group,
+        category: exercise.category,
+        sets: isCardio ? null : 3,
+        reps: isCardio ? null : 10,
+        weight: null,
+        rest_time: isCardio ? null : 60,
+        duration: isCardio ? 30 : null,
+        distance: null,
+        calories: null,
+        intensity: isCardio ? 'moderate' : null,
+        notes: null
+      };
+      setWorkoutExercises(prev => [...prev, tempExercise]);
+      setShowExercisePicker(false);
+      setExerciseSearch('');
+      setExpandedExercise(tempExercise.id);
+      return;
+    }
     
     try {
       const response = await adminAPI.addWorkoutExercise(editingItem.id, {
@@ -195,6 +218,14 @@ const AdminDashboard = () => {
 
   // Update exercise details in a workout
   const handleUpdateExerciseDetails = async (exerciseId, updates) => {
+    // If it's a temp exercise (not saved yet), just update local state
+    if (exerciseId.toString().startsWith('temp-')) {
+      setWorkoutExercises(prev => prev.map(ex => 
+        ex.id === exerciseId ? { ...ex, ...updates } : ex
+      ));
+      return;
+    }
+    
     if (!editingItem) return;
     try {
       const response = await adminAPI.updateWorkoutExercise(editingItem.id, exerciseId, updates);
@@ -208,6 +239,14 @@ const AdminDashboard = () => {
 
   // Update program workout (e.g., change day)
   const handleUpdateProgramWorkout = async (workoutId, updates) => {
+    // If it's a temp workout (not saved yet), just update local state
+    if (workoutId.toString().startsWith('temp-')) {
+      setProgramWorkouts(prev => prev.map(w => 
+        w.id === workoutId ? { ...w, ...updates } : w
+      ));
+      return;
+    }
+    
     if (!editingItem) return;
     try {
       const response = await adminAPI.updateProgramWorkout(editingItem.id, workoutId, updates);
@@ -225,6 +264,12 @@ const AdminDashboard = () => {
   };
 
   const handleRemoveExerciseFromWorkout = async (exerciseId) => {
+    // If it's a temp exercise (not saved yet), just remove from local state
+    if (exerciseId.toString().startsWith('temp-')) {
+      setWorkoutExercises(prev => prev.filter(e => e.id !== exerciseId));
+      return;
+    }
+    
     if (!editingItem) return;
     try {
       await adminAPI.removeWorkoutExercise(editingItem.id, exerciseId);
@@ -235,7 +280,21 @@ const AdminDashboard = () => {
   };
 
   const handleAddWorkoutToProgram = async (workout) => {
-    if (!editingItem?.id) return;
+    // If no program ID yet, add to local state
+    if (!editingItem?.id) {
+      const tempWorkout = {
+        id: `temp-${Date.now()}`,
+        workout_id: workout.id,
+        workout_name: workout.name,
+        workout_type: workout.workout_type,
+        day_of_week: selectedDay,
+        notes: null
+      };
+      setProgramWorkouts(prev => [...prev, tempWorkout]);
+      setShowWorkoutPicker(false);
+      setWorkoutSearch('');
+      return;
+    }
     
     try {
       const response = await adminAPI.addProgramWorkout(editingItem.id, {
@@ -253,6 +312,12 @@ const AdminDashboard = () => {
   };
 
   const handleRemoveWorkoutFromProgram = async (workoutId) => {
+    // If it's a temp workout (not saved yet), just remove from local state
+    if (workoutId.toString().startsWith('temp-')) {
+      setProgramWorkouts(prev => prev.filter(w => w.id !== workoutId));
+      return;
+    }
+    
     if (!editingItem) return;
     try {
       await adminAPI.removeProgramWorkout(editingItem.id, workoutId);
@@ -367,9 +432,42 @@ const AdminDashboard = () => {
         const newItem = response.data.data;
         setItems(prev => [newItem, ...prev]);
         
-        // For workouts and programs, stay in modal and switch to edit mode
-        // so user can immediately add exercises/workouts
-        if (activeTab === 'workouts' || activeTab === 'programs') {
+        // For workouts with exercises, save all exercises
+        if (activeTab === 'workouts' && workoutExercises.length > 0) {
+          for (const exercise of workoutExercises) {
+            if (exercise.id.toString().startsWith('temp-')) {
+              await adminAPI.addWorkoutExercise(newItem.id, {
+                exercise_id: exercise.exercise_id,
+                sets: exercise.sets,
+                reps: exercise.reps,
+                weight: exercise.weight,
+                rest_time: exercise.rest_time,
+                duration: exercise.duration,
+                distance: exercise.distance,
+                calories: exercise.calories,
+                intensity: exercise.intensity,
+                notes: exercise.notes
+              });
+            }
+          }
+          setEditingItem(newItem);
+          setFormData(newItem);
+          // Keep modal open to show saved exercises
+        } else if (activeTab === 'programs' && programWorkouts.length > 0) {
+          // For programs with workouts, save all workouts
+          for (const workout of programWorkouts) {
+            if (workout.id.toString().startsWith('temp-')) {
+              await adminAPI.addProgramWorkout(newItem.id, {
+                workout_id: workout.workout_id,
+                day_of_week: workout.day_of_week,
+                notes: workout.notes
+              });
+            }
+          }
+          setEditingItem(newItem);
+          setFormData(newItem);
+          // Keep modal open to show saved workouts
+        } else if (activeTab === 'workouts' || activeTab === 'programs') {
           setEditingItem(newItem);
           setFormData(newItem);
           // Keep modal open - user is now in edit mode
@@ -998,8 +1096,7 @@ const AdminDashboard = () => {
                     </select>
                   </div>
                 
-                  {/* Workout Exercises Section - Only show after creation */}
-                  {editingItem && (
+                  {/* Workout Exercises Section */}
                   <div className="border-t pt-4 mt-4">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-medium text-gray-900 flex items-center gap-2">
@@ -1249,7 +1346,6 @@ const AdminDashboard = () => {
                       )}
                     </div>
                   </div>
-                  )}
                 </>
               )}
 
@@ -1278,8 +1374,7 @@ const AdminDashboard = () => {
                     </select>
                   </div>
                   
-                  {/* Program Workouts Section - Only show after creation */}
-                  {editingItem && (
+                  {/* Program Workouts Section */}
                   <div className="border-t pt-4 mt-4">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="font-medium text-gray-900 flex items-center gap-2">
@@ -1403,7 +1498,6 @@ const AdminDashboard = () => {
                         </div>
                       )}
                   </div>
-                  )}
               </>
             )}
 
