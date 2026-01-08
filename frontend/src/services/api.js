@@ -169,4 +169,17 @@ export const adminAPI = {
   deleteEquipment: (id) => api.delete(`/admin/equipment/${id}`),
 };
 
+// Rating API
+export const ratingAPI = {
+  // Workout ratings
+  getWorkoutRating: (id) => api.get(`/ratings/workout/${id}`),
+  rateWorkout: (id, data) => api.post(`/ratings/workout/${id}`, data),
+  deleteWorkoutRating: (id) => api.delete(`/ratings/workout/${id}`),
+  
+  // Program ratings
+  getProgramRating: (id) => api.get(`/ratings/program/${id}`),
+  rateProgram: (id, data) => api.post(`/ratings/program/${id}`, data),
+  deleteProgramRating: (id) => api.delete(`/ratings/program/${id}`),
+};
+
 export default api;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { workoutAPI, workoutLogAPI } from '../services/api';
+import { workoutAPI, workoutLogAPI, ratingAPI } from '../services/api';
 import { useTranslation } from 'react-i18next';
 import { 
   ArrowLeft, 
@@ -9,9 +9,11 @@ import {
   Play, 
   Dumbbell,
   Clock,
-  Target
+  Target,
+  Star
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import StarRating from '../components/StarRating';
 
 const WorkoutDetail = () => {
   const { id } = useParams();
@@ -19,9 +21,15 @@ const WorkoutDetail = () => {
   const { t } = useTranslation();
   const [workout, setWorkout] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [ratingData, setRatingData] = useState({
+    avgRating: 0,
+    ratingCount: 0,
+    userRating: null
+  });
 
   useEffect(() => {
     fetchWorkout();
+    fetchRating();
   }, [id]);
 
   const fetchWorkout = async () => {
@@ -33,6 +41,32 @@ const WorkoutDetail = () => {
       navigate('/my-workouts');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRating = async () => {
+    try {
+      const response = await ratingAPI.getWorkoutRating(id);
+      setRatingData(response.data.data);
+    } catch (error) {
+      console.error('Error fetching rating:', error);
+    }
+  };
+
+  const handleRate = async (rating) => {
+    try {
+      if (rating === 0) {
+        const response = await ratingAPI.deleteWorkoutRating(id);
+        setRatingData({
+          ...response.data.data,
+          userRating: null
+        });
+      } else {
+        const response = await ratingAPI.rateWorkout(id, { rating });
+        setRatingData(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error rating workout:', error);
     }
   };
 
@@ -112,6 +146,19 @@ const WorkoutDetail = () => {
           {workout.description && (
             <p className="text-gray-600 mt-2 text-sm sm:text-base">{workout.description}</p>
           )}
+          {/* Rating Display */}
+          <div className="mt-3 flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              <StarRating 
+                rating={ratingData.avgRating} 
+                readonly 
+                size="sm"
+                showAverage
+                showCount
+                count={ratingData.ratingCount}
+              />
+            </div>
+          </div>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           {workout.is_predefined ? (
@@ -252,6 +299,27 @@ const WorkoutDetail = () => {
           )})}
         </div>
       )}
+
+      {/* Rate This Workout */}
+      <div className="card p-4 sm:p-6 mt-6 sm:mt-8">
+        <div className="flex items-center gap-2 mb-3">
+          <Star className="w-5 h-5 text-yellow-500" />
+          <h3 className="font-semibold text-gray-900">{t('rating.rateThisWorkout')}</h3>
+        </div>
+        <div className="flex items-center gap-4">
+          <StarRating 
+            rating={ratingData.userRating || 0}
+            onRate={handleRate}
+            size="lg"
+          />
+          {ratingData.userRating && (
+            <span className="text-sm text-gray-500">{t('rating.yourRating')}: {ratingData.userRating}/5</span>
+          )}
+        </div>
+        {!ratingData.userRating && (
+          <p className="text-sm text-gray-500 mt-2">{t('rating.clickToRate')}</p>
+        )}
+      </div>
     </div>
   );
 };

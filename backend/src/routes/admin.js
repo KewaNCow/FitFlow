@@ -646,6 +646,45 @@ router.get('/stats', async (req, res) => {
       LIMIT 10
     `);
 
+    // Rating statistics
+    const [[{ totalRatings }]] = await pool.query('SELECT COUNT(*) as totalRatings FROM ratings');
+    const [[{ avgWorkoutRating }]] = await pool.query(`
+      SELECT COALESCE(AVG(rating), 0) as avgWorkoutRating 
+      FROM ratings 
+      WHERE workout_id IS NOT NULL
+    `);
+    const [[{ avgProgramRating }]] = await pool.query(`
+      SELECT COALESCE(AVG(rating), 0) as avgProgramRating 
+      FROM ratings 
+      WHERE program_id IS NOT NULL
+    `);
+    
+    // Top rated workouts
+    const [topRatedWorkouts] = await pool.query(`
+      SELECT w.id, w.name, w.workout_type,
+             AVG(r.rating) as avg_rating,
+             COUNT(r.id) as rating_count
+      FROM workouts w
+      JOIN ratings r ON w.id = r.workout_id
+      GROUP BY w.id, w.name, w.workout_type
+      HAVING rating_count >= 1
+      ORDER BY avg_rating DESC, rating_count DESC
+      LIMIT 10
+    `);
+    
+    // Top rated programs
+    const [topRatedPrograms] = await pool.query(`
+      SELECT p.id, p.name, p.difficulty,
+             AVG(r.rating) as avg_rating,
+             COUNT(r.id) as rating_count
+      FROM programs p
+      JOIN ratings r ON p.id = r.program_id
+      GROUP BY p.id, p.name, p.difficulty
+      HAVING rating_count >= 1
+      ORDER BY avg_rating DESC, rating_count DESC
+      LIMIT 10
+    `);
+
     res.json({
       success: true,
       data: {
@@ -673,7 +712,14 @@ router.get('/stats', async (req, res) => {
         recentUsers,
         topUsers,
         dailyActivity,
-        popularExercises
+        popularExercises,
+        
+        // Rating stats
+        totalRatings: parseInt(totalRatings),
+        avgWorkoutRating: parseFloat(avgWorkoutRating).toFixed(1),
+        avgProgramRating: parseFloat(avgProgramRating).toFixed(1),
+        topRatedWorkouts,
+        topRatedPrograms
       }
     });
   } catch (error) {

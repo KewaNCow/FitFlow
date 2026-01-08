@@ -759,7 +759,61 @@ const resources = {
         usageCount: 'Usage',
         noData: 'No data available',
         email: 'Email',
-        joinedOn: 'Joined'
+        joinedOn: 'Joined',
+        // Exercise editor fields
+        equipment: 'Equipment',
+        selectMuscleGroup: 'Select muscle group',
+        selectEquipment: 'Select equipment',
+        instructions: 'Instructions',
+        instructionsPlaceholder: 'Enter step-by-step instructions for performing this exercise...',
+        imageUrl: 'Image URL',
+        videoUrl: 'Video URL',
+        // Muscle groups
+        muscles: {
+          chest: 'Chest',
+          back: 'Back',
+          shoulders: 'Shoulders',
+          biceps: 'Biceps',
+          triceps: 'Triceps',
+          forearms: 'Forearms',
+          core: 'Core',
+          quadriceps: 'Quadriceps',
+          hamstrings: 'Hamstrings',
+          glutes: 'Glutes',
+          calves: 'Calves',
+          fullBody: 'Full Body'
+        },
+        // Equipment options
+        equipmentOptions: {
+          none: 'None',
+          barbell: 'Barbell',
+          dumbbells: 'Dumbbells',
+          kettlebell: 'Kettlebell',
+          resistanceBand: 'Resistance Band',
+          cableMachine: 'Cable Machine',
+          pullUpBar: 'Pull-up Bar',
+          bench: 'Bench',
+          smithMachine: 'Smith Machine',
+          trx: 'TRX'
+        },
+        // Rating stats
+        ratingCount: 'Ratings',
+        topRatedWorkouts: 'Top Rated Workouts',
+        topRatedPrograms: 'Top Rated Programs',
+        totalRatings: 'Total Ratings',
+        avgWorkoutRating: 'Avg Workout Rating',
+        avgProgramRating: 'Avg Program Rating'
+      },
+
+      // Rating
+      rating: {
+        rateThisWorkout: 'Rate This Workout',
+        rateThisProgram: 'Rate This Program',
+        yourRating: 'Your rating',
+        clickToRate: 'Click the stars to rate',
+        thankYou: 'Thank you for your rating!',
+        ratings: 'ratings',
+        noRatings: 'No ratings yet'
       },
 
       // Workout History
@@ -1559,7 +1613,61 @@ const resources = {
         usageCount: 'Användning',
         noData: 'Ingen data tillgänglig',
         email: 'E-post',
-        joinedOn: 'Gick med'
+        joinedOn: 'Gick med',
+        // Exercise editor fields
+        equipment: 'Utrustning',
+        selectMuscleGroup: 'Välj muskelgrupp',
+        selectEquipment: 'Välj utrustning',
+        instructions: 'Instruktioner',
+        instructionsPlaceholder: 'Ange steg-för-steg instruktioner för att utföra denna övning...',
+        imageUrl: 'Bild-URL',
+        videoUrl: 'Video-URL',
+        // Muscle groups
+        muscles: {
+          chest: 'Bröst',
+          back: 'Rygg',
+          shoulders: 'Axlar',
+          biceps: 'Biceps',
+          triceps: 'Triceps',
+          forearms: 'Underarmar',
+          core: 'Core',
+          quadriceps: 'Quadriceps',
+          hamstrings: 'Baksida lår',
+          glutes: 'Säte',
+          calves: 'Vader',
+          fullBody: 'Hela kroppen'
+        },
+        // Equipment options
+        equipmentOptions: {
+          none: 'Ingen',
+          barbell: 'Skivstång',
+          dumbbells: 'Hantlar',
+          kettlebell: 'Kettlebell',
+          resistanceBand: 'Motståndsband',
+          cableMachine: 'Kabelmaskin',
+          pullUpBar: 'Chinstång',
+          bench: 'Bänk',
+          smithMachine: 'Smithmaskin',
+          trx: 'TRX'
+        },
+        // Rating stats
+        ratingCount: 'Betyg',
+        topRatedWorkouts: 'Högst betygsatta träningspass',
+        topRatedPrograms: 'Högst betygsatta program',
+        totalRatings: 'Totalt antal betyg',
+        avgWorkoutRating: 'Snittbetyg träningspass',
+        avgProgramRating: 'Snittbetyg program'
+      },
+
+      // Rating
+      rating: {
+        rateThisWorkout: 'Betygsätt detta träningspass',
+        rateThisProgram: 'Betygsätt detta program',
+        yourRating: 'Ditt betyg',
+        clickToRate: 'Klicka på stjärnorna för att betygsätta',
+        thankYou: 'Tack för ditt betyg!',
+        ratings: 'betyg',
+        noRatings: 'Inga betyg ännu'
       },
 
       // Workout History

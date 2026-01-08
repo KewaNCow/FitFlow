@@ -540,6 +540,109 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Rating Statistics */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Top Rated Workouts */}
+          <div className="card overflow-hidden">
+            <div className="p-4 border-b bg-gray-50">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                <Star className="w-4 h-4 text-yellow-500" />
+                {t('admin.topRatedWorkouts')}
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">#</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
+                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.avgRating')}</th>
+                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.ratingCount')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {stats.topRatedWorkouts?.length > 0 ? (
+                    stats.topRatedWorkouts.map((workout, idx) => (
+                      <tr key={workout.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 text-sm text-gray-500">{idx + 1}</td>
+                        <td className="px-4 py-2">
+                          <p className="font-medium text-gray-900 text-sm">{workout.name}</p>
+                          <p className="text-xs text-gray-500">{workout.workout_type}</p>
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          <span className="inline-flex items-center gap-1">
+                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                            <span className="font-medium">{parseFloat(workout.avg_rating).toFixed(1)}</span>
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          <span className="badge bg-gray-100 text-gray-700">{workout.rating_count}</span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="px-4 py-8 text-center text-gray-500 text-sm">
+                        {t('admin.noData')}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Top Rated Programs */}
+          <div className="card overflow-hidden">
+            <div className="p-4 border-b bg-gray-50">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                <Star className="w-4 h-4 text-yellow-500" />
+                {t('admin.topRatedPrograms')}
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">#</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
+                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.avgRating')}</th>
+                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.ratingCount')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {stats.topRatedPrograms?.length > 0 ? (
+                    stats.topRatedPrograms.map((program, idx) => (
+                      <tr key={program.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 text-sm text-gray-500">{idx + 1}</td>
+                        <td className="px-4 py-2">
+                          <p className="font-medium text-gray-900 text-sm">{program.name}</p>
+                          <p className="text-xs text-gray-500">{program.difficulty}</p>
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          <span className="inline-flex items-center gap-1">
+                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                            <span className="font-medium">{parseFloat(program.avg_rating).toFixed(1)}</span>
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          <span className="badge bg-gray-100 text-gray-700">{program.rating_count}</span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="px-4 py-8 text-center text-gray-500 text-sm">
+                        {t('admin.noData')}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Content Tabs */}
@@ -708,62 +811,142 @@ const AdminDashboard = () => {
 
               {activeTab === 'exercises' && (
                 <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.category')} *</label>
-                    <select
-                      value={formData.category || 'strength'}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="input"
-                    >
-                      <option value="strength">{t('admin.strength')}</option>
-                      <option value="cardio">{t('admin.cardio')}</option>
-                      <option value="flexibility">{t('admin.flexibility')}</option>
-                      <option value="bodyweight">{t('admin.bodyweight')}</option>
-                      <option value="machine">{t('admin.machine')}</option>
-                    </select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.category')} *</label>
+                      <select
+                        value={formData.category || 'strength'}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        className="input"
+                      >
+                        <option value="strength">{t('admin.strength')}</option>
+                        <option value="cardio">{t('admin.cardio')}</option>
+                        <option value="flexibility">{t('admin.flexibility')}</option>
+                        <option value="bodyweight">{t('admin.bodyweight')}</option>
+                        <option value="machine">{t('admin.machine')}</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.difficulty')}</label>
+                      <select
+                        value={formData.difficulty || 'intermediate'}
+                        onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+                        className="input"
+                      >
+                        <option value="beginner">{t('admin.beginner')}</option>
+                        <option value="intermediate">{t('admin.intermediate')}</option>
+                        <option value="advanced">{t('admin.advanced')}</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.muscleGroup')}</label>
+                      <select
+                        value={formData.muscle_group || ''}
+                        onChange={(e) => setFormData({ ...formData, muscle_group: e.target.value })}
+                        className="input"
+                      >
+                        <option value="">{t('admin.selectMuscleGroup')}</option>
+                        <option value="Chest">{t('admin.muscles.chest')}</option>
+                        <option value="Back">{t('admin.muscles.back')}</option>
+                        <option value="Shoulders">{t('admin.muscles.shoulders')}</option>
+                        <option value="Biceps">{t('admin.muscles.biceps')}</option>
+                        <option value="Triceps">{t('admin.muscles.triceps')}</option>
+                        <option value="Forearms">{t('admin.muscles.forearms')}</option>
+                        <option value="Core">{t('admin.muscles.core')}</option>
+                        <option value="Quadriceps">{t('admin.muscles.quadriceps')}</option>
+                        <option value="Hamstrings">{t('admin.muscles.hamstrings')}</option>
+                        <option value="Glutes">{t('admin.muscles.glutes')}</option>
+                        <option value="Calves">{t('admin.muscles.calves')}</option>
+                        <option value="Full Body">{t('admin.muscles.fullBody')}</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.equipment')}</label>
+                      <select
+                        value={formData.equipment || ''}
+                        onChange={(e) => setFormData({ ...formData, equipment: e.target.value })}
+                        className="input"
+                      >
+                        <option value="">{t('admin.selectEquipment')}</option>
+                        <option value="None">{t('admin.equipmentOptions.none')}</option>
+                        <option value="Barbell">{t('admin.equipmentOptions.barbell')}</option>
+                        <option value="Dumbbells">{t('admin.equipmentOptions.dumbbells')}</option>
+                        <option value="Kettlebell">{t('admin.equipmentOptions.kettlebell')}</option>
+                        <option value="Resistance Band">{t('admin.equipmentOptions.resistanceBand')}</option>
+                        <option value="Cable Machine">{t('admin.equipmentOptions.cableMachine')}</option>
+                        <option value="Pull-up Bar">{t('admin.equipmentOptions.pullUpBar')}</option>
+                        <option value="Bench">{t('admin.equipmentOptions.bench')}</option>
+                        <option value="Smith Machine">{t('admin.equipmentOptions.smithMachine')}</option>
+                        <option value="TRX">{t('admin.equipmentOptions.trx')}</option>
+                      </select>
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.muscleGroup')}</label>
-                    <input
-                      type="text"
-                      value={formData.muscle_group || ''}
-                      onChange={(e) => setFormData({ ...formData, muscle_group: e.target.value })}
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.instructions')}</label>
+                    <textarea
+                      value={formData.instructions || ''}
+                      onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
                       className="input"
-                      placeholder="e.g., Chest, Back, Legs"
+                      rows={4}
+                      placeholder={t('admin.instructionsPlaceholder')}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.difficulty')}</label>
-                    <select
-                      value={formData.difficulty || 'intermediate'}
-                      onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
-                      className="input"
-                    >
-                      <option value="beginner">{t('admin.beginner')}</option>
-                      <option value="intermediate">{t('admin.intermediate')}</option>
-                      <option value="advanced">{t('admin.advanced')}</option>
-                    </select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.imageUrl')}</label>
+                      <input
+                        type="url"
+                        value={formData.image_url || ''}
+                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                        className="input"
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.videoUrl')}</label>
+                      <input
+                        type="url"
+                        value={formData.video_url || ''}
+                        onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+                        className="input"
+                        placeholder="https://..."
+                      />
+                    </div>
                   </div>
                 </>
               )}
 
               {activeTab === 'equipment' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.category')}</label>
-                  <select
-                    value={formData.category || 'other'}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="input"
-                  >
-                    <option value="free_weights">{t('admin.freeWeights')}</option>
-                    <option value="machines">{t('admin.machines')}</option>
-                    <option value="cardio">{t('admin.cardio')}</option>
-                    <option value="bodyweight">{t('admin.bodyweight')}</option>
-                    <option value="bands_cables">{t('admin.bandsCables')}</option>
-                    <option value="accessories">{t('admin.accessories')}</option>
-                    <option value="other">{t('admin.other')}</option>
-                  </select>
-                </div>
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.category')}</label>
+                    <select
+                      value={formData.category || 'other'}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="input"
+                    >
+                      <option value="free_weights">{t('admin.freeWeights')}</option>
+                      <option value="machines">{t('admin.machines')}</option>
+                      <option value="cardio">{t('admin.cardio')}</option>
+                      <option value="bodyweight">{t('admin.bodyweight')}</option>
+                      <option value="bands_cables">{t('admin.bandsCables')}</option>
+                      <option value="accessories">{t('admin.accessories')}</option>
+                      <option value="other">{t('admin.other')}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.imageUrl')}</label>
+                    <input
+                      type="url"
+                      value={formData.image_url || ''}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      className="input"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </>
               )}
 
               <div className="flex gap-3 pt-4">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { programAPI } from '../services/api';
+import { programAPI, ratingAPI } from '../services/api';
 import { useTranslation } from 'react-i18next';
 import { 
   ArrowLeft, 
@@ -9,9 +9,11 @@ import {
   Calendar,
   Dumbbell,
   Clock,
-  Copy
+  Copy,
+  Star
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import StarRating from '../components/StarRating';
 
 const ProgramDetail = () => {
   const { id } = useParams();
@@ -19,6 +21,11 @@ const ProgramDetail = () => {
   const { t } = useTranslation();
   const [program, setProgram] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [ratingData, setRatingData] = useState({
+    avgRating: 0,
+    ratingCount: 0,
+    userRating: null
+  });
   
   const DAYS = [
     t('common.days.monday'),
@@ -32,6 +39,7 @@ const ProgramDetail = () => {
 
   useEffect(() => {
     fetchProgram();
+    fetchRating();
   }, [id]);
 
   const fetchProgram = async () => {
@@ -43,6 +51,32 @@ const ProgramDetail = () => {
       navigate('/my-programs');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRating = async () => {
+    try {
+      const response = await ratingAPI.getProgramRating(id);
+      setRatingData(response.data.data);
+    } catch (error) {
+      console.error('Error fetching rating:', error);
+    }
+  };
+
+  const handleRate = async (rating) => {
+    try {
+      if (rating === 0) {
+        const response = await ratingAPI.deleteProgramRating(id);
+        setRatingData({
+          ...response.data.data,
+          userRating: null
+        });
+      } else {
+        const response = await ratingAPI.rateProgram(id, { rating });
+        setRatingData(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error rating program:', error);
     }
   };
 
@@ -138,6 +172,17 @@ const ProgramDetail = () => {
           {program.description && (
             <p className="text-gray-600 mt-2 text-sm sm:text-base">{program.description}</p>
           )}
+          {/* Rating Display */}
+          <div className="mt-3 flex items-center gap-3">
+            <StarRating 
+              rating={ratingData.avgRating} 
+              readonly 
+              size="sm"
+              showAverage
+              showCount
+              count={ratingData.ratingCount}
+            />
+          </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           {program.is_predefined ? (
@@ -207,6 +252,27 @@ const ProgramDetail = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Rate This Program */}
+      <div className="card p-4 sm:p-6 mt-6 sm:mt-8">
+        <div className="flex items-center gap-2 mb-3">
+          <Star className="w-5 h-5 text-yellow-500" />
+          <h3 className="font-semibold text-gray-900">{t('rating.rateThisProgram')}</h3>
+        </div>
+        <div className="flex items-center gap-4">
+          <StarRating 
+            rating={ratingData.userRating || 0}
+            onRate={handleRate}
+            size="lg"
+          />
+          {ratingData.userRating && (
+            <span className="text-sm text-gray-500">{t('rating.yourRating')}: {ratingData.userRating}/5</span>
+          )}
+        </div>
+        {!ratingData.userRating && (
+          <p className="text-sm text-gray-500 mt-2">{t('rating.clickToRate')}</p>
+        )}
       </div>
     </div>
   );
