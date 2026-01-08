@@ -11,8 +11,37 @@ import {
   Search,
   Users,
   Filter,
-  X as CloseIcon
+  X as CloseIcon,
+  Dumbbell,
+  Timer,
+  Heart,
+  Target,
+  TrendingUp,
+  Activity,
+  Trophy,
+  Sparkles
 } from 'lucide-react';
+
+// Helper to get program icon based on category
+const getProgramIcon = (category) => {
+  switch (category) {
+    case 'strength':
+      return { Icon: Dumbbell, bgColor: 'bg-primary-100', iconColor: 'text-primary-600' };
+    case 'cardio':
+      return { Icon: Timer, bgColor: 'bg-blue-100', iconColor: 'text-blue-600' };
+    case 'flexibility':
+      return { Icon: Heart, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' };
+    case 'weight_loss':
+      return { Icon: TrendingUp, bgColor: 'bg-green-100', iconColor: 'text-green-600' };
+    case 'muscle_gain':
+      return { Icon: Target, bgColor: 'bg-orange-100', iconColor: 'text-orange-600' };
+    case 'sport_specific':
+      return { Icon: Trophy, bgColor: 'bg-yellow-100', iconColor: 'text-yellow-600' };
+    case 'general_fitness':
+    default:
+      return { Icon: Activity, bgColor: 'bg-purple-100', iconColor: 'text-purple-600' };
+  }
+};
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTranslation } from 'react-i18next';
 
@@ -249,12 +278,14 @@ const MyPrograms = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredPrograms.map((program) => (
+          {filteredPrograms.map((program) => {
+            const { Icon: ProgramIcon, bgColor, iconColor } = getProgramIcon(program.category);
+            return (
             <div key={program.id} className={`card-hover relative ${activeMenu === program.id ? 'z-[100] !overflow-visible' : ''}`}>
               <Link to={`/my-programs/${program.id}`} className="block p-4 sm:p-5">
                 <div className="flex items-start gap-3 sm:gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 ${bgColor} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                    <ProgramIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColor}`} />
                   </div>
                   <div className="flex-1 min-w-0 pr-8">
                     <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{program.name}</h3>
@@ -322,7 +353,7 @@ const MyPrograms = () => {
                 )}
               </div>
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>

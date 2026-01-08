@@ -11,8 +11,31 @@ import {
   Search,
   Users,
   Filter,
-  X as CloseIcon
+  X as CloseIcon,
+  Timer,
+  Route,
+  Sparkles,
+  Heart,
+  Flame
 } from 'lucide-react';
+
+// Helper to get workout icon based on workout_type
+const getWorkoutIcon = (workoutType) => {
+  switch (workoutType) {
+    case 'cardio':
+      return { Icon: Timer, bgColor: 'bg-blue-100', iconColor: 'text-blue-600' };
+    case 'strength':
+      return { Icon: Dumbbell, bgColor: 'bg-primary-100', iconColor: 'text-primary-600' };
+    case 'flexibility':
+      return { Icon: Heart, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' };
+    case 'hiit':
+      return { Icon: Flame, bgColor: 'bg-orange-100', iconColor: 'text-orange-600' };
+    case 'mixed':
+      return { Icon: Sparkles, bgColor: 'bg-purple-100', iconColor: 'text-purple-600' };
+    default:
+      return { Icon: Dumbbell, bgColor: 'bg-primary-100', iconColor: 'text-primary-600' };
+  }
+};
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTranslation } from 'react-i18next';
 
@@ -270,12 +293,14 @@ const MyWorkouts = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredWorkouts.map((workout) => (
+          {filteredWorkouts.map((workout) => {
+            const { Icon: WorkoutIcon, bgColor, iconColor } = getWorkoutIcon(workout.workout_type);
+            return (
             <div key={workout.id} className={`card-hover relative ${activeMenu === workout.id ? 'z-[100] !overflow-visible' : ''}`}>
               <Link to={`/my-workouts/${workout.id}`} className="block p-4 sm:p-5">
                 <div className="flex items-start gap-3 sm:gap-4">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" />
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 ${bgColor} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                    <WorkoutIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColor}`} />
                   </div>
                   <div className="flex-1 min-w-0 pr-8">
                     <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{workout.name}</h3>
@@ -364,7 +389,7 @@ const MyWorkouts = () => {
                 )}
               </div>
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>

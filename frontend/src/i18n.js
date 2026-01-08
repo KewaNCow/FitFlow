@@ -72,7 +72,12 @@ const resources = {
           flexibility: 'Flexibility',
           bodyweight: 'Bodyweight',
           machine: 'Machine',
-          mixed: 'Mixed'
+          mixed: 'Mixed',
+          hiit: 'HIIT',
+          weight_loss: 'Weight Loss',
+          muscle_gain: 'Muscle Gain',
+          general_fitness: 'General Fitness',
+          sport_specific: 'Sport Specific'
         },
         difficulties: {
           beginner: 'Beginner',
@@ -765,7 +770,12 @@ const resources = {
           flexibility: 'Flexibilitet',
           bodyweight: 'Kroppsvikt',
           machine: 'Maskin',
-          mixed: 'Blandat'
+          mixed: 'Blandat',
+          hiit: 'HIIT',
+          weight_loss: 'Viktnedgång',
+          muscle_gain: 'Muskelbyggnad',
+          general_fitness: 'Allmän Kondition',
+          sport_specific: 'Sportspecifik'
         },
         difficulties: {
           beginner: 'Nybörjare',
