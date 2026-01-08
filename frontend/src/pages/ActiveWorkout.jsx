@@ -174,6 +174,8 @@ const ActiveWorkout = () => {
             isCardio: false,
             completed: false,
             hasPreviousData: !!previousData,
+            // Estimated calories for strength exercises (will be calculated when sets complete)
+            estimatedCalories: 0,
             sets: Array.from({ length: numSets }, (_, i) => ({
               setNumber: i + 1,
               targetReps: ex.reps || 10,
@@ -230,6 +232,57 @@ const ActiveWorkout = () => {
     return `${mins}:${String(secs).padStart(2, '0')}`;
   };
 
+  // Calculate estimated calories for strength exercises
+  // Formula: ~0.05 calories per rep × weight factor × muscle group factor
+  const calculateStrengthCalories = (exercise) => {
+    if (!exercise.sets || exercise.isCardio) return 0;
+    
+    const completedSets = exercise.sets.filter(s => s.completed);
+    if (completedSets.length === 0) return 0;
+    
+    // Muscle group calorie multipliers (larger muscles burn more)
+    const muscleMultipliers = {
+      'legs': 1.4,
+      'back': 1.3,
+      'chest': 1.2,
+      'shoulders': 1.0,
+      'arms': 0.8,
+      'biceps': 0.8,
+      'triceps': 0.8,
+      'core': 0.9,
+      'abs': 0.9,
+      'glutes': 1.3,
+      'quadriceps': 1.4,
+      'hamstrings': 1.3,
+      'calves': 0.7
+    };
+    
+    const muscleGroup = (exercise.muscle_group || '').toLowerCase();
+    const muscleMultiplier = Object.entries(muscleMultipliers).find(([key]) => 
+      muscleGroup.includes(key)
+    )?.[1] || 1.0;
+    
+    let totalCalories = 0;
+    
+    for (const set of completedSets) {
+      const reps = set.actualReps || set.targetReps || 10;
+      const weight = set.actualWeight || set.targetWeight || 0;
+      
+      // Base calories: ~0.05 per rep for bodyweight
+      // Add weight factor: ~0.002 extra per kg of weight
+      const baseCalories = reps * 0.15; // ~0.15 cal per rep base
+      const weightBonus = weight * reps * 0.003; // Extra for weight lifted
+      
+      totalCalories += (baseCalories + weightBonus) * muscleMultiplier;
+    }
+    
+    // Add rest time calories (about 1.5 cal/min during rest)
+    const estimatedRestMinutes = (completedSets.length - 1) * 1.5; // 1.5 min rest between sets
+    totalCalories += estimatedRestMinutes * 1.5;
+    
+    return Math.round(totalCalories);
+  };
+
   const completeSet = (exerciseIndex, setIndex) => {
     setExercises(prev => {
       const updated = [...prev];
@@ -258,6 +311,9 @@ const ActiveWorkout = () => {
       
       // Check if all sets complete
       exercise.completed = exercise.sets.every(s => s.completed);
+      
+      // Update estimated calories for this exercise
+      exercise.estimatedCalories = calculateStrengthCalories(exercise);
       
       return updated;
     });
@@ -425,10 +481,12 @@ const ActiveWorkout = () => {
         completedAt = new Date().toISOString();
       }
       
-      // Calculate total calories from all cardio exercises
+      // Calculate total calories from all exercises (cardio + strength)
       const totalCalories = exercisesArray.reduce((sum, ex) => {
         if (ex.isCardio && ex.actualCalories) {
           return sum + (parseInt(ex.actualCalories) || 0);
+        } else if (!ex.isCardio && ex.estimatedCalories) {
+          return sum + (parseInt(ex.estimatedCalories) || 0);
         }
         return sum;
       }, 0);
@@ -606,6 +664,16 @@ const ActiveWorkout = () => {
     sum + (Array.isArray(ex.sets) ? ex.sets.filter(s => s.completed).length : 0), 0
   );
   const totalSets = exercises.reduce((sum, ex) => sum + (Array.isArray(ex.sets) ? ex.sets.length : 0), 0);
+  
+  // Calculate total estimated calories for display
+  const totalEstimatedCalories = exercises.reduce((sum, ex) => {
+    if (ex.isCardio && ex.actualCalories) {
+      return sum + (parseInt(ex.actualCalories) || 0);
+    } else if (!ex.isCardio && ex.estimatedCalories) {
+      return sum + (parseInt(ex.estimatedCalories) || 0);
+    }
+    return sum;
+  }, 0);
 
   return (
     <div className="page-container max-w-4xl pb-24">
@@ -665,9 +733,17 @@ const ActiveWorkout = () => {
         </div>
         
         <h1 className="text-xl font-bold text-gray-900">{workout?.name}</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {totalSetsCompleted}/{totalSets} {t('activeWorkout.setsCompleted')}
-        </p>
+        <div className="flex items-center gap-4 mt-1">
+          <p className="text-sm text-gray-500">
+            {totalSetsCompleted}/{totalSets} {t('activeWorkout.setsCompleted')}
+          </p>
+          {totalEstimatedCalories > 0 && (
+            <p className="text-sm text-orange-600 flex items-center gap-1">
+              <Flame className="w-3 h-3" />
+              ~{totalEstimatedCalories} kcal
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Exercises list */}
@@ -847,6 +923,14 @@ const ActiveWorkout = () => {
                     </div>
                   ))}
                 </div>
+
+                {/* Estimated calories for strength exercise */}
+                {exercise.estimatedCalories > 0 && (
+                  <div className="mt-2 flex items-center gap-2 text-sm text-orange-600 bg-orange-50 rounded-lg px-3 py-2">
+                    <Flame className="w-4 h-4" />
+                    <span>~{exercise.estimatedCalories} kcal</span>
+                  </div>
+                )}
 
                 {/* Add set button - only for strength exercises */}
                 <button
