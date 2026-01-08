@@ -1420,10 +1420,10 @@ const AdminDashboard = () => {
                       )}
                     </div>
                   </div>
-                </>
-              )}
+              </>
+            )}
 
-              {activeTab === 'exercises' && (
+            {activeTab === 'exercises' && (
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
