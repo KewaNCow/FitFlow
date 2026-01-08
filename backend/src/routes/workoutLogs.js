@@ -206,14 +206,31 @@ router.get('/stats', auth, async (req, res) => {
 // Log a completed workout
 router.post('/', auth, [
   body('workoutId').optional().custom(value => {
-    const parsed = parseInt(value);
+    // Handle both number and string types
+    const parsed = typeof value === 'number' ? value : parseInt(value);
     if (isNaN(parsed) || parsed < 1) {
       throw new Error('Invalid workout ID');
     }
     return true;
   }),
-  body('durationMinutes').optional().isInt({ min: 0 }).withMessage('Duration must be a valid number'),
-  body('caloriesBurned').optional().isInt({ min: 0 }).withMessage('Calories must be a valid number'),
+  body('durationMinutes').optional().custom(value => {
+    // Accept integers, floats, or numeric strings - convert to integer
+    if (value === null || value === undefined) return true;
+    const num = Number(value);
+    if (isNaN(num) || num < 0) {
+      throw new Error('Duration must be a valid positive number');
+    }
+    return true;
+  }),
+  body('caloriesBurned').optional().custom(value => {
+    // Accept integers, floats, or numeric strings - convert to integer
+    if (value === null || value === undefined) return true;
+    const num = Number(value);
+    if (isNaN(num) || num < 0) {
+      throw new Error('Calories must be a valid positive number');
+    }
+    return true;
+  }),
   body('completedAt').optional().isISO8601().withMessage('Completed at must be a valid ISO 8601 date'),
   body('exercises').optional().isArray().withMessage('Exercises must be an array')
 ], validate, async (req, res) => {
@@ -225,6 +242,11 @@ router.post('/', auth, [
     console.log('Received workout log request:', JSON.stringify(req.body, null, 2));
     
     const { workoutId, durationMinutes, caloriesBurned, notes, completedAt, exercises } = req.body;
+
+    // Convert values to proper types
+    const parsedWorkoutId = workoutId ? parseInt(workoutId) : null;
+    const parsedDuration = durationMinutes ? Math.floor(Number(durationMinutes)) : null;
+    const parsedCalories = caloriesBurned ? Math.floor(Number(caloriesBurned)) : null;
 
     // Convert completedAt to MySQL datetime format if provided
     let mysqlCompletedAt;
@@ -242,9 +264,9 @@ router.post('/', auth, [
        VALUES (?, ?, ?, ?, ?, ?)`,
       [
         req.user.id,
-        workoutId || null,
-        durationMinutes || null,
-        caloriesBurned || null,
+        parsedWorkoutId,
+        parsedDuration,
+        parsedCalories,
         notes || null,
         mysqlCompletedAt
       ]
