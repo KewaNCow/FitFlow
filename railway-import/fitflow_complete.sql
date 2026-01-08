@@ -1132,14 +1132,128 @@ INSERT INTO user_program_progress (user_id, program_id, current_week, current_da
 SELECT @demo_user_id, id, 2, 3, TRUE FROM programs WHERE name = 'Push Pull Legs Split' LIMIT 1;
 
 -- =====================================================
+-- GET PHAT WITH ELMER - PHAT PROGRAM
+-- Power Hypertrophy Adaptive Training
+-- =====================================================
+
+-- Additional exercises for PHAT program
+INSERT IGNORE INTO exercises (name, description, category, exercise_type, muscle_group, equipment, difficulty, instructions, image_url) VALUES
+('SSB Squat', 'Safety Squat Bar Squat - quad-dominant squat variation with reduced upper back stress', 'strength', 'strength', 'Legs', 'Barbell', 'intermediate', 'Position safety squat bar on upper back. Squat down keeping torso upright, drive through heels to stand.', 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400'),
+('Tricep Dip Machine', 'Machine-assisted dips for tricep isolation', 'machine', 'strength', 'Triceps', 'Machine', 'beginner', 'Sit in machine, grip handles at sides. Push down until arms extended, control return.', 'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=400'),
+('Weighted Pull-ups', 'Pull-ups with added weight for increased resistance', 'strength', 'strength', 'Back', 'Pull-up Bar', 'advanced', 'Attach weight belt or hold dumbbell between feet. Pull chest to bar, lower with control.', 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=400'),
+('Close Grip Lat Pulldown', 'Narrow grip pulldown targeting lats and biceps', 'machine', 'strength', 'Back', 'Cable Machine', 'beginner', 'Use V-bar or close grip attachment. Pull to upper chest, squeeze lats.', 'https://images.unsplash.com/photo-1534368786749-b63e05c92717?w=400'),
+('EZ Bar Curl', 'Bicep curl with angled EZ bar for wrist comfort', 'strength', 'strength', 'Biceps', 'EZ Curl Bar', 'beginner', 'Stand with EZ bar at thighs. Curl weight to shoulders keeping elbows fixed.', 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400'),
+('Overhead Tricep Machine', 'Overhead tricep extension on machine', 'machine', 'strength', 'Triceps', 'Machine', 'beginner', 'Sit with arms overhead holding handles. Extend arms upward against resistance.', 'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=400'),
+('Kettlebell Lunges', 'Walking or stationary lunges with kettlebells', 'strength', 'strength', 'Legs', 'Kettlebell', 'intermediate', 'Hold kettlebells at sides. Step forward into lunge, both knees at 90 degrees. Push back or step through.', 'https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=400'),
+('Lying Leg Curl', 'Hamstring curl lying face down', 'machine', 'strength', 'Legs', 'Leg Curl Machine', 'beginner', 'Lie face down on leg curl machine. Curl legs toward glutes, lower with control.', 'https://images.unsplash.com/photo-1597452485669-2c7bb5fef90d?w=400'),
+('Seated Calf Raises', 'Calf raise targeting soleus muscle', 'machine', 'strength', 'Calves', 'Machine', 'beginner', 'Sit with knees under pad, balls of feet on platform. Raise heels as high as possible.', 'https://images.unsplash.com/photo-1597452485669-2c7bb5fef90d?w=400'),
+('Cable Row', 'Seated cable row with various grip options', 'machine', 'strength', 'Back', 'Cable Machine', 'beginner', 'Sit at cable row station. Pull handle to stomach, squeeze shoulder blades.', 'https://images.unsplash.com/photo-1638805981949-362f5964521e?w=400'),
+('Prime Machine Row', 'Chest-supported machine row for back isolation', 'machine', 'strength', 'Back', 'Machine', 'beginner', 'Sit or lie against chest pad. Pull handles toward torso, squeeze back.', 'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=400'),
+('Seated Dumbbell Shoulder Press', 'Seated overhead press with dumbbells', 'strength', 'strength', 'Shoulders', 'Dumbbells', 'beginner', 'Sit with back support, dumbbells at shoulders. Press overhead, lower with control.', 'https://images.unsplash.com/photo-1586401100295-7a8096fd231a?w=400'),
+('Dumbbell Lateral Raises', 'Standing side raise for lateral deltoids', 'strength', 'strength', 'Shoulders', 'Dumbbells', 'beginner', 'Stand with dumbbells at sides. Raise arms to sides until parallel to ground.', 'https://images.unsplash.com/photo-1586401100295-7a8096fd231a?w=400'),
+('Seated Rear Delt Raises', 'Seated bent-over rear delt isolation', 'strength', 'strength', 'Shoulders', 'Dumbbells', 'beginner', 'Sit and bend forward at waist. Raise dumbbells to sides, squeeze rear delts.', 'https://images.unsplash.com/photo-1586401100295-7a8096fd231a?w=400'),
+('Weighted Dips', 'Dips with added weight for chest and triceps', 'strength', 'strength', 'Chest', 'Dip Station', 'advanced', 'Attach weight belt. Dip down with slight forward lean, push back up.', 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400'),
+('Incline Dumbbell Press', 'Incline pressing for upper chest', 'strength', 'strength', 'Chest', 'Dumbbells', 'intermediate', 'Lie on incline bench. Press dumbbells from chest to lockout.', 'https://images.unsplash.com/photo-1586401100295-7a8096fd231a?w=400'),
+('Machine Incline Chest Press', 'Machine press at incline angle', 'machine', 'strength', 'Chest', 'Machine', 'beginner', 'Sit in incline chest press machine. Press handles forward, control return.', 'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=400'),
+('Cable Crossovers', 'Cable fly for chest isolation', 'machine', 'strength', 'Chest', 'Cable Machine', 'intermediate', 'Stand between cable stations. Pull handles together in arc motion.', 'https://images.unsplash.com/photo-1638805981949-362f5964521e?w=400'),
+('Preacher Curl Machine', 'Machine preacher curl for bicep isolation', 'machine', 'strength', 'Biceps', 'Machine', 'beginner', 'Sit with arms on pad. Curl handles toward shoulders.', 'https://images.unsplash.com/photo-1576678927484-cc907957088c?w=400'),
+('Spider Dumbbell Curl', 'Incline bench curl with arms hanging forward', 'strength', 'strength', 'Biceps', 'Dumbbells', 'intermediate', 'Lie face down on incline bench. Let arms hang and curl dumbbells.', 'https://images.unsplash.com/photo-1586401100295-7a8096fd231a?w=400'),
+('Smith JM Press', 'Hybrid press/extension movement on Smith machine', 'machine', 'strength', 'Triceps', 'Smith Machine', 'intermediate', 'Lie on bench under Smith machine. Lower bar toward chin, press back up.', 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400'),
+('Leaning Overhead Cable Tricep Extension', 'Cable overhead extension with forward lean', 'machine', 'strength', 'Triceps', 'Cable Machine', 'intermediate', 'Face away from cable, lean forward. Extend arms overhead against resistance.', 'https://images.unsplash.com/photo-1638805981949-362f5964521e?w=400'),
+('Cable Rope Tricep Extension', 'Tricep pushdown with rope attachment', 'machine', 'strength', 'Triceps', 'Cable Machine', 'beginner', 'Stand at cable machine with rope. Push down and spread rope at bottom.', 'https://images.unsplash.com/photo-1638805981949-362f5964521e?w=400');
+
+-- PHAT Workout 1: Power Upper
+INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
+(@system_user_id, 'PHAT Power Upper', 'Power Hypertrophy Adaptive Training - Upper body power day focusing on heavy compound lifts', 'strength', TRUE);
+SET @phat_workout1 = LAST_INSERT_ID();
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout1, id, 1, 3, 7, 120 FROM exercises WHERE name = 'Bench Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout1, id, 2, 3, 10, 90 FROM exercises WHERE name = 'Tricep Dip Machine' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout1, id, 3, 2, 8, 120 FROM exercises WHERE name = 'Weighted Pull-ups' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout1, id, 4, 2, 8, 90 FROM exercises WHERE name = 'Close Grip Lat Pulldown' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout1, id, 5, 3, 9, 90 FROM exercises WHERE name = 'Machine Shoulder Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout1, id, 6, 3, 8, 60 FROM exercises WHERE name = 'EZ Bar Curl' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout1, id, 7, 3, 10, 60 FROM exercises WHERE name = 'Overhead Tricep Machine' LIMIT 1;
+
+-- PHAT Workout 2: Power Lower
+INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
+(@system_user_id, 'PHAT Power Lower', 'Power Hypertrophy Adaptive Training - Lower body power day with heavy squats and leg work', 'strength', TRUE);
+SET @phat_workout2 = LAST_INSERT_ID();
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout2, id, 1, 3, 7, 150 FROM exercises WHERE name = 'SSB Squat' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout2, id, 2, 2, 25, 90 FROM exercises WHERE name = 'Kettlebell Lunges' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout2, id, 3, 2, 8, 60 FROM exercises WHERE name = 'Leg Extension' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout2, id, 4, 2, 8, 60 FROM exercises WHERE name = 'Lying Leg Curl' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout2, id, 5, 3, 8, 60 FROM exercises WHERE name = 'Calf Raises' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout2, id, 6, 2, 8, 45 FROM exercises WHERE name = 'Seated Calf Raises' LIMIT 1;
+
+-- PHAT Workout 3: Back & Shoulders Hypertrophy
+INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
+(@system_user_id, 'PHAT Back & Shoulders Hypertrophy', 'Power Hypertrophy Adaptive Training - High volume back and shoulder work for muscle growth', 'strength', TRUE);
+SET @phat_workout3 = LAST_INSERT_ID();
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout3, id, 1, 2, 7, 120 FROM exercises WHERE name = 'Romanian Deadlift' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout3, id, 2, 3, 10, 90 FROM exercises WHERE name = 'T-Bar Row' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout3, id, 3, 3, 10, 90 FROM exercises WHERE name = 'Cable Row' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout3, id, 4, 3, 11, 75 FROM exercises WHERE name = 'Prime Machine Row' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout3, id, 5, 3, 10, 90 FROM exercises WHERE name = 'Seated Dumbbell Shoulder Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout3, id, 6, 3, 16, 60 FROM exercises WHERE name = 'Dumbbell Lateral Raises' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout3, id, 7, 3, 13, 60 FROM exercises WHERE name = 'Seated Rear Delt Raises' LIMIT 1;
+
+-- PHAT Workout 4: Chest & Arms Hypertrophy
+INSERT INTO workouts (user_id, name, description, workout_type, is_predefined) VALUES
+(@system_user_id, 'PHAT Chest & Arms Hypertrophy', 'Power Hypertrophy Adaptive Training - High volume chest, biceps, and triceps work', 'strength', TRUE);
+SET @phat_workout4 = LAST_INSERT_ID();
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout4, id, 1, 3, 9, 120 FROM exercises WHERE name = 'Weighted Dips' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout4, id, 2, 3, 10, 90 FROM exercises WHERE name = 'Incline Dumbbell Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout4, id, 3, 3, 12, 75 FROM exercises WHERE name = 'Machine Incline Chest Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout4, id, 4, 2, 17, 60 FROM exercises WHERE name = 'Cable Crossovers' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout4, id, 5, 3, 10, 60 FROM exercises WHERE name = 'Preacher Curl Machine' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout4, id, 6, 2, 13, 60 FROM exercises WHERE name = 'Cable Curl' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout4, id, 7, 2, 13, 60 FROM exercises WHERE name = 'Spider Dumbbell Curl' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout4, id, 8, 3, 9, 90 FROM exercises WHERE name = 'Smith JM Press' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout4, id, 9, 3, 10, 60 FROM exercises WHERE name = 'Leaning Overhead Cable Tricep Extension' LIMIT 1;
+INSERT INTO workout_exercises (workout_id, exercise_id, order_index, sets, reps, rest_time) SELECT @phat_workout4, id, 10, 2, 13, 45 FROM exercises WHERE name = 'Cable Rope Tricep Extension' LIMIT 1;
+
+-- PHAT Program: Get PHAT With Elmer
+INSERT INTO programs (user_id, name, description, category, duration_weeks, days_per_week, difficulty, is_predefined, image_url) VALUES
+(@system_user_id, 
+ 'Get PHAT With Elmer', 
+ 'Power Hypertrophy Adaptive Training (PHAT) program combining power and hypertrophy training. Features two power days (upper/lower) followed by hypertrophy days targeting specific muscle groups. Perfect for intermediate to advanced lifters seeking both strength and size gains.',
+ 'muscle_gain', 
+ 8, 
+ 4, 
+ 'intermediate', 
+ TRUE,
+ 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400');
+SET @phat_program_id = LAST_INSERT_ID();
+
+-- PHAT Program Schedule (Week 1 layout, repeats weekly)
+-- Day 1 (Sunday): Power Upper | Day 2 (Monday): Power Lower | Day 3: Rest
+-- Day 4 (Wednesday): Back & Shoulders Hypertrophy | Day 5: Rest
+-- Day 6 (Friday): Chest & Arms Hypertrophy | Day 7: Rest
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index, notes) 
+SELECT @phat_program_id, id, 1, 0, 1, 'Power day - focus on heavy weights with lower rep ranges. Rest 2-3 minutes between heavy compound sets.'
+FROM workouts WHERE name = 'PHAT Power Upper' AND is_predefined = TRUE LIMIT 1;
+
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index, notes) 
+SELECT @phat_program_id, id, 1, 1, 2, 'Power day - heavy leg work. Ensure proper warm-up before squats.'
+FROM workouts WHERE name = 'PHAT Power Lower' AND is_predefined = TRUE LIMIT 1;
+
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index, notes) 
+SELECT @phat_program_id, id, 1, 3, 3, 'Hypertrophy day - moderate weights, higher volume. Focus on mind-muscle connection.'
+FROM workouts WHERE name = 'PHAT Back & Shoulders Hypertrophy' AND is_predefined = TRUE LIMIT 1;
+
+INSERT INTO program_workouts (program_id, workout_id, week_number, day_of_week, order_index, notes) 
+SELECT @phat_program_id, id, 1, 5, 4, 'Hypertrophy day - pump work for chest and arms. Shorter rest periods (60-90 seconds).'
+FROM workouts WHERE name = 'PHAT Chest & Arms Hypertrophy' AND is_predefined = TRUE LIMIT 1;
+
+-- =====================================================
 -- COMPLETE!
 -- 
 -- Summary:
 -- - 3 Users (demo, admin, system)
 -- - 38 Equipment items (with images)
--- - 100+ Exercises (with images)
--- - 20 Predefined Workouts
--- - 11 Predefined Programs
+-- - 120+ Exercises (with images) - includes PHAT exercises
+-- - 24 Predefined Workouts (includes 4 PHAT workouts)
+-- - 12 Predefined Programs (includes Get PHAT With Elmer)
 -- - 4 Demo user custom workouts
 -- - 16 Demo workout logs (4 weeks of training)
 -- - 75+ Exercise logs with progressive overload data
