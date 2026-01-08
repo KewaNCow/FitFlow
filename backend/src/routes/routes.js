@@ -82,6 +82,7 @@ router.post('/', auth, [
       estimated_duration,
       elevation_gain,
       waypoints,
+      routed_path,
       start_location,
       end_location,
       workout_id = null
@@ -89,8 +90,8 @@ router.post('/', auth, [
 
     const [result] = await pool.execute(
       `INSERT INTO routes (user_id, name, description, activity_type, distance_km, 
-        estimated_duration, elevation_gain, waypoints, start_location, end_location, workout_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        estimated_duration, elevation_gain, waypoints, routed_path, start_location, end_location, workout_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         req.user.id, 
         name, 
@@ -100,6 +101,7 @@ router.post('/', auth, [
         estimated_duration || null,
         elevation_gain || null,
         JSON.stringify(waypoints || []),
+        JSON.stringify(routed_path || []),
         start_location || null,
         end_location || null,
         workout_id
@@ -150,6 +152,7 @@ router.put('/:id', auth, async (req, res) => {
       estimated_duration,
       elevation_gain,
       waypoints,
+      routed_path,
       start_location,
       end_location,
       is_favorite
@@ -164,6 +167,7 @@ router.put('/:id', auth, async (req, res) => {
         estimated_duration = COALESCE(?, estimated_duration),
         elevation_gain = COALESCE(?, elevation_gain),
         waypoints = COALESCE(?, waypoints),
+        routed_path = COALESCE(?, routed_path),
         start_location = COALESCE(?, start_location),
         end_location = COALESCE(?, end_location),
         is_favorite = COALESCE(?, is_favorite)
@@ -176,6 +180,7 @@ router.put('/:id', auth, async (req, res) => {
         estimated_duration,
         elevation_gain,
         waypoints ? JSON.stringify(waypoints) : null,
+        routed_path ? JSON.stringify(routed_path) : null,
         start_location,
         end_location,
         is_favorite !== undefined ? is_favorite : null,

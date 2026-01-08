@@ -32,7 +32,8 @@ async function addRoutesTable() {
         { name: 'workout_id', sql: 'ALTER TABLE routes ADD COLUMN workout_id INT DEFAULT NULL' },
         { name: 'elevation_gain', sql: 'ALTER TABLE routes ADD COLUMN elevation_gain INT DEFAULT NULL' },
         { name: 'start_location', sql: 'ALTER TABLE routes ADD COLUMN start_location VARCHAR(255) DEFAULT NULL' },
-        { name: 'end_location', sql: 'ALTER TABLE routes ADD COLUMN end_location VARCHAR(255) DEFAULT NULL' }
+        { name: 'end_location', sql: 'ALTER TABLE routes ADD COLUMN end_location VARCHAR(255) DEFAULT NULL' },
+        { name: 'routed_path', sql: 'ALTER TABLE routes ADD COLUMN routed_path JSON DEFAULT NULL' }
       ];
 
       for (const col of requiredColumns) {
@@ -57,6 +58,7 @@ async function addRoutesTable() {
           estimated_duration INT,
           elevation_gain INT,
           waypoints JSON,
+          routed_path JSON,
           start_location VARCHAR(255),
           end_location VARCHAR(255),
           is_favorite BOOLEAN DEFAULT FALSE,
