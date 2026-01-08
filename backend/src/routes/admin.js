@@ -963,10 +963,13 @@ router.get('/stats', async (req, res) => {
     // User created routes count
     const [[{ totalRoutes }]] = await pool.query('SELECT COUNT(*) as totalRoutes FROM routes');
     
-    // Average overall rating (from both workout and program ratings)
+    // Average overall rating (only for predefined workouts and programs)
     const [[{ avgRating }]] = await pool.query(`
-      SELECT COALESCE(AVG(rating), 0) as avgRating 
-      FROM ratings
+      SELECT COALESCE(AVG(r.rating), 0) as avgRating 
+      FROM ratings r
+      LEFT JOIN workouts w ON r.workout_id = w.id
+      LEFT JOIN programs p ON r.program_id = p.id
+      WHERE (w.is_predefined = TRUE OR p.is_predefined = TRUE)
     `);
     
     // Recent user signups (last 10)
@@ -1001,49 +1004,60 @@ router.get('/stats', async (req, res) => {
       ORDER BY date ASC
     `);
     
-    // Most popular exercises (by usage in workout logs)
+    // Most popular exercises (by usage in workout logs) - only public/admin exercises
     const [popularExercises] = await pool.query(`
       SELECT e.id, e.name, e.muscle_group, COUNT(el.id) as usage_count
       FROM exercises e
       JOIN exercise_logs el ON e.id = el.exercise_id
+      WHERE e.user_id IS NULL
       GROUP BY e.id, e.name, e.muscle_group
       ORDER BY usage_count DESC
       LIMIT 10
     `);
 
-    // Rating statistics
-    const [[{ totalRatings }]] = await pool.query('SELECT COUNT(*) as totalRatings FROM ratings');
+    // Rating statistics - only for predefined content
+    const [[{ totalRatings }]] = await pool.query(`
+      SELECT COUNT(*) as totalRatings 
+      FROM ratings r
+      LEFT JOIN workouts w ON r.workout_id = w.id
+      LEFT JOIN programs p ON r.program_id = p.id
+      WHERE (w.is_predefined = TRUE OR p.is_predefined = TRUE)
+    `);
     const [[{ avgWorkoutRating }]] = await pool.query(`
-      SELECT COALESCE(AVG(rating), 0) as avgWorkoutRating 
-      FROM ratings 
-      WHERE workout_id IS NOT NULL
+      SELECT COALESCE(AVG(r.rating), 0) as avgWorkoutRating 
+      FROM ratings r
+      JOIN workouts w ON r.workout_id = w.id
+      WHERE w.is_predefined = TRUE
     `);
     const [[{ avgProgramRating }]] = await pool.query(`
-      SELECT COALESCE(AVG(rating), 0) as avgProgramRating 
-      FROM ratings 
-      WHERE program_id IS NOT NULL
+      SELECT COALESCE(AVG(r.rating), 0) as avgProgramRating 
+      FROM ratings r
+      JOIN programs p ON r.program_id = p.id
+      WHERE p.is_predefined = TRUE
     `);
     
-    // Top rated workouts
+    // Top rated workouts - only predefined
     const [topRatedWorkouts] = await pool.query(`
       SELECT w.id, w.name, w.workout_type,
              AVG(r.rating) as avg_rating,
              COUNT(r.id) as rating_count
       FROM workouts w
       JOIN ratings r ON w.id = r.workout_id
+      WHERE w.is_predefined = TRUE
       GROUP BY w.id, w.name, w.workout_type
       HAVING rating_count >= 1
       ORDER BY avg_rating DESC, rating_count DESC
       LIMIT 10
     `);
     
-    // Top rated programs
+    // Top rated programs - only predefined
     const [topRatedPrograms] = await pool.query(`
       SELECT p.id, p.name, p.difficulty,
              AVG(r.rating) as avg_rating,
              COUNT(r.id) as rating_count
       FROM programs p
       JOIN ratings r ON p.id = r.program_id
+      WHERE p.is_predefined = TRUE
       GROUP BY p.id, p.name, p.difficulty
       HAVING rating_count >= 1
       ORDER BY avg_rating DESC, rating_count DESC
