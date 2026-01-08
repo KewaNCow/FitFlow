@@ -292,51 +292,51 @@ const WorkoutHistory = () => {
             </button>
           </div>
 
-          <div className="overflow-x-auto -mx-2 px-2">
-            <div className="min-w-[520px]">
-              {/* Days of week header */}
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
+          {/* Calendar - fully responsive, no scroll needed */}
+          <div>
+            {/* Days of week header */}
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
+                <div key={idx} className="text-center text-xs font-medium text-gray-500 py-1 sm:py-2">
+                  <span className="hidden sm:inline">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][idx]}</span>
+                  <span className="sm:hidden">{day}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar grid */}
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
+              {Array.from({ length: startingDay }, (_, i) => (
+                <div key={`empty-${i}`} className="aspect-square sm:h-10" />
+              ))}
+
+              {Array.from({ length: daysInMonth }, (_, i) => {
+                const day = i + 1;
+                const dayLogs = getLogsForDate(year, month, day);
+                const hasWorkout = dayLogs.length > 0;
+                const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
+
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => hasWorkout && handleDateClick(year, month, day)}
+                    className={`
+                      aspect-square sm:h-10 flex items-center justify-center rounded-lg text-xs sm:text-sm transition-colors
+                      ${hasWorkout ? 'bg-primary-100 text-primary-700 font-medium hover:bg-primary-200 cursor-pointer' : 'cursor-default'}
+                      ${isToday ? 'ring-2 ring-primary-500' : ''}
+                    `}
+                    disabled={!hasWorkout}
+                  >
                     {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar grid */}
-              <div className="grid grid-cols-7 gap-1">
-                {Array.from({ length: startingDay }, (_, i) => (
-                  <div key={`empty-${i}`} className="h-10" />
-                ))}
-
-                {Array.from({ length: daysInMonth }, (_, i) => {
-                  const day = i + 1;
-                  const dayLogs = getLogsForDate(year, month, day);
-                  const hasWorkout = dayLogs.length > 0;
-                  const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
-
-                  return (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => hasWorkout && handleDateClick(year, month, day)}
-                      className={`
-                        h-10 flex items-center justify-center rounded-lg text-sm transition-colors
-                        ${hasWorkout ? 'bg-primary-100 text-primary-700 font-medium hover:bg-primary-200 cursor-pointer' : 'cursor-default'}
-                        ${isToday ? 'ring-2 ring-primary-500' : ''}
-                      `}
-                      disabled={!hasWorkout}
-                    >
-                      {day}
-                      {hasWorkout && (
-                        <span className="ml-1">
-                          <Dumbbell className="w-3 h-3" />
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                    {hasWorkout && (
+                      <span className="ml-0.5 sm:ml-1 hidden xs:inline">
+                        <Dumbbell className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
