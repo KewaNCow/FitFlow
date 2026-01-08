@@ -146,34 +146,41 @@ router.put('/:id', auth, async (req, res) => {
       is_favorite
     } = req.body;
 
+    // Log incoming data for debugging
+    console.log('Update route request:', {
+      id: req.params.id,
+      name,
+      activity_type,
+      distance_km,
+      waypointsLength: waypoints?.length,
+      routedPathLength: routed_path?.length
+    });
+
+    // Build dynamic update query to avoid COALESCE issues with JSON
+    const updates = [];
+    const values = [];
+
+    if (name !== undefined) { updates.push('name = ?'); values.push(name); }
+    if (description !== undefined) { updates.push('description = ?'); values.push(description || null); }
+    if (activity_type !== undefined) { updates.push('activity_type = ?'); values.push(activity_type); }
+    if (distance_km !== undefined) { updates.push('distance_km = ?'); values.push(distance_km); }
+    if (estimated_duration !== undefined) { updates.push('estimated_duration = ?'); values.push(estimated_duration); }
+    if (elevation_gain !== undefined) { updates.push('elevation_gain = ?'); values.push(elevation_gain); }
+    if (waypoints !== undefined) { updates.push('waypoints = ?'); values.push(JSON.stringify(waypoints)); }
+    if (routed_path !== undefined) { updates.push('routed_path = ?'); values.push(JSON.stringify(routed_path)); }
+    if (start_location !== undefined) { updates.push('start_location = ?'); values.push(start_location); }
+    if (end_location !== undefined) { updates.push('end_location = ?'); values.push(end_location); }
+    if (is_favorite !== undefined) { updates.push('is_favorite = ?'); values.push(is_favorite); }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ success: false, message: 'No fields to update' });
+    }
+
+    values.push(req.params.id);
+
     await pool.execute(
-      `UPDATE routes SET 
-        name = COALESCE(?, name),
-        description = COALESCE(?, description),
-        activity_type = COALESCE(?, activity_type),
-        distance_km = COALESCE(?, distance_km),
-        estimated_duration = COALESCE(?, estimated_duration),
-        elevation_gain = COALESCE(?, elevation_gain),
-        waypoints = COALESCE(?, waypoints),
-        routed_path = COALESCE(?, routed_path),
-        start_location = COALESCE(?, start_location),
-        end_location = COALESCE(?, end_location),
-        is_favorite = COALESCE(?, is_favorite)
-       WHERE id = ?`,
-      [
-        name || null, 
-        description, 
-        activity_type || null,
-        distance_km,
-        estimated_duration,
-        elevation_gain,
-        waypoints ? JSON.stringify(waypoints) : null,
-        routed_path ? JSON.stringify(routed_path) : null,
-        start_location,
-        end_location,
-        is_favorite !== undefined ? is_favorite : null,
-        req.params.id
-      ]
+      `UPDATE routes SET ${updates.join(', ')} WHERE id = ?`,
+      values
     );
 
     const [updated] = await pool.execute('SELECT * FROM routes WHERE id = ?', [req.params.id]);
@@ -187,8 +194,8 @@ router.put('/:id', auth, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update route error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Update route error:', error.message, error.stack);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 });
 
