@@ -12,11 +12,16 @@ router.get('/', auth, async (req, res) => {
       [req.user.id]
     );
     
-    // Parse waypoints JSON for each route
-    const parsedRoutes = routes.map(route => ({
-      ...route,
-      waypoints: route.waypoints ? JSON.parse(route.waypoints) : []
-    }));
+    // Parse waypoints JSON for each route (handle if already parsed by MySQL driver)
+    const parsedRoutes = routes.map(route => {
+      let waypoints = [];
+      if (route.waypoints) {
+        waypoints = typeof route.waypoints === 'string' 
+          ? JSON.parse(route.waypoints) 
+          : route.waypoints;
+      }
+      return { ...route, waypoints };
+    });
     
     res.json({ success: true, data: parsedRoutes });
   } catch (error) {
@@ -37,9 +42,17 @@ router.get('/:id', auth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Route not found' });
     }
     
+    // Handle waypoints - might already be parsed by MySQL driver
+    let waypoints = [];
+    if (routes[0].waypoints) {
+      waypoints = typeof routes[0].waypoints === 'string' 
+        ? JSON.parse(routes[0].waypoints) 
+        : routes[0].waypoints;
+    }
+    
     const route = {
       ...routes[0],
-      waypoints: routes[0].waypoints ? JSON.parse(routes[0].waypoints) : []
+      waypoints
     };
     
     res.json({ success: true, data: route });
@@ -95,11 +108,19 @@ router.post('/', auth, [
 
     const [newRoute] = await pool.execute('SELECT * FROM routes WHERE id = ?', [result.insertId]);
     
+    // Handle waypoints - might already be parsed by MySQL driver
+    let parsedWaypoints = [];
+    if (newRoute[0].waypoints) {
+      parsedWaypoints = typeof newRoute[0].waypoints === 'string' 
+        ? JSON.parse(newRoute[0].waypoints) 
+        : newRoute[0].waypoints;
+    }
+    
     res.status(201).json({ 
       success: true, 
       data: {
         ...newRoute[0],
-        waypoints: newRoute[0].waypoints ? JSON.parse(newRoute[0].waypoints) : []
+        waypoints: parsedWaypoints
       }
     });
   } catch (error) {
