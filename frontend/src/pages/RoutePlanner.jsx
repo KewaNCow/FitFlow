@@ -608,7 +608,7 @@ const RoutePlanner = () => {
       
       // Navigate to edit the new workout
       if (response.data?.data?.id) {
-        navigate(`/workout-builder/${response.data.data.id}`);
+        navigate(`/my-workouts/${response.data.data.id}/edit`);
       } else {
         navigate('/my-workouts');
       }
