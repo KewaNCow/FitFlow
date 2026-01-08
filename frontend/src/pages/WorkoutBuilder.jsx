@@ -430,35 +430,88 @@ const WorkoutBuilder = () => {
                       const route = allRoutes.find(r => r.id === parseInt(routeId));
                       setSelectedRoute(route);
                       
-                      // Auto-update existing cardio exercises with new route data
                       if (route) {
                         const routeDistance = route.distance_km ? parseFloat(route.distance_km) : null;
-                        const routeDuration = route.estimated_duration ? parseInt(route.estimated_duration) : null; // Keep in minutes
+                        const routeDuration = route.estimated_duration ? parseInt(route.estimated_duration) : null;
+                        const activityType = route.activity_type || 'running';
                         
-                        setWorkout(prev => ({
-                          ...prev,
-                          exercises: prev.exercises.map(ex => {
-                            if (isCardioExercise(ex)) {
-                              const activityType = route.activity_type || ex.name?.toLowerCase() || 'running';
-                              const estimatedIntensity = routeDistance && routeDuration 
-                                ? estimateIntensityFromPace(routeDistance, routeDuration) 
-                                : ex.intensity || 'moderate';
-                              const estimatedCalories = routeDuration 
-                                ? estimateCalories(routeDuration, activityType, estimatedIntensity) 
-                                : null;
-                              
-                              return {
-                                ...ex,
-                                distance: routeDistance,
+                        // Map activity_type to exercise name
+                        const activityToExercise = {
+                          'running': 'Running',
+                          'foot-walking': 'Walking',
+                          'walking': 'Walking',
+                          'cycling-regular': 'Cycling',
+                          'cycling-road': 'Cycling',
+                          'cycling-mountain': 'Cycling',
+                          'cycling': 'Cycling',
+                          'swimming': 'Swimming',
+                          'hiking': 'Walking'
+                        };
+                        
+                        const targetExerciseName = activityToExercise[activityType] || 'Running';
+                        
+                        // Check if workout already has a matching cardio exercise
+                        const hasMatchingCardio = workout.exercises.some(ex => 
+                          isCardioExercise(ex) && ex.name === targetExerciseName
+                        );
+                        
+                        // Find the exercise from allExercises
+                        const matchingExercise = allExercises.find(ex => 
+                          ex.name === targetExerciseName && isCardioExercise(ex)
+                        );
+                        
+                        // Calculate intensity and calories
+                        const estimatedIntensity = routeDistance && routeDuration 
+                          ? estimateIntensityFromPace(routeDistance, routeDuration) 
+                          : 'moderate';
+                        const estimatedCalories = routeDuration
+                          ? estimateCalories(routeDuration, activityType, estimatedIntensity)
+                          : null;
+                        
+                        if (!hasMatchingCardio && matchingExercise) {
+                          // Auto-add the matching cardio exercise with route data
+                          setWorkout(prev => ({
+                            ...prev,
+                            workout_type: 'cardio',
+                            exercises: [
+                              ...prev.exercises,
+                              {
+                                exerciseId: matchingExercise.id,
+                                name: matchingExercise.name,
+                                category: matchingExercise.category,
+                                exercise_type: matchingExercise.exercise_type,
+                                sets: null,
+                                reps: null,
+                                weight: null,
+                                restTime: null,
                                 duration: routeDuration,
-                                intensity: estimatedIntensity,
+                                distance: routeDistance,
                                 calories: estimatedCalories,
+                                intensity: estimatedIntensity,
+                                notes: `From route: ${route.name}`,
                                 linkedToRoute: true
-                              };
-                            }
-                            return ex;
-                          })
-                        }));
+                              }
+                            ]
+                          }));
+                        } else {
+                          // Update existing cardio exercises with route data
+                          setWorkout(prev => ({
+                            ...prev,
+                            exercises: prev.exercises.map(ex => {
+                              if (isCardioExercise(ex)) {
+                                return {
+                                  ...ex,
+                                  distance: routeDistance,
+                                  duration: routeDuration,
+                                  intensity: estimatedIntensity,
+                                  calories: estimatedCalories,
+                                  linkedToRoute: true
+                                };
+                              }
+                              return ex;
+                            })
+                          }));
+                        }
                       }
                     } else {
                       setSelectedRoute(null);

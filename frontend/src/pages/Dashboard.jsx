@@ -10,7 +10,9 @@ import {
   Clock,
   ChevronRight,
   Flame,
-  Target
+  Target,
+  History,
+  Play
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +21,7 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [workouts, setWorkouts] = useState([]);
+  const [recentLogs, setRecentLogs] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,12 +31,14 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [workoutsRes, statsRes] = await Promise.all([
+      const [workoutsRes, statsRes, logsRes] = await Promise.all([
         workoutAPI.getAll(),
-        workoutLogAPI.getStats({ period: 'month' })
+        workoutLogAPI.getStats({ period: 'month' }),
+        workoutLogAPI.getAll({ limit: 5 })
       ]);
       setWorkouts(workoutsRes.data.data.slice(0, 3));
       setStats(statsRes.data.data);
+      setRecentLogs(logsRes.data.data?.logs || logsRes.data.data || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -48,6 +53,28 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Error logging workout:', error);
     }
+  };
+
+  const formatTimeAgo = (dateStr) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 60) return t('dashboard.minutesAgo', { count: diffMins });
+    if (diffHours < 24) return t('dashboard.hoursAgo', { count: diffHours });
+    if (diffDays === 1) return t('dashboard.yesterday');
+    if (diffDays < 7) return t('dashboard.daysAgo', { count: diffDays });
+    return date.toLocaleDateString();
+  };
+
+  const formatDuration = (minutes) => {
+    if (!minutes) return '-';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
 
   if (loading) {
@@ -218,6 +245,63 @@ const Dashboard = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Recent Workout History */}
+      <div className="mt-6 sm:mt-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <History className="w-5 h-5 text-gray-500" />
+            {t('dashboard.recentActivity')}
+          </h2>
+          <Link to="/history" className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+            {t('common.viewAll')}
+          </Link>
+        </div>
+
+        {recentLogs.length === 0 ? (
+          <div className="card p-6 text-center">
+            <History className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500 text-sm">{t('dashboard.noRecentActivity')}</p>
+            <p className="text-gray-400 text-xs mt-1">{t('dashboard.completeWorkoutToSee')}</p>
+          </div>
+        ) : (
+          <div className="card divide-y divide-gray-100">
+            {recentLogs.slice(0, 5).map((log) => (
+              <div key={log.id} className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:bg-gray-50 transition-colors">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Play className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm sm:text-base truncate">
+                    {log.workout_name || t('dashboard.workout')}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {formatDuration(log.duration_minutes)}
+                    </span>
+                    {log.exercises_completed > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Dumbbell className="w-3 h-3" />
+                        {log.exercises_completed} {t('common.exercises')}
+                      </span>
+                    )}
+                    {log.calories_burned > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Flame className="w-3 h-3 text-orange-500" />
+                        {log.calories_burned} kcal
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs sm:text-sm text-gray-400">{formatTimeAgo(log.completed_at)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

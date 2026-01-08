@@ -361,6 +361,9 @@ const ActiveWorkout = () => {
     
     // Check for incomplete sets
     const incompleteSets = exercisesArray.reduce((count, ex) => {
+      if (ex.isCardio) {
+        return count + (ex.sets?.[0]?.completed ? 0 : 1);
+      }
       const sets = Array.isArray(ex.sets) ? ex.sets : [];
       return count + sets.filter(s => !s.completed).length;
     }, 0);
@@ -391,28 +394,88 @@ const ActiveWorkout = () => {
         completedAt = new Date().toISOString();
       }
       
-      // Prepare workout log data - only include exercises with at least one completed set
-      const exercisesWithCompletedSets = exercisesArray
-        .map(ex => ({
-          exerciseId: ex.exercise_id,
-          sets: (Array.isArray(ex.sets) ? ex.sets.filter(s => s.completed) : []).map(s => ({
-            reps: s.actualReps || s.targetReps,
-            weight: s.actualWeight || s.targetWeight,
-            notes: s.notes
-          }))
-        }))
-        .filter(ex => ex.sets.length > 0); // Only include exercises with completed sets
+      // Calculate total calories from all cardio exercises
+      const totalCalories = exercisesArray.reduce((sum, ex) => {
+        if (ex.isCardio && ex.actualCalories) {
+          return sum + (parseInt(ex.actualCalories) || 0);
+        }
+        return sum;
+      }, 0);
+      
+      // Calculate total distance from cardio exercises
+      const totalDistance = exercisesArray.reduce((sum, ex) => {
+        if (ex.isCardio && ex.actualDistance) {
+          return sum + (parseFloat(ex.actualDistance) || 0);
+        }
+        return sum;
+      }, 0);
+      
+      // Prepare exercise data - handle both cardio and strength
+      const exerciseLogData = exercisesArray
+        .map(ex => {
+          if (ex.isCardio) {
+            // Cardio exercise
+            const isCompleted = ex.sets?.[0]?.completed;
+            if (!isCompleted) return null;
+            
+            return {
+              exerciseId: ex.exercise_id,
+              isCardio: true,
+              duration: ex.actualDuration || 0,
+              distance: ex.actualDistance || null,
+              calories: ex.actualCalories || null,
+              intensity: ex.actualIntensity || 'moderate'
+            };
+          } else {
+            // Strength exercise
+            const completedSets = (Array.isArray(ex.sets) ? ex.sets.filter(s => s.completed) : []);
+            if (completedSets.length === 0) return null;
+            
+            return {
+              exerciseId: ex.exercise_id,
+              isCardio: false,
+              sets: completedSets.map(s => ({
+                reps: s.actualReps || s.targetReps,
+                weight: s.actualWeight || s.targetWeight,
+                notes: s.notes
+              }))
+            };
+          }
+        })
+        .filter(ex => ex !== null);
+      
+      // Count completed exercises
+      const completedExercises = exerciseLogData.length;
+      const completedSets = exerciseLogData.reduce((sum, ex) => {
+        if (ex.isCardio) return sum + 1;
+        return sum + (ex.sets?.length || 0);
+      }, 0);
       
       const workoutLogData = {
         workoutId: parseInt(id),
         durationMinutes,
+        caloriesBurned: totalCalories > 0 ? totalCalories : null,
         completedAt,
-        notes: `Completed ${exercisesWithCompletedSets.length}/${exercisesArray.length} exercises (${exercisesArray.reduce((sum, ex) => sum + (Array.isArray(ex.sets) ? ex.sets.filter(s => s.completed).length : 0), 0)} sets)`,
-        exercises: exercisesWithCompletedSets
+        notes: `Completed ${completedExercises}/${exercisesArray.length} exercises (${completedSets} sets)`,
+        exercises: exerciseLogData
       };
       
       await workoutLogAPI.create(workoutLogData);
-      navigate('/history', { state: { message: 'Workout saved successfully!' } });
+      
+      // Navigate to history with summary data
+      navigate('/history', { 
+        state: { 
+          message: 'Workout saved successfully!',
+          summary: {
+            workoutName: workout?.name || 'Workout',
+            duration: durationMinutes,
+            exercisesCompleted: completedExercises,
+            setsCompleted: completedSets,
+            caloriesBurned: totalCalories,
+            distanceCovered: totalDistance
+          }
+        } 
+      });
     } catch (error) {
       console.error('Error saving workout:', error);
       console.error('Error response:', error.response?.data);

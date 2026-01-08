@@ -213,6 +213,7 @@ router.post('/', auth, [
     return true;
   }),
   body('durationMinutes').optional().isInt({ min: 0 }).withMessage('Duration must be a valid number'),
+  body('caloriesBurned').optional().isInt({ min: 0 }).withMessage('Calories must be a valid number'),
   body('completedAt').optional().isISO8601().withMessage('Completed at must be a valid ISO 8601 date'),
   body('exercises').optional().isArray().withMessage('Exercises must be an array')
 ], validate, async (req, res) => {
@@ -223,7 +224,7 @@ router.post('/', auth, [
     
     console.log('Received workout log request:', JSON.stringify(req.body, null, 2));
     
-    const { workoutId, durationMinutes, notes, completedAt, exercises } = req.body;
+    const { workoutId, durationMinutes, caloriesBurned, notes, completedAt, exercises } = req.body;
 
     // Convert completedAt to MySQL datetime format if provided
     let mysqlCompletedAt;
@@ -235,14 +236,15 @@ router.post('/', auth, [
       mysqlCompletedAt = date.toISOString().slice(0, 19).replace('T', ' ');
     }
 
-    // Insert workout log
+    // Insert workout log with calories
     const [result] = await connection.query(
-      `INSERT INTO workout_logs (user_id, workout_id, duration_minutes, notes, completed_at)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO workout_logs (user_id, workout_id, duration_minutes, calories_burned, notes, completed_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [
         req.user.id,
         workoutId || null,
         durationMinutes || null,
+        caloriesBurned || null,
         notes || null,
         mysqlCompletedAt
       ]
@@ -253,28 +255,50 @@ router.post('/', auth, [
     // Insert exercise logs if provided
     if (exercises && exercises.length > 0) {
       for (const exercise of exercises) {
-        const { exerciseId, sets } = exercise;
+        const { exerciseId, sets, isCardio, duration, distance, calories, intensity } = exercise;
         
-        if (!exerciseId || !sets || sets.length === 0) continue;
+        // For cardio exercises, we may not have traditional sets
+        if (!exerciseId) continue;
+        
+        if (isCardio) {
+          // Insert cardio exercise log with duration, distance, calories
+          await connection.query(
+            `INSERT INTO exercise_logs 
+             (workout_log_id, exercise_id, sets_completed, duration_seconds, distance_km, calories_burned, notes)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              workoutLogId,
+              exerciseId,
+              1, // Cardio counts as 1 "set"
+              duration ? duration * 60 : null, // Convert minutes to seconds
+              distance || null,
+              calories || null,
+              intensity ? `Intensity: ${intensity}` : null
+            ]
+          );
+        } else {
+          // Traditional strength exercise with sets
+          if (!sets || sets.length === 0) continue;
 
-        // Extract reps and weights from sets
-        const repsPerSet = sets.map(s => s.reps || 0);
-        const weightPerSet = sets.map(s => s.weight || 0);
-        const totalSets = sets.length;
-        
-        await connection.query(
-          `INSERT INTO exercise_logs 
-           (workout_log_id, exercise_id, sets_completed, reps_per_set, weight_per_set, notes)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [
-            workoutLogId,
-            exerciseId,
-            totalSets,
-            JSON.stringify(repsPerSet),
-            JSON.stringify(weightPerSet),
-            sets.map(s => s.notes).filter(Boolean).join('; ') || null
-          ]
-        );
+          // Extract reps and weights from sets
+          const repsPerSet = sets.map(s => s.reps || 0);
+          const weightPerSet = sets.map(s => s.weight || 0);
+          const totalSets = sets.length;
+          
+          await connection.query(
+            `INSERT INTO exercise_logs 
+             (workout_log_id, exercise_id, sets_completed, reps_per_set, weight_per_set, notes)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [
+              workoutLogId,
+              exerciseId,
+              totalSets,
+              JSON.stringify(repsPerSet),
+              JSON.stringify(weightPerSet),
+              sets.map(s => s.notes).filter(Boolean).join('; ') || null
+            ]
+          );
+        }
       }
     }
 

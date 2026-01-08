@@ -495,7 +495,15 @@ const resources = {
         noWorkoutsYet: 'No workouts yet',
         createFirstWorkout: 'Create your first workout to get started!',
         noWorkouts: 'No recent workouts',
-        getStarted: 'Start your first workout to see it here'
+        getStarted: 'Start your first workout to see it here',
+        recentActivity: 'Recent Activity',
+        noRecentActivity: 'No recent workouts logged',
+        completeWorkoutToSee: 'Complete a workout to see your history here',
+        workout: 'Workout',
+        minutesAgo: '{{count}}m ago',
+        hoursAgo: '{{count}}h ago',
+        yesterday: 'Yesterday',
+        daysAgo: '{{count}}d ago'
       },
       
       // Workouts
@@ -696,7 +704,11 @@ const resources = {
         recent: 'Recent Workouts',
         noLogs: 'No workouts logged yet',
         startLogging: 'Start logging your workouts to track your progress!',
-        goToWorkouts: 'Go to Workouts'
+        goToWorkouts: 'Go to Workouts',
+        workoutComplete: 'Workout Complete!',
+        duration: 'Duration',
+        sets: 'Sets',
+        completed: 'Completed'
       },
       
       // Footer
@@ -1216,7 +1228,15 @@ const resources = {
         noWorkoutsYet: 'Inga träningspass än',
         createFirstWorkout: 'Skapa ditt första träningspass för att komma igång!',
         noWorkouts: 'Inga senaste träningspass',
-        getStarted: 'Starta ditt första träningspass för att se det här'
+        getStarted: 'Starta ditt första träningspass för att se det här',
+        recentActivity: 'Senaste Aktivitet',
+        noRecentActivity: 'Inga loggade träningspass',
+        completeWorkoutToSee: 'Slutför ett träningspass för att se din historik här',
+        workout: 'Träningspass',
+        minutesAgo: '{{count}}m sedan',
+        hoursAgo: '{{count}}t sedan',
+        yesterday: 'Igår',
+        daysAgo: '{{count}}d sedan'
       },
       
       // Workouts
@@ -1417,7 +1437,11 @@ const resources = {
         recent: 'Senaste Träningspassen',
         noLogs: 'Inga loggade träningspass än',
         startLogging: 'Börja logga dina träningspass för att spåra dina framsteg!',
-        goToWorkouts: 'Gå till Träningspass'
+        goToWorkouts: 'Gå till Träningspass',
+        workoutComplete: 'Träningspass Klart!',
+        duration: 'Varaktighet',
+        sets: 'Set',
+        completed: 'Klart'
       },
       
       // Footer

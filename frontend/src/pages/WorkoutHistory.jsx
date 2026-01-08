@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { workoutLogAPI } from '../services/api';
 import { 
   Calendar,
@@ -8,21 +8,36 @@ import {
   TrendingUp,
   ChevronLeft,
   ChevronRight,
-  Activity
+  Activity,
+  Flame,
+  MapPin,
+  Trophy,
+  X
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTranslation } from 'react-i18next';
 
 const WorkoutHistory = () => {
   const { t } = useTranslation();
+  const location = useLocation();
   const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showSummary, setShowSummary] = useState(false);
+  const [workoutSummary, setWorkoutSummary] = useState(null);
 
   useEffect(() => {
     fetchData();
-  }, []);
+    
+    // Check if we have a workout summary from navigation
+    if (location.state?.summary) {
+      setWorkoutSummary(location.state.summary);
+      setShowSummary(true);
+      // Clear the state to prevent showing again on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const fetchData = async () => {
     try {
@@ -97,6 +112,79 @@ const WorkoutHistory = () => {
 
   return (
     <div className="page-container max-w-6xl">
+      {/* Workout Summary Modal */}
+      {showSummary && workoutSummary && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-300">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <Trophy className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">{t('history.workoutComplete')}</h2>
+                  <p className="text-sm text-gray-500">{workoutSummary.workoutName}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSummary(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-blue-50 rounded-xl p-4 text-center">
+                <Clock className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{workoutSummary.duration || 0}m</p>
+                <p className="text-xs text-gray-500">{t('history.duration')}</p>
+              </div>
+              <div className="bg-purple-50 rounded-xl p-4 text-center">
+                <Dumbbell className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{workoutSummary.exercisesCompleted || 0}</p>
+                <p className="text-xs text-gray-500">{t('common.exercises')}</p>
+              </div>
+              <div className="bg-orange-50 rounded-xl p-4 text-center">
+                <TrendingUp className="w-6 h-6 text-orange-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-gray-900">{workoutSummary.setsCompleted || 0}</p>
+                <p className="text-xs text-gray-500">{t('history.sets')}</p>
+              </div>
+              {workoutSummary.caloriesBurned > 0 ? (
+                <div className="bg-red-50 rounded-xl p-4 text-center">
+                  <Flame className="w-6 h-6 text-red-600 mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-gray-900">{workoutSummary.caloriesBurned}</p>
+                  <p className="text-xs text-gray-500">{t('statistics.overview.calories')}</p>
+                </div>
+              ) : (
+                <div className="bg-green-50 rounded-xl p-4 text-center">
+                  <Activity className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-gray-900">✓</p>
+                  <p className="text-xs text-gray-500">{t('history.completed')}</p>
+                </div>
+              )}
+            </div>
+            
+            {workoutSummary.distanceCovered > 0 && (
+              <div className="bg-cyan-50 rounded-xl p-4 mb-6 flex items-center justify-center gap-3">
+                <MapPin className="w-6 h-6 text-cyan-600" />
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-gray-900">{workoutSummary.distanceCovered.toFixed(2)} km</p>
+                  <p className="text-xs text-gray-500">{t('statistics.overview.distance')}</p>
+                </div>
+              </div>
+            )}
+            
+            <button
+              onClick={() => setShowSummary(false)}
+              className="w-full btn-primary"
+            >
+              {t('common.continue')}
+            </button>
+          </div>
+        </div>
+      )}
+
       <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">{t('history.title')}</h1>
 
       {/* Stats Overview */}
