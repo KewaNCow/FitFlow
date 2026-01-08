@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { workoutLogAPI } from '../services/api';
 import { 
   Calendar,
@@ -12,7 +12,11 @@ import {
   Flame,
   MapPin,
   Trophy,
-  X
+  X,
+  Weight,
+  Target,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTranslation } from 'react-i18next';
@@ -20,12 +24,19 @@ import { useTranslation } from 'react-i18next';
 const WorkoutHistory = () => {
   const { t } = useTranslation();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showSummary, setShowSummary] = useState(false);
   const [workoutSummary, setWorkoutSummary] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDateLogs, setSelectedDateLogs] = useState([]);
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [logDetails, setLogDetails] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [expandedExercises, setExpandedExercises] = useState({});
 
   useEffect(() => {
     fetchData();
@@ -38,6 +49,19 @@ const WorkoutHistory = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location]);
+
+  // Handle URL parameter for opening specific log
+  useEffect(() => {
+    const logId = searchParams.get('log');
+    if (logId && logs.length > 0) {
+      const log = logs.find(l => l.id === parseInt(logId));
+      if (log) {
+        handleViewLogDetails(log);
+        // Clear the URL parameter
+        setSearchParams({});
+      }
+    }
+  }, [searchParams, logs]);
 
   const fetchData = async () => {
     try {
@@ -55,6 +79,35 @@ const WorkoutHistory = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDateClick = (year, month, day) => {
+    const dayLogs = getLogsForDate(year, month, day);
+    if (dayLogs.length > 0) {
+      setSelectedDate(new Date(year, month, day));
+      setSelectedDateLogs(dayLogs);
+    }
+  };
+
+  const handleViewLogDetails = async (log) => {
+    setSelectedLog(log);
+    setLoadingDetails(true);
+    try {
+      const response = await workoutLogAPI.getById(log.id);
+      setLogDetails(response.data.data);
+    } catch (error) {
+      console.error('Error fetching log details:', error);
+      setLogDetails(null);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const toggleExerciseExpanded = (exerciseId) => {
+    setExpandedExercises(prev => ({
+      ...prev,
+      [exerciseId]: !prev[exerciseId]
+    }));
   };
 
   const getDaysInMonth = (date) => {
@@ -263,13 +316,16 @@ const WorkoutHistory = () => {
                   const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
 
                   return (
-                    <div
+                    <button
                       key={day}
+                      type="button"
+                      onClick={() => hasWorkout && handleDateClick(year, month, day)}
                       className={`
-                        h-10 flex items-center justify-center rounded-lg text-sm
-                        ${hasWorkout ? 'bg-primary-100 text-primary-700 font-medium' : ''}
+                        h-10 flex items-center justify-center rounded-lg text-sm transition-colors
+                        ${hasWorkout ? 'bg-primary-100 text-primary-700 font-medium hover:bg-primary-200 cursor-pointer' : 'cursor-default'}
                         ${isToday ? 'ring-2 ring-primary-500' : ''}
                       `}
+                      disabled={!hasWorkout}
                     >
                       {day}
                       {hasWorkout && (
@@ -277,7 +333,7 @@ const WorkoutHistory = () => {
                           <Dumbbell className="w-3 h-3" />
                         </span>
                       )}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -301,24 +357,20 @@ const WorkoutHistory = () => {
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {logs.slice(0, 20).map((log) => (
-                <div key={log.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <button
+                  key={log.id}
+                  type="button"
+                  onClick={() => handleViewLogDetails(log)}
+                  className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                >
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
                       <Dumbbell className="w-5 h-5 text-primary-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      {log.workout_id ? (
-                        <Link 
-                          to={`/my-workouts/${log.workout_id}`}
-                          className="font-medium text-gray-900 hover:text-primary-600 truncate block"
-                        >
-                          {log.workout_name || 'Unknown Workout'}
-                        </Link>
-                      ) : (
-                        <p className="font-medium text-gray-900 truncate">
-                          {log.workout_name || 'Quick Workout'}
-                        </p>
-                      )}
+                      <p className="font-medium text-gray-900 hover:text-primary-600 truncate">
+                        {log.workout_name || t('history.quickWorkout')}
+                      </p>
                       <p className="text-sm text-gray-500">
                         {formatDate(log.completed_at || log.date)}
                       </p>
@@ -341,19 +393,235 @@ const WorkoutHistory = () => {
                       <p className="text-sm font-medium text-gray-900">
                         {formatDuration(log.duration_minutes)}
                       </p>
-                      {log.notes && log.notes.includes('Completed') && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          {log.notes.split('exercises')[0]}exercises
-                        </p>
-                      )}
+                      <p className="text-xs text-primary-600 mt-1">
+                        {t('history.viewDetails')}
+                      </p>
                     </div>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      {/* Date Modal - Show workouts for selected date */}
+      {selectedDate && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </h3>
+              <button
+                onClick={() => setSelectedDate(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
+              {selectedDateLogs.map((log) => (
+                <button
+                  key={log.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedDate(null);
+                    handleViewLogDetails(log);
+                  }}
+                  className="w-full text-left p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
+                      <Dumbbell className="w-6 h-6 text-primary-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{log.workout_name || t('history.quickWorkout')}</p>
+                      <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {formatDuration(log.duration_minutes)}
+                        </span>
+                        {log.exercises_completed > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Activity className="w-3 h-3" />
+                            {log.exercises_completed} {t('common.exercises').toLowerCase()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Workout Log Details Modal */}
+      {selectedLog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {selectedLog.workout_name || t('history.quickWorkout')}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {formatDate(selectedLog.completed_at || selectedLog.date)}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedLog(null);
+                  setLogDetails(null);
+                  setExpandedExercises({});
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {loadingDetails ? (
+              <div className="p-8 flex items-center justify-center">
+                <LoadingSpinner size="md" />
+              </div>
+            ) : logDetails ? (
+              <div className="p-4 overflow-y-auto max-h-[calc(90vh-120px)]">
+                {/* Workout Summary Stats */}
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  <div className="bg-blue-50 rounded-xl p-3 text-center">
+                    <Clock className="w-5 h-5 text-blue-600 mx-auto mb-1" />
+                    <p className="text-lg font-bold text-gray-900">{logDetails.duration_minutes || 0}m</p>
+                    <p className="text-xs text-gray-500">{t('history.duration')}</p>
+                  </div>
+                  <div className="bg-purple-50 rounded-xl p-3 text-center">
+                    <Dumbbell className="w-5 h-5 text-purple-600 mx-auto mb-1" />
+                    <p className="text-lg font-bold text-gray-900">{logDetails.exercises?.length || 0}</p>
+                    <p className="text-xs text-gray-500">{t('common.exercises')}</p>
+                  </div>
+                  <div className="bg-orange-50 rounded-xl p-3 text-center">
+                    <TrendingUp className="w-5 h-5 text-orange-600 mx-auto mb-1" />
+                    <p className="text-lg font-bold text-gray-900">
+                      {logDetails.exercises?.reduce((sum, ex) => sum + (ex.sets_completed || 0), 0) || 0}
+                    </p>
+                    <p className="text-xs text-gray-500">{t('history.sets')}</p>
+                  </div>
+                </div>
+
+                {/* Exercises List */}
+                <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <Target className="w-4 h-4 text-primary-500" />
+                  {t('history.exerciseDetails')}
+                </h4>
+                
+                {logDetails.exercises && logDetails.exercises.length > 0 ? (
+                  <div className="space-y-2">
+                    {logDetails.exercises.map((exercise) => (
+                      <div key={exercise.id} className="bg-gray-50 rounded-xl overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => toggleExerciseExpanded(exercise.id)}
+                          className="w-full p-3 flex items-center justify-between hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
+                              <Dumbbell className="w-4 h-4 text-primary-600" />
+                            </div>
+                            <div className="text-left">
+                              <p className="font-medium text-gray-900 text-sm">{exercise.exercise_name}</p>
+                              <p className="text-xs text-gray-500">
+                                {exercise.sets_completed || 0} {t('history.sets').toLowerCase()} • {exercise.total_reps || 0} {t('history.reps').toLowerCase()}
+                              </p>
+                            </div>
+                          </div>
+                          {expandedExercises[exercise.id] ? (
+                            <ChevronUp className="w-5 h-5 text-gray-400" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-gray-400" />
+                          )}
+                        </button>
+                        
+                        {expandedExercises[exercise.id] && (
+                          <div className="px-3 pb-3 border-t bg-white">
+                            {exercise.weight_per_set && exercise.weight_per_set.length > 0 ? (
+                              <div className="mt-3 space-y-2">
+                                <p className="text-xs font-medium text-gray-500 uppercase">{t('history.setBySet')}</p>
+                                {exercise.weight_per_set.map((weight, idx) => (
+                                  <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                                    <span className="text-sm text-gray-600">{t('history.set')} {idx + 1}</span>
+                                    <div className="flex items-center gap-4">
+                                      <span className="text-sm font-medium text-gray-900">
+                                        {weight > 0 ? `${weight} kg` : '-'}
+                                      </span>
+                                      <span className="text-sm text-gray-500">
+                                        × {exercise.reps_per_set?.[idx] || 0} {t('history.reps').toLowerCase()}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                                {exercise.max_weight > 0 && (
+                                  <div className="mt-2 pt-2 border-t flex items-center justify-between">
+                                    <span className="text-xs text-gray-500">{t('history.maxWeight')}</span>
+                                    <span className="text-sm font-bold text-primary-600">{exercise.max_weight} kg</span>
+                                  </div>
+                                )}
+                                {exercise.total_volume > 0 && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-gray-500">{t('history.totalVolume')}</span>
+                                    <span className="text-sm font-bold text-primary-600">{exercise.total_volume.toLocaleString()} kg</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : exercise.duration ? (
+                              <div className="mt-3 space-y-2">
+                                <div className="flex items-center justify-between py-2">
+                                  <span className="text-sm text-gray-600">{t('history.duration')}</span>
+                                  <span className="text-sm font-medium text-gray-900">{exercise.duration} min</span>
+                                </div>
+                                {exercise.distance && (
+                                  <div className="flex items-center justify-between py-2 border-t">
+                                    <span className="text-sm text-gray-600">{t('statistics.overview.distance')}</span>
+                                    <span className="text-sm font-medium text-gray-900">{exercise.distance} km</span>
+                                  </div>
+                                )}
+                                {exercise.calories && (
+                                  <div className="flex items-center justify-between py-2 border-t">
+                                    <span className="text-sm text-gray-600">{t('statistics.overview.calories')}</span>
+                                    <span className="text-sm font-medium text-gray-900">{exercise.calories} kcal</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="mt-3 text-sm text-gray-500">{t('history.noDetailedData')}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 text-center py-4">{t('history.noExerciseData')}</p>
+                )}
+
+                {/* Notes */}
+                {logDetails.notes && (
+                  <div className="mt-4 p-3 bg-yellow-50 rounded-xl">
+                    <p className="text-xs font-medium text-gray-500 mb-1">{t('history.notes')}</p>
+                    <p className="text-sm text-gray-700">{logDetails.notes}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-gray-500">
+                {t('history.errorLoadingDetails')}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

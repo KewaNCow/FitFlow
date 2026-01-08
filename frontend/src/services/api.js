@@ -91,6 +91,7 @@ export const programAPI = {
 // Workout Log API
 export const workoutLogAPI = {
   getAll: (params) => api.get('/workout-logs', { params }),
+  getById: (id) => api.get(`/workout-logs/${id}`),
   getStats: (params) => api.get('/workout-logs/stats', { params }),
   create: (data) => api.post('/workout-logs', data),
   update: (id, data) => api.put(`/workout-logs/${id}`, data),

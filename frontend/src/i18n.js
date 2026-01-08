@@ -492,6 +492,9 @@ const resources = {
         myPrograms: 'My Programs',
         viewPrograms: 'View training programs',
         browsePrograms: 'Browse Programs',
+        workoutHistory: 'Workout History',
+        viewPastWorkouts: 'View your past workouts',
+        viewDetails: 'View details',
         recentWorkouts: 'Recent Workouts',
         noWorkoutsYet: 'No workouts yet',
         createFirstWorkout: 'Create your first workout to get started!',
@@ -885,7 +888,19 @@ const resources = {
         workoutComplete: 'Workout Complete!',
         duration: 'Duration',
         sets: 'Sets',
-        completed: 'Completed'
+        completed: 'Completed',
+        viewDetails: 'View details',
+        quickWorkout: 'Quick Workout',
+        exerciseDetails: 'Exercise Details',
+        setBySet: 'Set by Set',
+        set: 'Set',
+        reps: 'Reps',
+        maxWeight: 'Max Weight',
+        totalVolume: 'Total Volume',
+        noDetailedData: 'No detailed data recorded',
+        noExerciseData: 'No exercise data recorded',
+        notes: 'Notes',
+        errorLoadingDetails: 'Error loading workout details'
       },
       
       // Footer
@@ -1402,6 +1417,9 @@ const resources = {
         myPrograms: 'Mina Program',
         viewPrograms: 'Visa träningsprogram',
         browsePrograms: 'Bläddra Program',
+        workoutHistory: 'Träningshistorik',
+        viewPastWorkouts: 'Visa dina tidigare träningspass',
+        viewDetails: 'Visa detaljer',
         recentWorkouts: 'Senaste Träningspassen',
         noWorkoutsYet: 'Inga träningspass än',
         createFirstWorkout: 'Skapa ditt första träningspass för att komma igång!',
@@ -1795,7 +1813,19 @@ const resources = {
         workoutComplete: 'Träningspass Klart!',
         duration: 'Varaktighet',
         sets: 'Set',
-        completed: 'Klart'
+        completed: 'Klart',
+        viewDetails: 'Visa detaljer',
+        quickWorkout: 'Snabbträning',
+        exerciseDetails: 'Övningsdetaljer',
+        setBySet: 'Set för set',
+        set: 'Set',
+        reps: 'Repetitioner',
+        maxWeight: 'Maxvikt',
+        totalVolume: 'Total volym',
+        noDetailedData: 'Ingen detaljerad data registrerad',
+        noExerciseData: 'Ingen övningsdata registrerad',
+        notes: 'Anteckningar',
+        errorLoadingDetails: 'Fel vid laddning av träningsdetaljer'
       },
       
       // Footer

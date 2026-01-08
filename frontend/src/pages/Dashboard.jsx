@@ -195,6 +195,20 @@ const Dashboard = () => {
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600" />
             </Link>
+
+            <Link
+              to="/history"
+              className="card-hover p-4 flex items-center gap-4 group bg-gradient-to-r from-green-50 to-emerald-50 border-green-200"
+            >
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                <History className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">{t('dashboard.workoutHistory')}</p>
+                <p className="text-sm text-gray-500">{t('dashboard.viewPastWorkouts')}</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-green-600" />
+            </Link>
           </div>
         </div>
 
@@ -268,7 +282,11 @@ const Dashboard = () => {
         ) : (
           <div className="card divide-y divide-gray-100">
             {recentLogs.slice(0, 5).map((log) => (
-              <div key={log.id} className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:bg-gray-50 transition-colors">
+              <Link
+                key={log.id}
+                to={`/history?log=${log.id}`}
+                className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:bg-gray-50 transition-colors block"
+              >
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Play className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                 </div>
@@ -297,8 +315,9 @@ const Dashboard = () => {
                 </div>
                 <div className="text-right flex-shrink-0">
                   <p className="text-xs sm:text-sm text-gray-400">{formatTimeAgo(log.completed_at)}</p>
+                  <p className="text-xs text-primary-600 mt-1">{t('dashboard.viewDetails')}</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
