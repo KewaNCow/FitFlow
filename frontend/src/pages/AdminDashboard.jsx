@@ -157,28 +157,13 @@ const AdminDashboard = () => {
   };
 
   const handleAddExerciseToWorkout = async (exercise) => {
-    // Auto-save workout if it doesn't have an ID yet
-    let workoutId = editingItem?.id;
-    if (!workoutId) {
-      try {
-        const response = await adminAPI.createWorkout(formData);
-        const newItem = response.data.data;
-        setItems(prev => [newItem, ...prev]);
-        setEditingItem(newItem);
-        setFormData(newItem);
-        workoutId = newItem.id;
-      } catch (error) {
-        console.error('Error auto-saving workout:', error);
-        setError(error.response?.data?.message || t('admin.errorSaving'));
-        return;
-      }
-    }
+    if (!editingItem?.id) return;
     
     // Check if exercise is cardio type
     const isCardio = exercise.category === 'cardio' || exercise.exercise_type === 'cardio';
     
     try {
-      const response = await adminAPI.addWorkoutExercise(workoutId, {
+      const response = await adminAPI.addWorkoutExercise(editingItem.id, {
         exercise_id: exercise.id,
         // Strength fields
         sets: isCardio ? null : 3,
@@ -250,25 +235,10 @@ const AdminDashboard = () => {
   };
 
   const handleAddWorkoutToProgram = async (workout) => {
-    // Auto-save program if it doesn't have an ID yet
-    let programId = editingItem?.id;
-    if (!programId) {
-      try {
-        const response = await adminAPI.createProgram(formData);
-        const newItem = response.data.data;
-        setItems(prev => [newItem, ...prev]);
-        setEditingItem(newItem);
-        setFormData(newItem);
-        programId = newItem.id;
-      } catch (error) {
-        console.error('Error auto-saving program:', error);
-        setError(error.response?.data?.message || t('admin.errorSaving'));
-        return;
-      }
-    }
+    if (!editingItem?.id) return;
     
     try {
-      const response = await adminAPI.addProgramWorkout(programId, {
+      const response = await adminAPI.addProgramWorkout(editingItem.id, {
         workout_id: workout.id,
         day_of_week: selectedDay,
         notes: null
@@ -1028,7 +998,8 @@ const AdminDashboard = () => {
                     </select>
                   </div>
                 
-                  {/* Workout Exercises Section */}
+                  {/* Workout Exercises Section - Only show after creation */}
+                  {editingItem && (
                   <div className="border-t pt-4 mt-4">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-medium text-gray-900 flex items-center gap-2">
@@ -1278,6 +1249,7 @@ const AdminDashboard = () => {
                       )}
                     </div>
                   </div>
+                  )}
                 </>
               )}
 
@@ -1306,7 +1278,8 @@ const AdminDashboard = () => {
                     </select>
                   </div>
                   
-                  {/* Program Workouts Section */}
+                  {/* Program Workouts Section - Only show after creation */}
+                  {editingItem && (
                   <div className="border-t pt-4 mt-4">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="font-medium text-gray-900 flex items-center gap-2">
@@ -1430,6 +1403,7 @@ const AdminDashboard = () => {
                         </div>
                       )}
                   </div>
+                  )}
               </>
             )}
 
