@@ -850,8 +850,9 @@ const ActiveWorkout = () => {
                   type="number"
                   value={editValues.weight}
                   onChange={(e) => setEditValues(prev => ({ ...prev, weight: e.target.value }))}
-                  className="input-field"
+                  className="input"
                   step="0.5"
+                  placeholder="0"
                 />
               </div>
               
@@ -863,7 +864,8 @@ const ActiveWorkout = () => {
                   type="number"
                   value={editValues.reps}
                   onChange={(e) => setEditValues(prev => ({ ...prev, reps: e.target.value }))}
-                  className="input-field"
+                  className="input"
+                  placeholder="0"
                 />
               </div>
             </div>
