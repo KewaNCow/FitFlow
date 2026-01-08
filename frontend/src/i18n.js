@@ -100,6 +100,7 @@ const resources = {
         filterExercises: 'Filter Exercises',
         clearAll: 'Clear all',
         clearFilters: 'Clear Filters',
+        clearFilter: 'Clear filter',
         category: 'Category',
         allCategories: 'All Categories',
         muscleGroup: 'Muscle Group',
