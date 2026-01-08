@@ -493,62 +493,13 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Popular Exercises */}
-        <div className="card overflow-hidden">
-          <div className="p-4 border-b bg-gray-50">
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-              <Target className="w-4 h-4 text-orange-600" />
-              {t('admin.popularExercises')}
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">#</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
-                  <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 hidden sm:table-cell">{t('admin.muscleGroup')}</th>
-                  <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.usageCount')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {stats.popularExercises?.length > 0 ? (
-                  stats.popularExercises.map((exercise, idx) => (
-                    <tr key={exercise.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 text-sm text-gray-500">{idx + 1}</td>
-                      <td className="px-4 py-2">
-                        <p className="font-medium text-gray-900 text-sm">{exercise.name}</p>
-                      </td>
-                      <td className="px-4 py-2 hidden sm:table-cell">
-                        <span className="badge bg-gray-100 text-gray-700">{exercise.muscle_group || '–'}</span>
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        <span className="badge bg-orange-100 text-orange-700">{exercise.usage_count}</span>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4" className="px-4 py-8 text-center text-gray-500 text-sm">
-                      {t('admin.noData')}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Rating Statistics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Rated Workouts */}
+          {/* Popular Exercises */}
           <div className="card overflow-hidden">
             <div className="p-4 border-b bg-gray-50">
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                <Star className="w-4 h-4 text-yellow-500" />
-                {t('admin.topRatedWorkouts')}
+                <Target className="w-4 h-4 text-orange-600" />
+                {t('admin.popularExercises')}
               </h3>
             </div>
             <div className="overflow-x-auto">
@@ -557,27 +508,23 @@ const AdminDashboard = () => {
                   <tr>
                     <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">#</th>
                     <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.avgRating')}</th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.ratingCount')}</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 hidden sm:table-cell">{t('admin.muscleGroup')}</th>
+                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.usageCount')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {stats.topRatedWorkouts?.length > 0 ? (
-                    stats.topRatedWorkouts.map((workout, idx) => (
-                      <tr key={workout.id} className="hover:bg-gray-50">
+                  {stats.popularExercises?.length > 0 ? (
+                    stats.popularExercises.map((exercise, idx) => (
+                      <tr key={exercise.id} className="hover:bg-gray-50">
                         <td className="px-4 py-2 text-sm text-gray-500">{idx + 1}</td>
                         <td className="px-4 py-2">
-                          <p className="font-medium text-gray-900 text-sm">{workout.name}</p>
-                          <p className="text-xs text-gray-500">{workout.workout_type}</p>
+                          <p className="font-medium text-gray-900 text-sm">{exercise.name}</p>
+                        </td>
+                        <td className="px-4 py-2 hidden sm:table-cell">
+                          <span className="badge bg-gray-100 text-gray-700">{exercise.muscle_group || '–'}</span>
                         </td>
                         <td className="px-4 py-2 text-right">
-                          <span className="inline-flex items-center gap-1">
-                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                            <span className="font-medium">{parseFloat(workout.avg_rating).toFixed(1)}</span>
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          <span className="badge bg-gray-100 text-gray-700">{workout.rating_count}</span>
+                          <span className="badge bg-orange-100 text-orange-700">{exercise.usage_count}</span>
                         </td>
                       </tr>
                     ))
@@ -593,53 +540,106 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Top Rated Programs */}
-          <div className="card overflow-hidden">
-            <div className="p-4 border-b bg-gray-50">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                <Star className="w-4 h-4 text-yellow-500" />
-                {t('admin.topRatedPrograms')}
-              </h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">#</th>
-                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.avgRating')}</th>
-                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.ratingCount')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {stats.topRatedPrograms?.length > 0 ? (
-                    stats.topRatedPrograms.map((program, idx) => (
-                      <tr key={program.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-sm text-gray-500">{idx + 1}</td>
-                        <td className="px-4 py-2">
-                          <p className="font-medium text-gray-900 text-sm">{program.name}</p>
-                          <p className="text-xs text-gray-500">{program.difficulty}</p>
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          <span className="inline-flex items-center gap-1">
-                            <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                            <span className="font-medium">{parseFloat(program.avg_rating).toFixed(1)}</span>
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          <span className="badge bg-gray-100 text-gray-700">{program.rating_count}</span>
+          {/* Rating Statistics */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Top Rated Workouts */}
+            <div className="card overflow-hidden">
+              <div className="p-4 border-b bg-gray-50">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  {t('admin.topRatedWorkouts')}
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">#</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
+                      <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.avgRating')}</th>
+                      <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.ratingCount')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {stats.topRatedWorkouts?.length > 0 ? (
+                      stats.topRatedWorkouts.map((workout, idx) => (
+                        <tr key={workout.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 text-sm text-gray-500">{idx + 1}</td>
+                          <td className="px-4 py-2">
+                            <p className="font-medium text-gray-900 text-sm">{workout.name}</p>
+                            <p className="text-xs text-gray-500">{workout.workout_type}</p>
+                          </td>
+                          <td className="px-4 py-2 text-right">
+                            <span className="inline-flex items-center gap-1">
+                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                              <span className="font-medium">{parseFloat(workout.avg_rating).toFixed(1)}</span>
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-right">
+                            <span className="badge bg-gray-100 text-gray-700">{workout.rating_count}</span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="px-4 py-8 text-center text-gray-500 text-sm">
+                          {t('admin.noData')}
                         </td>
                       </tr>
-                    ))
-                  ) : (
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Top Rated Programs */}
+            <div className="card overflow-hidden">
+              <div className="p-4 border-b bg-gray-50">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  {t('admin.topRatedPrograms')}
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
                     <tr>
-                      <td colSpan="4" className="px-4 py-8 text-center text-gray-500 text-sm">
-                        {t('admin.noData')}
-                      </td>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">#</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
+                      <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.avgRating')}</th>
+                      <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.ratingCount')}</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y">
+                    {stats.topRatedPrograms?.length > 0 ? (
+                      stats.topRatedPrograms.map((program, idx) => (
+                        <tr key={program.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 text-sm text-gray-500">{idx + 1}</td>
+                          <td className="px-4 py-2">
+                            <p className="font-medium text-gray-900 text-sm">{program.name}</p>
+                            <p className="text-xs text-gray-500">{program.difficulty}</p>
+                          </td>
+                          <td className="px-4 py-2 text-right">
+                            <span className="inline-flex items-center gap-1">
+                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                              <span className="font-medium">{parseFloat(program.avg_rating).toFixed(1)}</span>
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-right">
+                            <span className="badge bg-gray-100 text-gray-700">{program.rating_count}</span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="px-4 py-8 text-center text-gray-500 text-sm">
+                          {t('admin.noData')}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
