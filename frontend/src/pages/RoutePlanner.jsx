@@ -348,6 +348,33 @@ const LocationFinder = ({ onLocationFound }) => {
   return null;
 };
 
+// Component to enable scroll wheel zoom on hover
+const ScrollWheelZoomControl = () => {
+  const map = useMap();
+  
+  useEffect(() => {
+    const container = map.getContainer();
+    
+    const enableScroll = () => {
+      map.scrollWheelZoom.enable();
+    };
+    
+    const disableScroll = () => {
+      map.scrollWheelZoom.disable();
+    };
+    
+    container.addEventListener('mouseenter', enableScroll);
+    container.addEventListener('mouseleave', disableScroll);
+    
+    return () => {
+      container.removeEventListener('mouseenter', enableScroll);
+      container.removeEventListener('mouseleave', disableScroll);
+    };
+  }, [map]);
+  
+  return null;
+};
+
 const RoutePlanner = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -1261,7 +1288,7 @@ const RoutePlanner = () => {
         </div>
 
         {/* Map */}
-        <div className={`w-full lg:flex-1 relative lg:h-auto lg:min-h-0 flex-shrink-0 ${isCreating ? 'h-[500px]' : 'h-[calc(100vh-200px)] min-h-[500px]'}`}>
+        <div className={`w-full lg:flex-1 relative lg:h-auto lg:min-h-0 flex-shrink-0 -mb-1 ${isCreating ? 'h-[500px]' : 'h-[calc(100vh-200px)] min-h-[500px]'}`}>
           <MapContainer
             center={userLocation}
             zoom={13}
@@ -1276,6 +1303,7 @@ const RoutePlanner = () => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <LocationFinder onLocationFound={handleLocationFound} />
+            <ScrollWheelZoomControl />
             <MapClickHandler onMapClick={handleMapClick} isDrawing={isDrawing} />
             
             {/* Route polyline - uses road-following path from OSRM */}
