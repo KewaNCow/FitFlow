@@ -157,13 +157,28 @@ const AdminDashboard = () => {
   };
 
   const handleAddExerciseToWorkout = async (exercise) => {
-    if (!editingItem) return;
+    // Auto-save workout if it doesn't have an ID yet
+    let workoutId = editingItem?.id;
+    if (!workoutId) {
+      try {
+        const response = await adminAPI.createWorkout(formData);
+        const newItem = response.data.data;
+        setItems(prev => [newItem, ...prev]);
+        setEditingItem(newItem);
+        setFormData(newItem);
+        workoutId = newItem.id;
+      } catch (error) {
+        console.error('Error auto-saving workout:', error);
+        setError(error.response?.data?.message || t('admin.errorSaving'));
+        return;
+      }
+    }
     
     // Check if exercise is cardio type
     const isCardio = exercise.category === 'cardio' || exercise.exercise_type === 'cardio';
     
     try {
-      const response = await adminAPI.addWorkoutExercise(editingItem.id, {
+      const response = await adminAPI.addWorkoutExercise(workoutId, {
         exercise_id: exercise.id,
         // Strength fields
         sets: isCardio ? null : 3,
@@ -235,9 +250,25 @@ const AdminDashboard = () => {
   };
 
   const handleAddWorkoutToProgram = async (workout) => {
-    if (!editingItem) return;
+    // Auto-save program if it doesn't have an ID yet
+    let programId = editingItem?.id;
+    if (!programId) {
+      try {
+        const response = await adminAPI.createProgram(formData);
+        const newItem = response.data.data;
+        setItems(prev => [newItem, ...prev]);
+        setEditingItem(newItem);
+        setFormData(newItem);
+        programId = newItem.id;
+      } catch (error) {
+        console.error('Error auto-saving program:', error);
+        setError(error.response?.data?.message || t('admin.errorSaving'));
+        return;
+      }
+    }
+    
     try {
-      const response = await adminAPI.addProgramWorkout(editingItem.id, {
+      const response = await adminAPI.addProgramWorkout(programId, {
         workout_id: workout.id,
         day_of_week: selectedDay,
         notes: null
@@ -987,7 +1018,6 @@ const AdminDashboard = () => {
                   </div>
                 
                   {/* Workout Exercises Section */}
-                  {editingItem ? (
                   <div className="border-t pt-4 mt-4">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-medium text-gray-900 flex items-center gap-2">
@@ -1237,14 +1267,6 @@ const AdminDashboard = () => {
                       )}
                     </div>
                   </div>
-                  ) : (
-                    <div className="border-t pt-4 mt-4">
-                      <div className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-lg">
-                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                        <p className="text-sm">{t('admin.saveToAddExercises')}</p>
-                      </div>
-                    </div>
-                  )}
                 </>
               )}
 
@@ -1274,9 +1296,8 @@ const AdminDashboard = () => {
                   </div>
                   
                   {/* Program Workouts Section */}
-                  {editingItem ? (
-                    <div className="border-t pt-4 mt-4">
-                      <div className="flex items-center justify-between mb-3">
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex items-center justify-between mb-3">
                         <h3 className="font-medium text-gray-900 flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-purple-500" />
                           {t('admin.weeklySchedule')}
@@ -1398,14 +1419,7 @@ const AdminDashboard = () => {
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <div className="border-t pt-4 mt-4">
-                      <div className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-lg">
-                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                        <p className="text-sm">{t('admin.saveToAddWorkouts')}</p>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </>
               )}
 
