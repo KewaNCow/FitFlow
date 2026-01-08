@@ -17,7 +17,8 @@ import {
   Timer,
   MapPin,
   Bike,
-  PersonStanding
+  PersonStanding,
+  Zap
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -141,12 +142,60 @@ const WorkoutBuilder = () => {
     }
   };
 
+  // Estimate calories burned based on activity type, duration, and intensity
+  const estimateCalories = (durationMinutes, activityType, intensity) => {
+    if (!durationMinutes) return null;
+    
+    // Base calories per minute by activity type
+    const caloriesPerMinute = {
+      running: 11,
+      biking: 8,
+      walking: 5,
+      hiking: 7,
+      default: 8
+    };
+    
+    // Intensity multipliers
+    const intensityMultiplier = {
+      low: 0.7,
+      moderate: 1.0,
+      high: 1.3,
+      interval: 1.4
+    };
+    
+    const baseRate = caloriesPerMinute[activityType] || caloriesPerMinute.default;
+    const multiplier = intensityMultiplier[intensity] || 1.0;
+    
+    return Math.round(durationMinutes * baseRate * multiplier);
+  };
+
+  // Estimate intensity from route pace (min/km)
+  const estimateIntensityFromPace = (distanceKm, durationMinutes) => {
+    if (!distanceKm || !durationMinutes || distanceKm <= 0) return 'moderate';
+    
+    const paceMinPerKm = durationMinutes / distanceKm;
+    
+    // Pace thresholds for running
+    if (paceMinPerKm < 5) return 'high';      // Fast: < 5 min/km
+    if (paceMinPerKm < 6.5) return 'moderate'; // Moderate: 5-6.5 min/km
+    return 'low';                              // Easy: > 6.5 min/km
+  };
+
   const handleAddExercise = (exercise) => {
     const isCardio = isCardioExercise(exercise);
     
     // If adding a cardio exercise and a route is selected, use route data
     const routeDistance = selectedRoute?.distance_km ? parseFloat(selectedRoute.distance_km) : null;
-    const routeDuration = selectedRoute?.estimated_duration ? parseInt(selectedRoute.estimated_duration) * 60 : null;
+    const routeDuration = selectedRoute?.estimated_duration ? parseInt(selectedRoute.estimated_duration) : null; // Already in minutes
+    const activityType = selectedRoute?.activity_type || 'running';
+    
+    // Calculate intensity and calories from route data
+    const estimatedIntensity = isCardio && routeDistance && routeDuration 
+      ? estimateIntensityFromPace(routeDistance, routeDuration)
+      : 'moderate';
+    const estimatedCalories = isCardio && routeDuration
+      ? estimateCalories(routeDuration, activityType, estimatedIntensity)
+      : null;
     
     setWorkout(prev => ({
       ...prev,
@@ -162,11 +211,11 @@ const WorkoutBuilder = () => {
           reps: isCardio ? null : 10,
           weight: null,
           restTime: isCardio ? null : 60,
-          // Cardio fields - use route data if available for cardio exercises
-          duration: isCardio ? (routeDuration || exercise.default_duration || 1800) : null,
+          // Cardio fields - duration stored in MINUTES
+          duration: isCardio ? (routeDuration || exercise.default_duration || 30) : null,
           distance: isCardio ? (routeDistance || exercise.default_distance || null) : null,
-          calories: null,
-          intensity: isCardio ? 'moderate' : null,
+          calories: isCardio ? estimatedCalories : null,
+          intensity: isCardio ? estimatedIntensity : null,
           notes: '',
           linkedToRoute: isCardio && selectedRoute ? true : false
         }
@@ -185,7 +234,12 @@ const WorkoutBuilder = () => {
     if (!selectedRoute) return;
     
     const routeDistance = selectedRoute.distance_km ? parseFloat(selectedRoute.distance_km) : null;
-    const routeDuration = selectedRoute.estimated_duration ? parseInt(selectedRoute.estimated_duration) * 60 : null;
+    const routeDuration = selectedRoute.estimated_duration ? parseInt(selectedRoute.estimated_duration) : null; // Already in minutes
+    const activityType = selectedRoute?.activity_type || 'running';
+    
+    // Calculate intensity and calories
+    const estimatedIntensity = estimateIntensityFromPace(routeDistance, routeDuration);
+    const estimatedCalories = estimateCalories(routeDuration, activityType, estimatedIntensity);
     
     setWorkout(prev => ({
       ...prev,
@@ -194,6 +248,8 @@ const WorkoutBuilder = () => {
           ...ex, 
           distance: routeDistance,
           duration: routeDuration,
+          calories: estimatedCalories,
+          intensity: estimatedIntensity,
           linkedToRoute: true
         } : ex
       )
@@ -278,11 +334,6 @@ const WorkoutBuilder = () => {
     return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
   };
 
-  // Parse duration from minutes input
-  const parseDurationMinutes = (mins) => {
-    return mins ? parseInt(mins) * 60 : null;
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -361,16 +412,26 @@ const WorkoutBuilder = () => {
                       // Auto-update existing cardio exercises with new route data
                       if (route) {
                         const routeDistance = route.distance_km ? parseFloat(route.distance_km) : null;
-                        const routeDuration = route.estimated_duration ? parseInt(route.estimated_duration) * 60 : null;
+                        const routeDuration = route.estimated_duration ? parseInt(route.estimated_duration) : null; // Keep in minutes
                         
                         setWorkout(prev => ({
                           ...prev,
                           exercises: prev.exercises.map(ex => {
                             if (isCardioExercise(ex)) {
+                              const activityType = route.activity_type || ex.name?.toLowerCase() || 'running';
+                              const estimatedIntensity = routeDistance && routeDuration 
+                                ? estimateIntensityFromPace(routeDistance, routeDuration) 
+                                : ex.intensity || 'moderate';
+                              const estimatedCalories = routeDuration 
+                                ? estimateCalories(routeDuration, activityType, estimatedIntensity) 
+                                : null;
+                              
                               return {
                                 ...ex,
                                 distance: routeDistance,
                                 duration: routeDuration,
+                                intensity: estimatedIntensity,
+                                calories: estimatedCalories,
                                 linkedToRoute: true
                               };
                             }
@@ -525,8 +586,8 @@ const WorkoutBuilder = () => {
                             <input
                               type="number"
                               min="1"
-                              value={exercise.duration ? Math.floor(exercise.duration / 60) : ''}
-                              onChange={(e) => handleExerciseChange(index, 'duration', parseDurationMinutes(e.target.value))}
+                              value={exercise.duration || ''}
+                              onChange={(e) => handleExerciseChange(index, 'duration', e.target.value ? parseInt(e.target.value) : null)}
                               className="input text-sm py-1.5"
                               placeholder="30"
                             />
@@ -559,7 +620,9 @@ const WorkoutBuilder = () => {
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">{t('workoutBuilder.intensity')}</label>
+                            <label className="text-xs text-gray-500 flex items-center gap-1">
+                              <Zap className="w-3 h-3" /> {t('workoutBuilder.intensity')}
+                            </label>
                             <select
                               value={exercise.intensity || 'moderate'}
                               onChange={(e) => handleExerciseChange(index, 'intensity', e.target.value)}

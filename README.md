@@ -15,26 +15,33 @@ FitFlow is a comprehensive fitness application that helps users plan, track, and
 
 ### Workout Planning
 - **Custom Workout Builder**: Create personalized workout routines with drag-and-drop interface
-- **Predefined Workouts**: Access 15+ professionally designed workout templates
-  - Beginner Full Body Workouts
+- **Predefined Workouts**: Access 20 professionally designed workout templates
+  - Beginner Full Body Workouts (Day A & B)
   - Intermediate Push/Pull/Legs Split
   - Upper/Lower Body Hypertrophy
   - HIIT & Cardio Sessions
-  - Flexibility & Recovery Workouts
+  - Core, Arms, Shoulders, Back, Chest & Glute Focus
+  - Athletic Performance & Tabata Workouts
+  - Morning Yoga Flow
 - **Smart Filtering**: Filter workouts by type (strength, cardio, mixed, flexibility)
 - **Exercise Customization**: Adjust sets, reps, duration, and rest times
+- **Route Integration**: Link running/cycling routes to cardio workouts with auto-populated distance, duration, pace-based intensity, and calorie estimates
 - **Copy & Edit**: Duplicate predefined workouts and customize them to your needs
 
 ### Program Management
 - **Multi-Week Programs**: Build complete training programs with scheduled workouts
-- **Predefined Programs**: Choose from 9 professionally designed programs
+- **Predefined Programs**: Choose from 11 professionally designed programs
   - Beginner Strength Foundation (4 weeks)
   - Push Pull Legs Split (6 weeks)
   - Classic Bodybuilding Split (12 weeks)
   - 8-Week Fat Shredder
   - Power & Hypertrophy (10 weeks)
   - Busy Professional Fitness (6 weeks)
-  - Summer Shred Challenge
+  - Upper Lower Split (8 weeks)
+  - 6-Week Shred
+  - Athletic Performance (8 weeks)
+  - Flexibility Focus (6 weeks)
+  - Glute Gains (8 weeks)
 - **Program Scheduling**: Assign workouts to specific days of the week
 - **Difficulty Levels**: Filter by beginner, intermediate, or advanced
 - **Progress Tracking**: Monitor program completion and adherence
@@ -46,15 +53,18 @@ FitFlow is a comprehensive fitness application that helps users plan, track, and
 - **Performance Analytics**: Track progress with visual statistics and charts
 - **Exercise-Level Stats**: Monitor sets, reps, and weight progression per exercise
 
-### Route Planning (Beta)
+### Route Planning
 - **GPS Route Tracking**: Plan running and cycling routes
 - **Interactive Maps**: Powered by Leaflet and OpenStreetMap
-- **Distance Tracking**: View route distance and elevation
+- **Distance & Duration**: View route distance, estimated duration, and pace
+- **Workout Integration**: Automatically apply route data to cardio exercises
+- **Smart Intensity Estimation**: Calculate intensity based on pace (min/km)
+- **Calorie Burn Estimation**: Auto-calculate calories based on activity type, duration, and intensity
 
 ### User Profile & Admin
 - **Secure Authentication**: JWT-based login and registration
 - **Profile Management**: Update personal information and preferences
-- **Demo Account**: Test the app with pre-populated data (demo@fitflow.app / demo123)
+- **Demo Account**: Test the app with 30 days of pre-populated workout history (demo@fitflow.app / demo123)
 - **Admin Dashboard**: Manage users and system settings (admin access required)
 
 ### Multi-Language Support
@@ -138,13 +148,15 @@ FitFlow/
 The application uses a relational MySQL database with the following key tables:
 
 - **users**: User accounts and authentication
-- **exercises**: Exercise library with muscle groups and equipment
+- **exercises**: Exercise library with muscle groups, equipment, and images
 - **workouts**: User-created and predefined workout templates
-- **workout_exercises**: Junction table for exercises in workouts
+- **workout_exercises**: Junction table with sets, reps, duration, distance, calories, intensity
 - **programs**: Multi-week training programs
 - **program_workouts**: Scheduled workouts within programs
-- **workout_logs**: Completed workout history
-- **equipment**: Available fitness equipment
+- **workout_logs**: Completed workout history with ratings and notes
+- **exercise_logs**: Detailed per-exercise performance tracking
+- **equipment**: Available fitness equipment with images
+- **routes**: Running/cycling routes with distance and duration
 
 ## Key Features Explained
 
