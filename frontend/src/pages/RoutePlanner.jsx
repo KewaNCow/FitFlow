@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Polyline, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { routeAPI, workoutAPI } from '../services/api';
+import { routeAPI, workoutAPI, exerciseAPI } from '../services/api';
 import { useTranslation } from 'react-i18next';
 import {
   MapPin,
@@ -588,20 +588,70 @@ const RoutePlanner = () => {
 
   const createWorkoutFromRoute = async (route) => {
     try {
-      // Map activity type to workout type
-      const workoutTypeMap = {
-        running: 'cardio',
-        biking: 'cardio',
-        walking: 'cardio',
-        hiking: 'cardio'
+      // Map activity type to exercise name and workout type
+      const activityToExercise = {
+        running: 'Running',
+        biking: 'Cycling',
+        walking: 'Walking',
+        hiking: 'Walking'  // Use Walking for hiking as fallback
       };
+      
+      const exerciseName = activityToExercise[route.activity_type] || 'Running';
+      
+      // Fetch exercises to find the matching cardio exercise
+      const exerciseResponse = await exerciseAPI.getAll({ limit: 200 });
+      const exercises = exerciseResponse.data?.data?.exercises || [];
+      
+      // Find the exercise that matches the activity type
+      const matchingExercise = exercises.find(ex => 
+        ex.name.toLowerCase() === exerciseName.toLowerCase() && 
+        (ex.category === 'cardio' || ex.exercise_type === 'cardio')
+      );
+      
+      // Calculate intensity and calories based on route
+      const distanceKm = parseFloat(route.distance_km) || 0;
+      const durationMin = parseInt(route.estimated_duration) || 30;
+      
+      // Estimate intensity from pace
+      let intensity = 'moderate';
+      if (distanceKm > 0 && durationMin > 0) {
+        const paceMinPerKm = durationMin / distanceKm;
+        if (paceMinPerKm < 5) intensity = 'high';
+        else if (paceMinPerKm < 6.5) intensity = 'moderate';
+        else intensity = 'low';
+      }
+      
+      // Estimate calories
+      const caloriesPerMinute = {
+        running: 11,
+        biking: 8,
+        walking: 5,
+        hiking: 7
+      };
+      const intensityMultiplier = { low: 0.7, moderate: 1.0, high: 1.3 };
+      const baseRate = caloriesPerMinute[route.activity_type] || 8;
+      const calories = Math.round(durationMin * baseRate * (intensityMultiplier[intensity] || 1.0));
+      
+      // Build exercise data
+      const exerciseData = matchingExercise ? {
+        exerciseId: matchingExercise.id,
+        sets: null,
+        reps: null,
+        weight: null,
+        restTime: null,
+        duration: durationMin,
+        distance: distanceKm,
+        calories: calories,
+        intensity: intensity,
+        notes: `From route: ${route.name}`
+      } : null;
       
       const workoutData = {
         name: `${route.name} Workout`,
-        description: `Workout linked to route: ${route.name} (${parseFloat(route.distance_km).toFixed(1)} km, ${route.estimated_duration} min)`,
-        workout_type: workoutTypeMap[route.activity_type] || 'cardio',
+        description: `Workout linked to route: ${route.name} (${distanceKm.toFixed(1)} km, ${durationMin} min)`,
+        workout_type: 'cardio',
         route_id: route.id,
-        exercises: []
+        exercises: exerciseData ? [exerciseData] : []
       };
 
       const response = await workoutAPI.create(workoutData);
