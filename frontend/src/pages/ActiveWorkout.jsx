@@ -115,9 +115,28 @@ const ActiveWorkout = () => {
       const hasRoute = workoutData.route_id && workoutData.route_distance;
       const routeDistance = hasRoute ? parseFloat(workoutData.route_distance) : null;
       
+      // Get exercise IDs for fetching last weights
+      const exerciseIds = (Array.isArray(workoutData.exercises) ? workoutData.exercises : [])
+        .map(ex => ex.id || ex.exercise_id)
+        .filter(id => id);
+      
+      // Fetch last logged weights for these exercises
+      let lastWeights = {};
+      if (exerciseIds.length > 0) {
+        try {
+          const weightsRes = await workoutLogAPI.getLastWeights(exerciseIds);
+          lastWeights = weightsRes.data.data || {};
+          console.log('Last weights fetched:', lastWeights);
+        } catch (err) {
+          console.log('Could not fetch last weights:', err);
+        }
+      }
+      
       // Initialize exercises with tracking structure
       const initialExercises = (Array.isArray(workoutData.exercises) ? workoutData.exercises : []).map(ex => {
         const isCardio = isCardioExercise(ex);
+        const exerciseId = ex.id || ex.exercise_id;
+        const previousData = lastWeights[exerciseId];
         
         if (isCardio) {
           // Cardio exercise: single "set" representing the cardio session
@@ -140,16 +159,24 @@ const ActiveWorkout = () => {
           };
         } else {
           // Strength exercise: multiple sets
+          const numSets = ex.sets || 3;
+          
+          // Use previous weights/reps if available, otherwise use defaults
+          const prevReps = previousData?.repsPerSet || [];
+          const prevWeights = previousData?.weightPerSet || [];
+          
           return {
             ...ex,
             isCardio: false,
             completed: false,
-            sets: Array.from({ length: ex.sets || 3 }, (_, i) => ({
+            hasPreviousData: !!previousData,
+            sets: Array.from({ length: numSets }, (_, i) => ({
               setNumber: i + 1,
               targetReps: ex.reps || 10,
               targetWeight: ex.weight || 0,
-              actualReps: null,
-              actualWeight: ex.weight || 0,
+              // Pre-populate with previous values if available
+              actualReps: prevReps[i] !== undefined ? prevReps[i] : null,
+              actualWeight: prevWeights[i] !== undefined ? prevWeights[i] : (ex.weight || 0),
               completed: false,
               notes: ''
             }))
@@ -645,7 +672,7 @@ const ActiveWorkout = () => {
           <div key={exIdx} className="card p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Link 
                     to={`/exercises/${exercise.exercise_id}`}
                     className="font-semibold text-gray-900 hover:text-indigo-600 transition-colors"
@@ -655,6 +682,11 @@ const ActiveWorkout = () => {
                   {exercise.isCardio && (
                     <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
                       {t('workoutBuilder.cardio')}
+                    </span>
+                  )}
+                  {exercise.hasPreviousData && (
+                    <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                      {t('activeWorkout.previousWeights')}
                     </span>
                   )}
                 </div>

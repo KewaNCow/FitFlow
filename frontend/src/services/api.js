@@ -93,6 +93,9 @@ export const workoutLogAPI = {
   getAll: (params) => api.get('/workout-logs', { params }),
   getById: (id) => api.get(`/workout-logs/${id}`),
   getStats: (params) => api.get('/workout-logs/stats', { params }),
+  getLastWeights: (exerciseIds) => api.get('/workout-logs/last-weights', { 
+    params: { exerciseIds: exerciseIds.join(',') } 
+  }),
   create: (data) => api.post('/workout-logs', data),
   update: (id, data) => api.put(`/workout-logs/${id}`, data),
   delete: (id) => api.delete(`/workout-logs/${id}`),

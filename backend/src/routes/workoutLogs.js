@@ -203,6 +203,70 @@ router.get('/stats', auth, async (req, res) => {
   }
 });
 
+// Get last logged weights/reps for exercises (for pre-populating workout)
+router.get('/last-weights', auth, async (req, res) => {
+  try {
+    const { exerciseIds } = req.query;
+    
+    if (!exerciseIds) {
+      return res.status(400).json({
+        success: false,
+        message: 'exerciseIds query parameter required'
+      });
+    }
+
+    // Parse exerciseIds (comma-separated string)
+    const ids = exerciseIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+    
+    if (ids.length === 0) {
+      return res.json({ success: true, data: {} });
+    }
+
+    // Get the most recent exercise log for each exercise
+    const placeholders = ids.map(() => '?').join(',');
+    const [results] = await pool.query(
+      `SELECT el.exercise_id, el.sets_completed, el.reps_per_set, el.weight_per_set, wl.completed_at
+       FROM exercise_logs el
+       INNER JOIN workout_logs wl ON el.workout_log_id = wl.id
+       WHERE wl.user_id = ? 
+         AND el.exercise_id IN (${placeholders})
+         AND el.reps_per_set IS NOT NULL
+         AND el.weight_per_set IS NOT NULL
+       ORDER BY wl.completed_at DESC`,
+      [req.user.id, ...ids]
+    );
+
+    // Group by exercise_id and take only the most recent for each
+    const lastWeights = {};
+    for (const row of results) {
+      if (!lastWeights[row.exercise_id]) {
+        lastWeights[row.exercise_id] = {
+          exerciseId: row.exercise_id,
+          setsCompleted: row.sets_completed,
+          repsPerSet: typeof row.reps_per_set === 'string' 
+            ? JSON.parse(row.reps_per_set) 
+            : row.reps_per_set,
+          weightPerSet: typeof row.weight_per_set === 'string' 
+            ? JSON.parse(row.weight_per_set) 
+            : row.weight_per_set,
+          completedAt: row.completed_at
+        };
+      }
+    }
+
+    res.json({
+      success: true,
+      data: lastWeights
+    });
+  } catch (error) {
+    console.error('Get last weights error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching last weights'
+    });
+  }
+});
+
 // Log a completed workout
 router.post('/', auth, [
   body('workoutId').optional().custom(value => {

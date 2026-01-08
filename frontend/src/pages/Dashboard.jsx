@@ -24,6 +24,10 @@ const Dashboard = () => {
   const [recentLogs, setRecentLogs] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAllLogs, setShowAllLogs] = useState(false);
+  
+  // Number of quick action items (dynamic)
+  const QUICK_ACTION_COUNT = 4;
 
   useEffect(() => {
     fetchDashboardData();
@@ -34,9 +38,9 @@ const Dashboard = () => {
       const [workoutsRes, statsRes, logsRes] = await Promise.all([
         workoutAPI.getAll(),
         workoutLogAPI.getStats({ period: 'month' }),
-        workoutLogAPI.getAll({ limit: 5 })
+        workoutLogAPI.getAll({ limit: 20 })
       ]);
-      setWorkouts(workoutsRes.data.data.slice(0, 3));
+      setWorkouts(workoutsRes.data.data);
       setStats(statsRes.data.data);
       setRecentLogs(logsRes.data.data?.logs || logsRes.data.data || []);
     } catch (error) {
@@ -232,7 +236,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {workouts.map((workout) => (
+              {workouts.slice(0, QUICK_ACTION_COUNT).map((workout) => (
                 <div key={workout.id} className="card p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-primary-600" />
@@ -268,9 +272,14 @@ const Dashboard = () => {
             <History className="w-5 h-5 text-gray-500" />
             {t('dashboard.recentActivity')}
           </h2>
-          <Link to="/history" className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-            {t('common.viewAll')}
-          </Link>
+          {recentLogs.length > 5 && (
+            <button
+              onClick={() => setShowAllLogs(!showAllLogs)}
+              className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+            >
+              {showAllLogs ? t('common.showLess') : t('common.viewAll')} ({recentLogs.length})
+            </button>
+          )}
         </div>
 
         {recentLogs.length === 0 ? (
@@ -281,7 +290,7 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="card divide-y divide-gray-100">
-            {recentLogs.slice(0, 5).map((log) => (
+            {(showAllLogs ? recentLogs : recentLogs.slice(0, 5)).map((log) => (
               <Link
                 key={log.id}
                 to={`/history?log=${log.id}`}
