@@ -708,6 +708,12 @@ const resources = {
         equipment: 'Equipment',
         add: 'Add',
         addItem: 'Add {{item}}',
+        singular: {
+          workout: 'Workout',
+          program: 'Program',
+          exercis: 'Exercise',
+          equipmen: 'Equipment'
+        },
         noItems: 'No {{items}} found',
         name: 'Name',
         category: 'Category',
@@ -796,6 +802,23 @@ const resources = {
           smithMachine: 'Smith Machine',
           trx: 'TRX'
         },
+        // Workout/Program content management
+        workoutExercises: 'Workout Exercises',
+        programWorkouts: 'Program Workouts',
+        addExercise: 'Add Exercise',
+        addWorkout: 'Add Workout',
+        searchExercises: 'Search exercises...',
+        searchWorkouts: 'Search workouts...',
+        noExercisesAdded: 'No exercises added yet',
+        noWorkoutsAdded: 'No workouts added yet',
+        removeExercise: 'Remove exercise',
+        removeWorkout: 'Remove workout',
+        dayOfWeek: 'Day',
+        sets: 'Sets',
+        reps: 'Reps',
+        weight: 'Weight',
+        duration: 'Duration',
+        restTime: 'Rest',
         // Rating stats
         ratingCount: 'Ratings',
         topRatedWorkouts: 'Top Rated Workouts',
@@ -1562,6 +1585,12 @@ const resources = {
         equipment: 'Utrustning',
         add: 'Lägg till',
         addItem: 'Lägg till {{item}}',
+        singular: {
+          workout: 'Träningspass',
+          program: 'Program',
+          exercis: 'Övning',
+          equipmen: 'Utrustning'
+        },
         noItems: 'Inga {{items}} hittades',
         name: 'Namn',
         category: 'Kategori',
@@ -1650,6 +1679,23 @@ const resources = {
           smithMachine: 'Smithmaskin',
           trx: 'TRX'
         },
+        // Workout/Program content management
+        workoutExercises: 'Övningar i träningspasset',
+        programWorkouts: 'Träningspass i programmet',
+        addExercise: 'Lägg till övning',
+        addWorkout: 'Lägg till träningspass',
+        searchExercises: 'Sök övningar...',
+        searchWorkouts: 'Sök träningspass...',
+        noExercisesAdded: 'Inga övningar tillagda ännu',
+        noWorkoutsAdded: 'Inga träningspass tillagda ännu',
+        removeExercise: 'Ta bort övning',
+        removeWorkout: 'Ta bort träningspass',
+        dayOfWeek: 'Dag',
+        sets: 'Set',
+        reps: 'Reps',
+        weight: 'Vikt',
+        duration: 'Varaktighet',
+        restTime: 'Vila',
         // Rating stats
         ratingCount: 'Betyg',
         topRatedWorkouts: 'Högst betygsatta träningspass',

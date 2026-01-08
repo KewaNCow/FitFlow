@@ -21,7 +21,9 @@ import {
   MapPin,
   Activity,
   UserPlus,
-  BarChart3
+  BarChart3,
+  Search,
+  GripVertical
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -35,9 +37,21 @@ const AdminDashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({});
   const [error, setError] = useState('');
+  
+  // State for workout exercises and program workouts
+  const [workoutExercises, setWorkoutExercises] = useState([]);
+  const [programWorkouts, setProgramWorkouts] = useState([]);
+  const [allExercises, setAllExercises] = useState([]);
+  const [allWorkouts, setAllWorkouts] = useState([]);
+  const [exerciseSearch, setExerciseSearch] = useState('');
+  const [workoutSearch, setWorkoutSearch] = useState('');
+  const [showExercisePicker, setShowExercisePicker] = useState(false);
+  const [showWorkoutPicker, setShowWorkoutPicker] = useState(false);
 
   useEffect(() => {
     fetchStats();
+    fetchAllExercises();
+    fetchAllWorkouts();
   }, []);
 
   useEffect(() => {
@@ -85,18 +99,119 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchAllExercises = async () => {
+    try {
+      const response = await adminAPI.getExercises();
+      setAllExercises(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching all exercises:', error);
+    }
+  };
+
+  const fetchAllWorkouts = async () => {
+    try {
+      const response = await adminAPI.getWorkouts();
+      setAllWorkouts(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching all workouts:', error);
+    }
+  };
+
+  const fetchWorkoutExercises = async (workoutId) => {
+    try {
+      const response = await adminAPI.getWorkoutExercises(workoutId);
+      setWorkoutExercises(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching workout exercises:', error);
+      setWorkoutExercises([]);
+    }
+  };
+
+  const fetchProgramWorkouts = async (programId) => {
+    try {
+      const response = await adminAPI.getProgramWorkouts(programId);
+      setProgramWorkouts(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching program workouts:', error);
+      setProgramWorkouts([]);
+    }
+  };
+
+  const handleAddExerciseToWorkout = async (exercise) => {
+    if (!editingItem) return;
+    try {
+      const response = await adminAPI.addWorkoutExercise(editingItem.id, {
+        exercise_id: exercise.id,
+        sets: 3,
+        reps: 10,
+        rest_time: 60
+      });
+      setWorkoutExercises(prev => [...prev, response.data.data]);
+      setShowExercisePicker(false);
+      setExerciseSearch('');
+    } catch (error) {
+      console.error('Error adding exercise:', error);
+      setError(t('admin.errorSaving'));
+    }
+  };
+
+  const handleRemoveExerciseFromWorkout = async (exerciseId) => {
+    if (!editingItem) return;
+    try {
+      await adminAPI.removeWorkoutExercise(editingItem.id, exerciseId);
+      setWorkoutExercises(prev => prev.filter(e => e.id !== exerciseId));
+    } catch (error) {
+      console.error('Error removing exercise:', error);
+    }
+  };
+
+  const handleAddWorkoutToProgram = async (workout, dayOfWeek = 0) => {
+    if (!editingItem) return;
+    try {
+      const response = await adminAPI.addProgramWorkout(editingItem.id, {
+        workout_id: workout.id,
+        day_of_week: dayOfWeek
+      });
+      setProgramWorkouts(prev => [...prev, response.data.data]);
+      setShowWorkoutPicker(false);
+      setWorkoutSearch('');
+    } catch (error) {
+      console.error('Error adding workout:', error);
+      setError(t('admin.errorSaving'));
+    }
+  };
+
+  const handleRemoveWorkoutFromProgram = async (workoutId) => {
+    if (!editingItem) return;
+    try {
+      await adminAPI.removeProgramWorkout(editingItem.id, workoutId);
+      setProgramWorkouts(prev => prev.filter(w => w.id !== workoutId));
+    } catch (error) {
+      console.error('Error removing workout:', error);
+    }
+  };
+
   const handleCreate = () => {
     setEditingItem(null);
     setFormData(getDefaultFormData());
+    setWorkoutExercises([]);
+    setProgramWorkouts([]);
     setShowModal(true);
     setError('');
   };
 
-  const handleEdit = (item) => {
+  const handleEdit = async (item) => {
     setEditingItem(item);
     setFormData(item);
     setShowModal(true);
     setError('');
+    
+    // Fetch related data when editing
+    if (activeTab === 'workouts') {
+      await fetchWorkoutExercises(item.id);
+    } else if (activeTab === 'programs') {
+      await fetchProgramWorkouts(item.id);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -652,7 +767,7 @@ const AdminDashboard = () => {
           <div className="flex justify-end mb-4">
             <button onClick={handleCreate} className="btn-primary gap-2">
               <Plus className="w-5 h-5" />
-              {t('admin.add')} {t(`admin.${activeTab.slice(0, -1) === 'exercis' ? 'exercises' : activeTab}`).toLowerCase().slice(0, -1)}
+              {t('admin.add')} {t(`admin.singular.${activeTab.slice(0, -1)}`)}
             </button>
           </div>
 
@@ -767,19 +882,104 @@ const AdminDashboard = () => {
               </div>
 
               {activeTab === 'workouts' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.type')}</label>
-                  <select
-                    value={formData.workout_type || 'strength'}
-                    onChange={(e) => setFormData({ ...formData, workout_type: e.target.value })}
-                    className="input"
-                  >
-                    <option value="strength">{t('admin.strength')}</option>
-                    <option value="cardio">{t('admin.cardio')}</option>
-                    <option value="mixed">{t('admin.mixed')}</option>
-                    <option value="flexibility">{t('admin.flexibility')}</option>
-                  </select>
-                </div>
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.type')}</label>
+                    <select
+                      value={formData.workout_type || 'strength'}
+                      onChange={(e) => setFormData({ ...formData, workout_type: e.target.value })}
+                      className="input"
+                    >
+                      <option value="strength">{t('admin.strength')}</option>
+                      <option value="cardio">{t('admin.cardio')}</option>
+                      <option value="mixed">{t('admin.mixed')}</option>
+                      <option value="flexibility">{t('admin.flexibility')}</option>
+                    </select>
+                  </div>
+                
+                  {/* Workout Exercises Section - Only show when editing */}
+                  {editingItem && (
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                        <Target className="w-4 h-4 text-orange-500" />
+                        {t('admin.workoutExercises')}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setShowExercisePicker(!showExercisePicker)}
+                        className="btn-secondary text-sm py-1 px-2 gap-1"
+                      >
+                        <Plus className="w-4 h-4" />
+                        {t('admin.addExercise')}
+                      </button>
+                    </div>
+                    
+                    {/* Exercise Picker Dropdown */}
+                    {showExercisePicker && (
+                      <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
+                        <div className="relative mb-2">
+                          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input
+                            type="text"
+                            value={exerciseSearch}
+                            onChange={(e) => setExerciseSearch(e.target.value)}
+                            placeholder={t('admin.searchExercises')}
+                            className="input pl-9 text-sm"
+                          />
+                        </div>
+                        <div className="max-h-40 overflow-y-auto space-y-1">
+                          {allExercises
+                            .filter(ex => 
+                              ex.name.toLowerCase().includes(exerciseSearch.toLowerCase()) &&
+                              !workoutExercises.some(we => we.exercise_id === ex.id)
+                            )
+                            .slice(0, 10)
+                            .map(exercise => (
+                              <button
+                                key={exercise.id}
+                                type="button"
+                                onClick={() => handleAddExerciseToWorkout(exercise)}
+                                className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary-50 text-sm flex items-center justify-between"
+                              >
+                                <span>{exercise.name}</span>
+                                <span className="text-xs text-gray-500">{exercise.muscle_group || exercise.category}</span>
+                              </button>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Exercise List */}
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {workoutExercises.length === 0 ? (
+                        <p className="text-sm text-gray-500 text-center py-4">{t('admin.noExercisesAdded')}</p>
+                      ) : (
+                        workoutExercises.map((exercise, idx) => (
+                          <div key={exercise.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                            <GripVertical className="w-4 h-4 text-gray-400" />
+                            <span className="text-xs text-gray-500 w-5">{idx + 1}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">{exercise.name}</p>
+                              <p className="text-xs text-gray-500">
+                                {exercise.sets}×{exercise.reps} • {exercise.muscle_group || exercise.category}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveExerciseFromWorkout(exercise.id)}
+                              className="p-1 text-gray-400 hover:text-red-500"
+                              title={t('admin.removeExercise')}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  )}
+                </>
               )}
 
               {activeTab === 'programs' && (
@@ -806,6 +1006,86 @@ const AdminDashboard = () => {
                       <option value="advanced">{t('admin.advanced')}</option>
                     </select>
                   </div>
+                  
+                  {/* Program Workouts Section - Only show when editing */}
+                  {editingItem && (
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-medium text-gray-900 flex items-center gap-2">
+                          <Dumbbell className="w-4 h-4 text-green-500" />
+                          {t('admin.programWorkouts')}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => setShowWorkoutPicker(!showWorkoutPicker)}
+                          className="btn-secondary text-sm py-1 px-2 gap-1"
+                        >
+                          <Plus className="w-4 h-4" />
+                          {t('admin.addWorkout')}
+                        </button>
+                      </div>
+                      
+                      {/* Workout Picker Dropdown */}
+                      {showWorkoutPicker && (
+                        <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
+                          <div className="relative mb-2">
+                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                              type="text"
+                              value={workoutSearch}
+                              onChange={(e) => setWorkoutSearch(e.target.value)}
+                              placeholder={t('admin.searchWorkouts')}
+                              className="input pl-9 text-sm"
+                            />
+                          </div>
+                          <div className="max-h-40 overflow-y-auto space-y-1">
+                            {allWorkouts
+                              .filter(w => 
+                                w.name.toLowerCase().includes(workoutSearch.toLowerCase())
+                              )
+                              .slice(0, 10)
+                              .map(workout => (
+                                <button
+                                  key={workout.id}
+                                  type="button"
+                                  onClick={() => handleAddWorkoutToProgram(workout)}
+                                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-primary-50 text-sm flex items-center justify-between"
+                                >
+                                  <span>{workout.name}</span>
+                                  <span className="text-xs text-gray-500">{workout.workout_type}</span>
+                                </button>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Workout List */}
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {programWorkouts.length === 0 ? (
+                          <p className="text-sm text-gray-500 text-center py-4">{t('admin.noWorkoutsAdded')}</p>
+                        ) : (
+                          programWorkouts.map((workout) => (
+                            <div key={workout.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">{workout.workout_name}</p>
+                                <p className="text-xs text-gray-500">
+                                  {t('admin.dayOfWeek')}: {workout.day_of_week + 1} • {workout.workout_type}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveWorkoutFromProgram(workout.id)}
+                                className="p-1 text-gray-400 hover:text-red-500"
+                                title={t('admin.removeWorkout')}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 

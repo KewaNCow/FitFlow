@@ -143,6 +143,193 @@ router.delete('/workouts/:id', async (req, res) => {
 });
 
 // =====================================================
+// WORKOUT EXERCISES (for predefined workouts)
+// =====================================================
+
+// Get exercises for a predefined workout
+router.get('/workouts/:id/exercises', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verify workout exists and is predefined
+    const [workout] = await pool.query(
+      'SELECT id FROM workouts WHERE id = ? AND is_predefined = TRUE',
+      [id]
+    );
+
+    if (workout.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Predefined workout not found'
+      });
+    }
+
+    const [exercises] = await pool.query(`
+      SELECT we.*, e.name, e.description, e.category, e.muscle_group, 
+             e.equipment, e.image_url, e.video_url, e.exercise_type
+      FROM workout_exercises we
+      JOIN exercises e ON we.exercise_id = e.id
+      WHERE we.workout_id = ?
+      ORDER BY we.order_index
+    `, [id]);
+
+    res.json({
+      success: true,
+      data: exercises
+    });
+  } catch (error) {
+    console.error('Error fetching workout exercises:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching workout exercises'
+    });
+  }
+});
+
+// Add exercise to predefined workout
+router.post('/workouts/:id/exercises', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { exercise_id, sets, reps, weight, duration, rest_time, notes, distance, calories, intensity } = req.body;
+
+    // Verify workout exists and is predefined
+    const [workout] = await pool.query(
+      'SELECT id FROM workouts WHERE id = ? AND is_predefined = TRUE',
+      [id]
+    );
+
+    if (workout.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Predefined workout not found'
+      });
+    }
+
+    // Get the next order index
+    const [[{ maxOrder }]] = await pool.query(
+      'SELECT COALESCE(MAX(order_index), -1) as maxOrder FROM workout_exercises WHERE workout_id = ?',
+      [id]
+    );
+
+    const [result] = await pool.query(
+      `INSERT INTO workout_exercises 
+       (workout_id, exercise_id, order_index, sets, reps, weight, duration, rest_time, notes, distance, calories, intensity)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, exercise_id, maxOrder + 1, sets || 3, reps || 10, weight || null, 
+       duration || null, rest_time || 60, notes || null, distance || null, 
+       calories || null, intensity || null]
+    );
+
+    // Fetch the created exercise with details
+    const [newExercise] = await pool.query(`
+      SELECT we.*, e.name, e.description, e.category, e.muscle_group, 
+             e.equipment, e.image_url, e.video_url, e.exercise_type
+      FROM workout_exercises we
+      JOIN exercises e ON we.exercise_id = e.id
+      WHERE we.id = ?
+    `, [result.insertId]);
+
+    res.status(201).json({
+      success: true,
+      data: newExercise[0]
+    });
+  } catch (error) {
+    console.error('Error adding exercise to workout:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error adding exercise to workout'
+    });
+  }
+});
+
+// Update exercise in predefined workout
+router.put('/workouts/:workoutId/exercises/:exerciseId', async (req, res) => {
+  try {
+    const { workoutId, exerciseId } = req.params;
+    const { sets, reps, weight, duration, rest_time, notes, distance, calories, intensity, order_index } = req.body;
+
+    // Verify workout exercise exists
+    const [existing] = await pool.query(
+      `SELECT we.* FROM workout_exercises we
+       JOIN workouts w ON we.workout_id = w.id
+       WHERE we.id = ? AND w.id = ? AND w.is_predefined = TRUE`,
+      [exerciseId, workoutId]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Workout exercise not found'
+      });
+    }
+
+    await pool.query(
+      `UPDATE workout_exercises SET 
+       sets = ?, reps = ?, weight = ?, duration = ?, rest_time = ?, 
+       notes = ?, distance = ?, calories = ?, intensity = ?, order_index = ?
+       WHERE id = ?`,
+      [sets ?? existing[0].sets, reps ?? existing[0].reps, weight, duration, 
+       rest_time ?? existing[0].rest_time, notes, distance, calories, intensity,
+       order_index ?? existing[0].order_index, exerciseId]
+    );
+
+    const [updated] = await pool.query(`
+      SELECT we.*, e.name, e.description, e.category, e.muscle_group, 
+             e.equipment, e.image_url, e.video_url, e.exercise_type
+      FROM workout_exercises we
+      JOIN exercises e ON we.exercise_id = e.id
+      WHERE we.id = ?
+    `, [exerciseId]);
+
+    res.json({
+      success: true,
+      data: updated[0]
+    });
+  } catch (error) {
+    console.error('Error updating workout exercise:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating workout exercise'
+    });
+  }
+});
+
+// Remove exercise from predefined workout
+router.delete('/workouts/:workoutId/exercises/:exerciseId', async (req, res) => {
+  try {
+    const { workoutId, exerciseId } = req.params;
+
+    // Verify workout exercise exists
+    const [existing] = await pool.query(
+      `SELECT we.* FROM workout_exercises we
+       JOIN workouts w ON we.workout_id = w.id
+       WHERE we.id = ? AND w.id = ? AND w.is_predefined = TRUE`,
+      [exerciseId, workoutId]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Workout exercise not found'
+      });
+    }
+
+    await pool.query('DELETE FROM workout_exercises WHERE id = ?', [exerciseId]);
+
+    res.json({
+      success: true,
+      message: 'Exercise removed from workout'
+    });
+  } catch (error) {
+    console.error('Error removing exercise from workout:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error removing exercise from workout'
+    });
+  }
+});
+
+// =====================================================
 // PREDEFINED PROGRAMS
 // =====================================================
 
@@ -269,6 +456,185 @@ router.delete('/programs/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error deleting predefined program'
+    });
+  }
+});
+
+// =====================================================
+// PROGRAM WORKOUTS (for predefined programs)
+// =====================================================
+
+// Get workouts for a predefined program
+router.get('/programs/:id/workouts', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verify program exists and is predefined
+    const [program] = await pool.query(
+      'SELECT id FROM programs WHERE id = ? AND is_predefined = TRUE',
+      [id]
+    );
+
+    if (program.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Predefined program not found'
+      });
+    }
+
+    const [workouts] = await pool.query(`
+      SELECT pw.*, w.name as workout_name, w.description as workout_description, 
+             w.workout_type, w.is_predefined as workout_is_predefined
+      FROM program_workouts pw
+      JOIN workouts w ON pw.workout_id = w.id
+      WHERE pw.program_id = ?
+      ORDER BY pw.day_of_week, pw.order_index
+    `, [id]);
+
+    res.json({
+      success: true,
+      data: workouts
+    });
+  } catch (error) {
+    console.error('Error fetching program workouts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching program workouts'
+    });
+  }
+});
+
+// Add workout to predefined program
+router.post('/programs/:id/workouts', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { workout_id, day_of_week, notes } = req.body;
+
+    // Verify program exists and is predefined
+    const [program] = await pool.query(
+      'SELECT id FROM programs WHERE id = ? AND is_predefined = TRUE',
+      [id]
+    );
+
+    if (program.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Predefined program not found'
+      });
+    }
+
+    // Get the next order index for the given day
+    const [[{ maxOrder }]] = await pool.query(
+      'SELECT COALESCE(MAX(order_index), -1) as maxOrder FROM program_workouts WHERE program_id = ? AND day_of_week = ?',
+      [id, day_of_week || 0]
+    );
+
+    const [result] = await pool.query(
+      `INSERT INTO program_workouts (program_id, workout_id, day_of_week, order_index, notes)
+       VALUES (?, ?, ?, ?, ?)`,
+      [id, workout_id, day_of_week || 0, maxOrder + 1, notes || null]
+    );
+
+    // Fetch the created program workout with details
+    const [newWorkout] = await pool.query(`
+      SELECT pw.*, w.name as workout_name, w.description as workout_description, 
+             w.workout_type, w.is_predefined as workout_is_predefined
+      FROM program_workouts pw
+      JOIN workouts w ON pw.workout_id = w.id
+      WHERE pw.id = ?
+    `, [result.insertId]);
+
+    res.status(201).json({
+      success: true,
+      data: newWorkout[0]
+    });
+  } catch (error) {
+    console.error('Error adding workout to program:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error adding workout to program'
+    });
+  }
+});
+
+// Update workout in predefined program
+router.put('/programs/:programId/workouts/:workoutId', async (req, res) => {
+  try {
+    const { programId, workoutId } = req.params;
+    const { day_of_week, notes, order_index } = req.body;
+
+    // Verify program workout exists
+    const [existing] = await pool.query(
+      `SELECT pw.* FROM program_workouts pw
+       JOIN programs p ON pw.program_id = p.id
+       WHERE pw.id = ? AND p.id = ? AND p.is_predefined = TRUE`,
+      [workoutId, programId]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Program workout not found'
+      });
+    }
+
+    await pool.query(
+      `UPDATE program_workouts SET day_of_week = ?, notes = ?, order_index = ? WHERE id = ?`,
+      [day_of_week ?? existing[0].day_of_week, notes, order_index ?? existing[0].order_index, workoutId]
+    );
+
+    const [updated] = await pool.query(`
+      SELECT pw.*, w.name as workout_name, w.description as workout_description, 
+             w.workout_type, w.is_predefined as workout_is_predefined
+      FROM program_workouts pw
+      JOIN workouts w ON pw.workout_id = w.id
+      WHERE pw.id = ?
+    `, [workoutId]);
+
+    res.json({
+      success: true,
+      data: updated[0]
+    });
+  } catch (error) {
+    console.error('Error updating program workout:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating program workout'
+    });
+  }
+});
+
+// Remove workout from predefined program
+router.delete('/programs/:programId/workouts/:workoutId', async (req, res) => {
+  try {
+    const { programId, workoutId } = req.params;
+
+    // Verify program workout exists
+    const [existing] = await pool.query(
+      `SELECT pw.* FROM program_workouts pw
+       JOIN programs p ON pw.program_id = p.id
+       WHERE pw.id = ? AND p.id = ? AND p.is_predefined = TRUE`,
+      [workoutId, programId]
+    );
+
+    if (existing.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Program workout not found'
+      });
+    }
+
+    await pool.query('DELETE FROM program_workouts WHERE id = ?', [workoutId]);
+
+    res.json({
+      success: true,
+      message: 'Workout removed from program'
+    });
+  } catch (error) {
+    console.error('Error removing workout from program:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error removing workout from program'
     });
   }
 });
@@ -597,11 +963,10 @@ router.get('/stats', async (req, res) => {
     // User created routes count
     const [[{ totalRoutes }]] = await pool.query('SELECT COUNT(*) as totalRoutes FROM routes');
     
-    // Average workout rating
+    // Average overall rating (from both workout and program ratings)
     const [[{ avgRating }]] = await pool.query(`
       SELECT COALESCE(AVG(rating), 0) as avgRating 
-      FROM workout_logs 
-      WHERE rating IS NOT NULL
+      FROM ratings
     `);
     
     // Recent user signups (last 10)

@@ -150,11 +150,23 @@ export const adminAPI = {
   updateWorkout: (id, data) => api.put(`/admin/workouts/${id}`, data),
   deleteWorkout: (id) => api.delete(`/admin/workouts/${id}`),
   
+  // Workout Exercises
+  getWorkoutExercises: (workoutId) => api.get(`/admin/workouts/${workoutId}/exercises`),
+  addWorkoutExercise: (workoutId, data) => api.post(`/admin/workouts/${workoutId}/exercises`, data),
+  updateWorkoutExercise: (workoutId, exerciseId, data) => api.put(`/admin/workouts/${workoutId}/exercises/${exerciseId}`, data),
+  removeWorkoutExercise: (workoutId, exerciseId) => api.delete(`/admin/workouts/${workoutId}/exercises/${exerciseId}`),
+  
   // Programs
   getPrograms: () => api.get('/admin/programs'),
   createProgram: (data) => api.post('/admin/programs', data),
   updateProgram: (id, data) => api.put(`/admin/programs/${id}`, data),
   deleteProgram: (id) => api.delete(`/admin/programs/${id}`),
+  
+  // Program Workouts
+  getProgramWorkouts: (programId) => api.get(`/admin/programs/${programId}/workouts`),
+  addProgramWorkout: (programId, data) => api.post(`/admin/programs/${programId}/workouts`, data),
+  updateProgramWorkout: (programId, workoutId, data) => api.put(`/admin/programs/${programId}/workouts/${workoutId}`, data),
+  removeProgramWorkout: (programId, workoutId) => api.delete(`/admin/programs/${programId}/workouts/${workoutId}`),
   
   // Exercises
   getExercises: () => api.get('/admin/exercises'),
