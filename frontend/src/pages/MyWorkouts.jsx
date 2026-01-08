@@ -15,7 +15,7 @@ import {
   Timer,
   Sparkles,
   Flame,
-  Stretch,
+  PersonStanding,
   User,
   Cog,
   Activity
@@ -29,7 +29,7 @@ const getWorkoutIcon = (workoutType) => {
     case 'strength':
       return { Icon: Dumbbell, bgColor: 'bg-primary-100', iconColor: 'text-primary-600' };
     case 'flexibility':
-      return { Icon: Stretch, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' };
+      return { Icon: PersonStanding, bgColor: 'bg-pink-100', iconColor: 'text-pink-600' };
     case 'bodyweight':
       return { Icon: User, bgColor: 'bg-green-100', iconColor: 'text-green-600' };
     case 'machine':
