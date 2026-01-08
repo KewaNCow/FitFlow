@@ -456,7 +456,6 @@ const ActiveWorkout = () => {
             >
               {isPaused ? <Play className="w-5 h-5" aria-hidden="true" /> : <Pause className="w-5 h-5" aria-hidden="true" />}
             </button>
-            </button>
             <div className="text-2xl font-mono font-bold text-primary-600">
               {useCustomTime ? `⏱️ ${t('activeWorkout.customTime')}` : formatTime(elapsedTime)}
             </div>
