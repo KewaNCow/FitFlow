@@ -554,20 +554,126 @@ router.delete('/equipment/:id', async (req, res) => {
 
 router.get('/stats', async (req, res) => {
   try {
+    // Basic counts
     const [[{ userCount }]] = await pool.query('SELECT COUNT(*) as userCount FROM users');
     const [[{ workoutCount }]] = await pool.query('SELECT COUNT(*) as workoutCount FROM workouts WHERE is_predefined = TRUE');
     const [[{ programCount }]] = await pool.query('SELECT COUNT(*) as programCount FROM programs WHERE is_predefined = TRUE');
     const [[{ exerciseCount }]] = await pool.query('SELECT COUNT(*) as exerciseCount FROM exercises WHERE user_id IS NULL');
     const [[{ equipmentCount }]] = await pool.query('SELECT COUNT(*) as equipmentCount FROM equipment WHERE is_public = TRUE OR user_id IS NULL');
 
+    // User activity stats
+    const [[{ totalWorkoutLogs }]] = await pool.query('SELECT COUNT(*) as totalWorkoutLogs FROM workout_logs');
+    const [[{ totalCaloriesBurned }]] = await pool.query('SELECT COALESCE(SUM(calories_burned), 0) as totalCaloriesBurned FROM workout_logs');
+    const [[{ totalMinutesActive }]] = await pool.query('SELECT COALESCE(SUM(duration_minutes), 0) as totalMinutesActive FROM workout_logs');
+    
+    // New users this week
+    const [[{ newUsersThisWeek }]] = await pool.query(`
+      SELECT COUNT(*) as newUsersThisWeek 
+      FROM users 
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+    `);
+    
+    // Active users (users who logged a workout in the last 7 days)
+    const [[{ activeUsersThisWeek }]] = await pool.query(`
+      SELECT COUNT(DISTINCT user_id) as activeUsersThisWeek 
+      FROM workout_logs 
+      WHERE completed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+    `);
+    
+    // Workouts logged this week
+    const [[{ workoutsThisWeek }]] = await pool.query(`
+      SELECT COUNT(*) as workoutsThisWeek 
+      FROM workout_logs 
+      WHERE completed_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+    `);
+    
+    // User created workouts count
+    const [[{ userCreatedWorkouts }]] = await pool.query(`
+      SELECT COUNT(*) as userCreatedWorkouts 
+      FROM workouts 
+      WHERE is_predefined = FALSE
+    `);
+    
+    // User created routes count
+    const [[{ totalRoutes }]] = await pool.query('SELECT COUNT(*) as totalRoutes FROM routes');
+    
+    // Average workout rating
+    const [[{ avgRating }]] = await pool.query(`
+      SELECT COALESCE(AVG(rating), 0) as avgRating 
+      FROM workout_logs 
+      WHERE rating IS NOT NULL
+    `);
+    
+    // Recent user signups (last 10)
+    const [recentUsers] = await pool.query(`
+      SELECT id, first_name, last_name, email, created_at 
+      FROM users 
+      ORDER BY created_at DESC 
+      LIMIT 10
+    `);
+    
+    // Most active users (by workout count)
+    const [topUsers] = await pool.query(`
+      SELECT u.id, u.first_name, u.last_name, u.email,
+             COUNT(wl.id) as workout_count,
+             COALESCE(SUM(wl.duration_minutes), 0) as total_minutes,
+             COALESCE(SUM(wl.calories_burned), 0) as total_calories
+      FROM users u
+      LEFT JOIN workout_logs wl ON u.id = wl.user_id
+      GROUP BY u.id, u.first_name, u.last_name, u.email
+      ORDER BY workout_count DESC
+      LIMIT 10
+    `);
+    
+    // Daily workout activity (last 30 days)
+    const [dailyActivity] = await pool.query(`
+      SELECT DATE(completed_at) as date, 
+             COUNT(*) as workouts,
+             COUNT(DISTINCT user_id) as unique_users
+      FROM workout_logs 
+      WHERE completed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+      GROUP BY DATE(completed_at)
+      ORDER BY date ASC
+    `);
+    
+    // Most popular exercises (by usage in workout logs)
+    const [popularExercises] = await pool.query(`
+      SELECT e.id, e.name, e.muscle_group, COUNT(el.id) as usage_count
+      FROM exercises e
+      JOIN exercise_logs el ON e.id = el.exercise_id
+      GROUP BY e.id, e.name, e.muscle_group
+      ORDER BY usage_count DESC
+      LIMIT 10
+    `);
+
     res.json({
       success: true,
       data: {
+        // Basic counts
         users: userCount,
         predefinedWorkouts: workoutCount,
         predefinedPrograms: programCount,
         publicExercises: exerciseCount,
-        publicEquipment: equipmentCount
+        publicEquipment: equipmentCount,
+        
+        // Activity metrics
+        totalWorkoutLogs: parseInt(totalWorkoutLogs),
+        totalCaloriesBurned: parseFloat(totalCaloriesBurned),
+        totalMinutesActive: parseInt(totalMinutesActive),
+        userCreatedWorkouts: parseInt(userCreatedWorkouts),
+        totalRoutes: parseInt(totalRoutes),
+        avgRating: parseFloat(avgRating).toFixed(1),
+        
+        // Weekly metrics
+        newUsersThisWeek: parseInt(newUsersThisWeek),
+        activeUsersThisWeek: parseInt(activeUsersThisWeek),
+        workoutsThisWeek: parseInt(workoutsThisWeek),
+        
+        // Lists
+        recentUsers,
+        topUsers,
+        dailyActivity,
+        popularExercises
       }
     });
   } catch (error) {

@@ -13,7 +13,15 @@ import {
   Trash2,
   X,
   Save,
-  AlertCircle
+  AlertCircle,
+  Flame,
+  Clock,
+  TrendingUp,
+  Star,
+  MapPin,
+  Activity,
+  UserPlus,
+  BarChart3
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -227,60 +235,308 @@ const AdminDashboard = () => {
 
       {/* Overview Tab */}
       {activeTab === 'overview' && stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="card p-4 sm:p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Users className="w-5 h-5 text-blue-600" />
+        <div className="space-y-6">
+          {/* Content Stats Row */}
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="card p-4 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <Users className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{stats.users}</p>
+                  <p className="text-sm text-gray-500">{t('admin.users')}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.users}</p>
-                <p className="text-sm text-gray-500">{t('admin.users')}</p>
+            </div>
+            <div className="card p-4 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                  <Dumbbell className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{stats.predefinedWorkouts}</p>
+                  <p className="text-sm text-gray-500">{t('admin.workouts')}</p>
+                </div>
+              </div>
+            </div>
+            <div className="card p-4 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{stats.predefinedPrograms}</p>
+                  <p className="text-sm text-gray-500">{t('admin.programs')}</p>
+                </div>
+              </div>
+            </div>
+            <div className="card p-4 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                  <Target className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{stats.publicExercises}</p>
+                  <p className="text-sm text-gray-500">{t('admin.exercises')}</p>
+                </div>
+              </div>
+            </div>
+            <div className="card p-4 sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <Wrench className="w-5 h-5 text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">{stats.publicEquipment}</p>
+                  <p className="text-sm text-gray-500">{t('admin.equipment')}</p>
+                </div>
               </div>
             </div>
           </div>
-          <div className="card p-4 sm:p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                <Dumbbell className="w-5 h-5 text-green-600" />
+
+          {/* Platform Statistics */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary-600" />
+              {t('admin.platformStats')}
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="card p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="w-4 h-4 text-indigo-500" />
+                  <p className="text-xs text-gray-500">{t('admin.totalWorkoutsLogged')}</p>
+                </div>
+                <p className="text-xl font-bold text-gray-900">{stats.totalWorkoutLogs?.toLocaleString() || 0}</p>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.predefinedWorkouts}</p>
-                <p className="text-sm text-gray-500">{t('admin.workouts')}</p>
+              <div className="card p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Flame className="w-4 h-4 text-orange-500" />
+                  <p className="text-xs text-gray-500">{t('admin.totalCaloriesBurned')}</p>
+                </div>
+                <p className="text-xl font-bold text-gray-900">{stats.totalCaloriesBurned?.toLocaleString() || 0}</p>
+              </div>
+              <div className="card p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-4 h-4 text-blue-500" />
+                  <p className="text-xs text-gray-500">{t('admin.totalMinutesActive')}</p>
+                </div>
+                <p className="text-xl font-bold text-gray-900">{stats.totalMinutesActive?.toLocaleString() || 0}</p>
+              </div>
+              <div className="card p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Dumbbell className="w-4 h-4 text-green-500" />
+                  <p className="text-xs text-gray-500">{t('admin.userCreatedWorkouts')}</p>
+                </div>
+                <p className="text-xl font-bold text-gray-900">{stats.userCreatedWorkouts || 0}</p>
+              </div>
+              <div className="card p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-4 h-4 text-cyan-500" />
+                  <p className="text-xs text-gray-500">{t('admin.totalRoutes')}</p>
+                </div>
+                <p className="text-xl font-bold text-gray-900">{stats.totalRoutes || 0}</p>
+              </div>
+              <div className="card p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Star className="w-4 h-4 text-yellow-500" />
+                  <p className="text-xs text-gray-500">{t('admin.avgRating')}</p>
+                </div>
+                <p className="text-xl font-bold text-gray-900">{stats.avgRating || '–'}</p>
               </div>
             </div>
           </div>
-          <div className="card p-4 sm:p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-purple-600" />
+
+          {/* Weekly Activity */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-green-600" />
+              {t('admin.weeklyActivity')}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <UserPlus className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">{stats.newUsersThisWeek || 0}</p>
+                    <p className="text-sm text-gray-500">{t('admin.newUsersThisWeek')}</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.predefinedPrograms}</p>
-                <p className="text-sm text-gray-500">{t('admin.programs')}</p>
+              <div className="card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Users className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">{stats.activeUsersThisWeek || 0}</p>
+                    <p className="text-sm text-gray-500">{t('admin.activeUsersThisWeek')}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <Dumbbell className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">{stats.workoutsThisWeek || 0}</p>
+                    <p className="text-sm text-gray-500">{t('admin.workoutsThisWeek')}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <div className="card p-4 sm:p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                <Target className="w-5 h-5 text-orange-600" />
+
+          {/* User Tables */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Signups */}
+            <div className="card overflow-hidden">
+              <div className="p-4 border-b bg-gray-50">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <UserPlus className="w-4 h-4 text-green-600" />
+                  {t('admin.recentUsers')}
+                </h3>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.publicExercises}</p>
-                <p className="text-sm text-gray-500">{t('admin.exercises')}</p>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 hidden sm:table-cell">{t('admin.email')}</th>
+                      <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.joinedOn')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {stats.recentUsers?.length > 0 ? (
+                      stats.recentUsers.map(user => (
+                        <tr key={user.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-2">
+                            <p className="font-medium text-gray-900 text-sm">{user.first_name} {user.last_name}</p>
+                          </td>
+                          <td className="px-4 py-2 hidden sm:table-cell">
+                            <p className="text-sm text-gray-500 truncate max-w-[150px]">{user.email}</p>
+                          </td>
+                          <td className="px-4 py-2 text-right">
+                            <p className="text-xs text-gray-500">{new Date(user.created_at).toLocaleDateString()}</p>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="3" className="px-4 py-8 text-center text-gray-500 text-sm">
+                          {t('admin.noData')}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Most Active Users */}
+            <div className="card overflow-hidden">
+              <div className="p-4 border-b bg-gray-50">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                  {t('admin.topUsers')}
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
+                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-500">{t('admin.workoutCount')}</th>
+                      <th className="text-center px-4 py-2 text-xs font-medium text-gray-500 hidden sm:table-cell">{t('admin.totalMinutes')}</th>
+                      <th className="text-right px-4 py-2 text-xs font-medium text-gray-500 hidden sm:table-cell">{t('admin.totalCalories')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {stats.topUsers?.length > 0 ? (
+                      stats.topUsers.filter(u => u.workout_count > 0).map((user, idx) => (
+                        <tr key={user.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-2">
+                            <div className="flex items-center gap-2">
+                              {idx < 3 && (
+                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                                  idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-orange-400'
+                                }`}>
+                                  {idx + 1}
+                                </span>
+                              )}
+                              <p className="font-medium text-gray-900 text-sm">{user.first_name} {user.last_name}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-2 text-center">
+                            <span className="badge bg-primary-100 text-primary-700">{user.workout_count}</span>
+                          </td>
+                          <td className="px-4 py-2 text-center hidden sm:table-cell">
+                            <p className="text-sm text-gray-600">{user.total_minutes?.toLocaleString() || 0}</p>
+                          </td>
+                          <td className="px-4 py-2 text-right hidden sm:table-cell">
+                            <p className="text-sm text-gray-600">{user.total_calories?.toLocaleString() || 0}</p>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="px-4 py-8 text-center text-gray-500 text-sm">
+                          {t('admin.noData')}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
-          <div className="card p-4 sm:p-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                <Wrench className="w-5 h-5 text-gray-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.publicEquipment}</p>
-                <p className="text-sm text-gray-500">{t('admin.equipment')}</p>
-              </div>
+
+          {/* Popular Exercises */}
+          <div className="card overflow-hidden">
+            <div className="p-4 border-b bg-gray-50">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                <Target className="w-4 h-4 text-orange-600" />
+                {t('admin.popularExercises')}
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">#</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500">{t('admin.name')}</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 hidden sm:table-cell">{t('admin.muscleGroup')}</th>
+                    <th className="text-right px-4 py-2 text-xs font-medium text-gray-500">{t('admin.usageCount')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {stats.popularExercises?.length > 0 ? (
+                    stats.popularExercises.map((exercise, idx) => (
+                      <tr key={exercise.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 text-sm text-gray-500">{idx + 1}</td>
+                        <td className="px-4 py-2">
+                          <p className="font-medium text-gray-900 text-sm">{exercise.name}</p>
+                        </td>
+                        <td className="px-4 py-2 hidden sm:table-cell">
+                          <span className="badge bg-gray-100 text-gray-700">{exercise.muscle_group || '–'}</span>
+                        </td>
+                        <td className="px-4 py-2 text-right">
+                          <span className="badge bg-orange-100 text-orange-700">{exercise.usage_count}</span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="px-4 py-8 text-center text-gray-500 text-sm">
+                        {t('admin.noData')}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

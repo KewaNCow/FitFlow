@@ -736,7 +736,30 @@ const resources = {
         bandsCables: 'Bands & Cables',
         accessories: 'Accessories',
         other: 'Other',
-        errorSaving: 'Error saving item'
+        errorSaving: 'Error saving item',
+        // User tracking
+        platformStats: 'Platform Statistics',
+        totalWorkoutsLogged: 'Total Workouts Logged',
+        totalCaloriesBurned: 'Total Calories Burned',
+        totalMinutesActive: 'Total Minutes Active',
+        userCreatedWorkouts: 'User Created Workouts',
+        totalRoutes: 'Total Routes',
+        avgRating: 'Average Rating',
+        weeklyActivity: 'Weekly Activity',
+        newUsersThisWeek: 'New Users (7 days)',
+        activeUsersThisWeek: 'Active Users (7 days)',
+        workoutsThisWeek: 'Workouts (7 days)',
+        recentUsers: 'Recent Signups',
+        topUsers: 'Most Active Users',
+        dailyActivity: 'Daily Activity (30 days)',
+        popularExercises: 'Popular Exercises',
+        workoutCount: 'Workouts',
+        totalMinutes: 'Minutes',
+        totalCalories: 'Calories',
+        usageCount: 'Usage',
+        noData: 'No data available',
+        email: 'Email',
+        joinedOn: 'Joined'
       },
 
       // Workout History
@@ -1513,7 +1536,30 @@ const resources = {
         bandsCables: 'Band & kablar',
         accessories: 'Tillbehör',
         other: 'Övrigt',
-        errorSaving: 'Fel vid sparande'
+        errorSaving: 'Fel vid sparande',
+        // User tracking
+        platformStats: 'Plattformsstatistik',
+        totalWorkoutsLogged: 'Totalt loggade träningspass',
+        totalCaloriesBurned: 'Totalt brända kalorier',
+        totalMinutesActive: 'Totalt aktiva minuter',
+        userCreatedWorkouts: 'Användarskapade träningspass',
+        totalRoutes: 'Totalt antal rutter',
+        avgRating: 'Genomsnittligt betyg',
+        weeklyActivity: 'Veckoaktivitet',
+        newUsersThisWeek: 'Nya användare (7 dagar)',
+        activeUsersThisWeek: 'Aktiva användare (7 dagar)',
+        workoutsThisWeek: 'Träningspass (7 dagar)',
+        recentUsers: 'Senaste registreringar',
+        topUsers: 'Mest aktiva användare',
+        dailyActivity: 'Daglig aktivitet (30 dagar)',
+        popularExercises: 'Populära övningar',
+        workoutCount: 'Träningspass',
+        totalMinutes: 'Minuter',
+        totalCalories: 'Kalorier',
+        usageCount: 'Användning',
+        noData: 'Ingen data tillgänglig',
+        email: 'E-post',
+        joinedOn: 'Gick med'
       },
 
       // Workout History
