@@ -895,7 +895,7 @@ const RoutePlanner = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <div className="flex flex-col lg:flex-row lg:h-[calc(100vh-64px)] w-full">
         {/* Sidebar */}
         <div className="w-full lg:w-80 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col lg:overflow-y-auto min-w-0">
@@ -1288,7 +1288,7 @@ const RoutePlanner = () => {
         </div>
 
         {/* Map */}
-        <div className={`w-full lg:flex-1 relative lg:h-auto lg:min-h-0 flex-shrink-0 -mb-1 ${isCreating ? 'h-[500px]' : 'h-[calc(100vh-200px)] min-h-[500px]'}`}>
+        <div className={`w-full lg:flex-1 relative lg:h-auto lg:min-h-0 flex-shrink-0 ${isCreating ? 'h-[500px]' : 'h-[calc(100vh-64px)] min-h-[500px]'}`}>
           <MapContainer
             center={userLocation}
             zoom={13}
