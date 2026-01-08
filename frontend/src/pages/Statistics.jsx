@@ -26,7 +26,8 @@ import {
   Target,
   Flame,
   Award,
-  ChevronDown
+  ChevronDown,
+  MapPin
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useTranslation } from 'react-i18next';
@@ -146,7 +147,7 @@ const Statistics = () => {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div className="card p-3 sm:p-4">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -179,6 +180,34 @@ const Statistics = () => {
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center">
               <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                {overview?.total_calories?.toLocaleString() || 0}
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">{t('statistics.overview.calories')}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600" />
+            </div>
+            <div>
+              <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                {overview?.total_distance?.toFixed(1) || 0} km
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">{t('statistics.overview.distance')}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-gray-900">

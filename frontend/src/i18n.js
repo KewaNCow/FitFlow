@@ -602,7 +602,9 @@ const resources = {
           workouts: 'Workouts',
           totalTime: 'Total Time',
           dayStreak: 'Day Streak',
-          avgDuration: 'Avg Duration'
+          avgDuration: 'Avg Duration',
+          calories: 'Calories',
+          distance: 'Distance'
         },
         charts: {
           workoutsOverTime: 'Workouts Over Time',
@@ -1321,7 +1323,9 @@ const resources = {
           workouts: 'Träningspass',
           totalTime: 'Total Tid',
           dayStreak: 'Dagars Streak',
-          avgDuration: 'Genomsnittlig Varaktighet'
+          avgDuration: 'Genomsnittlig Varaktighet',
+          calories: 'Kalorier',
+          distance: 'Distans'
         },
         charts: {
           workoutsOverTime: 'Träningspass Över Tid',

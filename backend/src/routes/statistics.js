@@ -10,16 +10,52 @@ router.get('/overview', auth, async (req, res) => {
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - parseInt(period));
 
-    // Total workouts
+    // Total workouts with calories
     const [workoutStats] = await pool.query(
       `SELECT 
         COUNT(*) as total_workouts,
         SUM(duration_minutes) as total_duration,
-        AVG(duration_minutes) as avg_duration
+        AVG(duration_minutes) as avg_duration,
+        COALESCE(SUM(calories_burned), 0) as total_calories
        FROM workout_logs 
        WHERE user_id = ? AND completed_at >= ?`,
       [req.user.id, daysAgo]
     );
+
+    // Get calories from exercise logs for this period
+    const [exerciseCalories] = await pool.query(
+      `SELECT COALESCE(SUM(el.calories_burned), 0) as exercise_calories
+       FROM exercise_logs el
+       JOIN workout_logs wl ON el.workout_log_id = wl.id
+       WHERE wl.user_id = ? AND wl.completed_at >= ?`,
+      [req.user.id, daysAgo]
+    );
+
+    // Get total distance from cardio exercises
+    const [distanceStats] = await pool.query(
+      `SELECT COALESCE(SUM(el.distance_km), 0) as total_distance
+       FROM exercise_logs el
+       JOIN workout_logs wl ON el.workout_log_id = wl.id
+       WHERE wl.user_id = ? AND wl.completed_at >= ?`,
+      [req.user.id, daysAgo]
+    );
+
+    // Get route logs stats for this period
+    const [routeStats] = await pool.query(
+      `SELECT 
+        COALESCE(SUM(actual_distance_km), 0) as route_distance,
+        COALESCE(SUM(calories_burned), 0) as route_calories
+       FROM route_logs 
+       WHERE user_id = ? AND completed_at >= ?`,
+      [req.user.id, daysAgo]
+    );
+
+    // Combine all calories and distances
+    const totalCalories = (workoutStats[0].total_calories || 0) + 
+                          (exerciseCalories[0].exercise_calories || 0) + 
+                          (routeStats[0].route_calories || 0);
+    const totalDistance = (distanceStats[0].total_distance || 0) + 
+                          (routeStats[0].route_distance || 0);
 
     // Workouts by day of week
     const [byDayOfWeek] = await pool.query(
@@ -84,7 +120,9 @@ router.get('/overview', auth, async (req, res) => {
         overview: workoutStats[0],
         by_day_of_week: byDayOfWeek,
         daily_workouts: dailyWorkouts,
-        current_streak: streak
+        current_streak: streak,
+        total_calories: Math.round(totalCalories),
+        total_distance: parseFloat(totalDistance.toFixed(2))
       }
     });
   } catch (error) {
