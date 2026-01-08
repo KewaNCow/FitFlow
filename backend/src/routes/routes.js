@@ -185,11 +185,19 @@ router.put('/:id', auth, async (req, res) => {
 
     const [updated] = await pool.execute('SELECT * FROM routes WHERE id = ?', [req.params.id]);
     
+    // Handle waypoints - might already be parsed by MySQL driver
+    let parsedWaypoints = [];
+    if (updated[0].waypoints) {
+      parsedWaypoints = typeof updated[0].waypoints === 'string' 
+        ? JSON.parse(updated[0].waypoints) 
+        : updated[0].waypoints;
+    }
+    
     res.json({ 
       success: true, 
       data: {
         ...updated[0],
-        waypoints: updated[0].waypoints ? JSON.parse(updated[0].waypoints) : []
+        waypoints: parsedWaypoints
       }
     });
   } catch (error) {
