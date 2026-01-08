@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { adminAPI } from '../services/api';
 import { 
   Shield, 
@@ -17,6 +18,7 @@ import {
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const AdminDashboard = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -90,7 +92,7 @@ const AdminDashboard = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) return;
+    if (!window.confirm(t('admin.confirmDelete'))) return;
 
     try {
       switch (activeTab) {
@@ -157,7 +159,7 @@ const AdminDashboard = () => {
       setShowModal(false);
       fetchStats();
     } catch (error) {
-      setError(error.response?.data?.message || 'Error saving item');
+      setError(error.response?.data?.message || t('admin.errorSaving'));
     }
   };
 
@@ -177,11 +179,11 @@ const AdminDashboard = () => {
   };
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: Shield },
-    { id: 'workouts', label: 'Workouts', icon: Dumbbell },
-    { id: 'programs', label: 'Programs', icon: Calendar },
-    { id: 'exercises', label: 'Exercises', icon: Target },
-    { id: 'equipment', label: 'Equipment', icon: Wrench },
+    { id: 'overview', label: t('admin.overview'), icon: Shield },
+    { id: 'workouts', label: t('admin.workouts'), icon: Dumbbell },
+    { id: 'programs', label: t('admin.programs'), icon: Calendar },
+    { id: 'exercises', label: t('admin.exercises'), icon: Target },
+    { id: 'equipment', label: t('admin.equipment'), icon: Wrench },
   ];
 
   if (loading && !stats) {
@@ -200,9 +202,9 @@ const AdminDashboard = () => {
           <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
             <Shield className="w-5 h-5 text-red-600" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('admin.title')}</h1>
         </div>
-        <p className="text-gray-600">Manage predefined content for all users</p>
+        <p className="text-gray-600">{t('admin.subtitle')}</p>
       </div>
 
       {/* Tabs */}
@@ -233,7 +235,7 @@ const AdminDashboard = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{stats.users}</p>
-                <p className="text-sm text-gray-500">Users</p>
+                <p className="text-sm text-gray-500">{t('admin.users')}</p>
               </div>
             </div>
           </div>
@@ -244,7 +246,7 @@ const AdminDashboard = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{stats.predefinedWorkouts}</p>
-                <p className="text-sm text-gray-500">Workouts</p>
+                <p className="text-sm text-gray-500">{t('admin.workouts')}</p>
               </div>
             </div>
           </div>
@@ -255,7 +257,7 @@ const AdminDashboard = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{stats.predefinedPrograms}</p>
-                <p className="text-sm text-gray-500">Programs</p>
+                <p className="text-sm text-gray-500">{t('admin.programs')}</p>
               </div>
             </div>
           </div>
@@ -266,7 +268,7 @@ const AdminDashboard = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{stats.publicExercises}</p>
-                <p className="text-sm text-gray-500">Exercises</p>
+                <p className="text-sm text-gray-500">{t('admin.exercises')}</p>
               </div>
             </div>
           </div>
@@ -277,7 +279,7 @@ const AdminDashboard = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{stats.publicEquipment}</p>
-                <p className="text-sm text-gray-500">Equipment</p>
+                <p className="text-sm text-gray-500">{t('admin.equipment')}</p>
               </div>
             </div>
           </div>
@@ -291,7 +293,7 @@ const AdminDashboard = () => {
           <div className="flex justify-end mb-4">
             <button onClick={handleCreate} className="btn-primary gap-2">
               <Plus className="w-5 h-5" />
-              Add {activeTab.slice(0, -1)}
+              {t('admin.add')} {t(`admin.${activeTab.slice(0, -1) === 'exercis' ? 'exercises' : activeTab}`).toLowerCase().slice(0, -1)}
             </button>
           </div>
 
@@ -302,7 +304,7 @@ const AdminDashboard = () => {
             </div>
           ) : items.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500">No {activeTab} found</p>
+              <p className="text-gray-500">{t('admin.noItems', { items: t(`admin.${activeTab}`).toLowerCase() })}</p>
             </div>
           ) : (
             <div className="card overflow-hidden">
@@ -310,11 +312,11 @@ const AdminDashboard = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b">
                     <tr>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Name</th>
+                      <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">{t('admin.name')}</th>
                       <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 hidden sm:table-cell">
-                        {activeTab === 'exercises' ? 'Category' : activeTab === 'equipment' ? 'Category' : 'Type'}
+                        {activeTab === 'exercises' || activeTab === 'equipment' ? t('admin.category') : t('admin.type')}
                       </th>
-                      <th className="text-right px-4 py-3 text-sm font-medium text-gray-500">Actions</th>
+                      <th className="text-right px-4 py-3 text-sm font-medium text-gray-500">{t('admin.actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -365,7 +367,7 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg font-semibold">
-                {editingItem ? 'Edit' : 'Create'} {activeTab.slice(0, -1)}
+                {editingItem ? t('admin.edit') : t('admin.create')} {t(`admin.${activeTab}`).toLowerCase().slice(0, -1)}
               </h2>
               <button 
                 onClick={() => setShowModal(false)} 
@@ -385,7 +387,7 @@ const AdminDashboard = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.name')} *</label>
                 <input
                   type="text"
                   value={formData.name || ''}
@@ -396,7 +398,7 @@ const AdminDashboard = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.description')}</label>
                 <textarea
                   value={formData.description || ''}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -407,16 +409,16 @@ const AdminDashboard = () => {
 
               {activeTab === 'workouts' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.type')}</label>
                   <select
                     value={formData.workout_type || 'strength'}
                     onChange={(e) => setFormData({ ...formData, workout_type: e.target.value })}
                     className="input"
                   >
-                    <option value="strength">Strength</option>
-                    <option value="cardio">Cardio</option>
-                    <option value="mixed">Mixed</option>
-                    <option value="flexibility">Flexibility</option>
+                    <option value="strength">{t('admin.strength')}</option>
+                    <option value="cardio">{t('admin.cardio')}</option>
+                    <option value="mixed">{t('admin.mixed')}</option>
+                    <option value="flexibility">{t('admin.flexibility')}</option>
                   </select>
                 </div>
               )}
@@ -424,7 +426,7 @@ const AdminDashboard = () => {
               {activeTab === 'programs' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Duration (weeks)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.durationWeeks')}</label>
                     <input
                       type="number"
                       value={formData.duration_weeks || ''}
@@ -434,15 +436,15 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.difficulty')}</label>
                     <select
                       value={formData.difficulty || 'intermediate'}
                       onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                       className="input"
                     >
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
+                      <option value="beginner">{t('admin.beginner')}</option>
+                      <option value="intermediate">{t('admin.intermediate')}</option>
+                      <option value="advanced">{t('admin.advanced')}</option>
                     </select>
                   </div>
                 </>
@@ -451,21 +453,21 @@ const AdminDashboard = () => {
               {activeTab === 'exercises' && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.category')} *</label>
                     <select
                       value={formData.category || 'strength'}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                       className="input"
                     >
-                      <option value="strength">Strength</option>
-                      <option value="cardio">Cardio</option>
-                      <option value="flexibility">Flexibility</option>
-                      <option value="bodyweight">Bodyweight</option>
-                      <option value="machine">Machine</option>
+                      <option value="strength">{t('admin.strength')}</option>
+                      <option value="cardio">{t('admin.cardio')}</option>
+                      <option value="flexibility">{t('admin.flexibility')}</option>
+                      <option value="bodyweight">{t('admin.bodyweight')}</option>
+                      <option value="machine">{t('admin.machine')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Muscle Group</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.muscleGroup')}</label>
                     <input
                       type="text"
                       value={formData.muscle_group || ''}
@@ -475,15 +477,15 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.difficulty')}</label>
                     <select
                       value={formData.difficulty || 'intermediate'}
                       onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                       className="input"
                     >
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
+                      <option value="beginner">{t('admin.beginner')}</option>
+                      <option value="intermediate">{t('admin.intermediate')}</option>
+                      <option value="advanced">{t('admin.advanced')}</option>
                     </select>
                   </div>
                 </>
@@ -491,30 +493,30 @@ const AdminDashboard = () => {
 
               {activeTab === 'equipment' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.category')}</label>
                   <select
                     value={formData.category || 'other'}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="input"
                   >
-                    <option value="free_weights">Free Weights</option>
-                    <option value="machines">Machines</option>
-                    <option value="cardio">Cardio</option>
-                    <option value="bodyweight">Bodyweight</option>
-                    <option value="bands_cables">Bands & Cables</option>
-                    <option value="accessories">Accessories</option>
-                    <option value="other">Other</option>
+                    <option value="free_weights">{t('admin.freeWeights')}</option>
+                    <option value="machines">{t('admin.machines')}</option>
+                    <option value="cardio">{t('admin.cardio')}</option>
+                    <option value="bodyweight">{t('admin.bodyweight')}</option>
+                    <option value="bands_cables">{t('admin.bandsCables')}</option>
+                    <option value="accessories">{t('admin.accessories')}</option>
+                    <option value="other">{t('admin.other')}</option>
                   </select>
                 </div>
               )}
 
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="btn-primary flex-1 gap-2">
                   <Save className="w-4 h-4" />
-                  {editingItem ? 'Update' : 'Create'}
+                  {editingItem ? t('admin.update') : t('admin.create')}
                 </button>
               </div>
             </form>
