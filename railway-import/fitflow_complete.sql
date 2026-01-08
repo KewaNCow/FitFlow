@@ -15,6 +15,25 @@
 -- =====================================================
 
 -- =====================================================
+-- CLEAN UP: DROP EXISTING TABLES (for fresh install)
+-- =====================================================
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS user_program_progress;
+DROP TABLE IF EXISTS route_logs;
+DROP TABLE IF EXISTS exercise_logs;
+DROP TABLE IF EXISTS workout_logs;
+DROP TABLE IF EXISTS program_workouts;
+DROP TABLE IF EXISTS programs;
+DROP TABLE IF EXISTS workout_exercises;
+DROP TABLE IF EXISTS workouts;
+DROP TABLE IF EXISTS routes;
+DROP TABLE IF EXISTS exercise_images;
+DROP TABLE IF EXISTS exercises;
+DROP TABLE IF EXISTS equipment;
+DROP TABLE IF EXISTS users;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- =====================================================
 -- SCHEMA: TABLES
 -- =====================================================
 
