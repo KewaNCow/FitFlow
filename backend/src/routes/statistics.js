@@ -50,12 +50,12 @@ router.get('/overview', auth, async (req, res) => {
       [req.user.id, daysAgo]
     );
 
-    // Combine all calories and distances
-    const totalCalories = (workoutStats[0].total_calories || 0) + 
-                          (exerciseCalories[0].exercise_calories || 0) + 
-                          (routeStats[0].route_calories || 0);
-    const totalDistance = (distanceStats[0].total_distance || 0) + 
-                          (routeStats[0].route_distance || 0);
+    // Combine all calories and distances (parse to numbers to handle Decimal types)
+    const totalCalories = parseFloat(workoutStats[0].total_calories || 0) + 
+                          parseFloat(exerciseCalories[0].exercise_calories || 0) + 
+                          parseFloat(routeStats[0].route_calories || 0);
+    const totalDistance = parseFloat(distanceStats[0].total_distance || 0) + 
+                          parseFloat(routeStats[0].route_distance || 0);
 
     // Workouts by day of week
     const [byDayOfWeek] = await pool.query(
