@@ -325,7 +325,7 @@ router.post('/:id/copy', auth, async (req, res) => {
     const [result] = await connection.query(
       `INSERT INTO programs (user_id, name, description, duration_weeks, difficulty, is_predefined)
        VALUES (?, ?, ?, ?, ?, 0)`,
-      [req.user.id, `${original.name} (My Copy)`, original.description, original.duration_weeks, original.difficulty]
+      [req.user.id, original.name, original.description, original.duration_weeks, original.difficulty]
     );
 
     const newProgramId = result.insertId;
