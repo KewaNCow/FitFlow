@@ -45,6 +45,10 @@ const WorkoutBuilder = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Drag and drop state for exercises
+  const [draggedExerciseIndex, setDraggedExerciseIndex] = useState(null);
+  const [dragOverExerciseIndex, setDragOverExerciseIndex] = useState(null);
+
   // Helper to determine if an exercise is cardio-based
   const isCardioExercise = (exercise) => {
     return exercise?.category === 'cardio' || exercise?.exercise_type === 'cardio';
@@ -277,6 +281,48 @@ const WorkoutBuilder = () => {
       ...prev,
       exercises: prev.exercises.filter((_, i) => i !== index)
     }));
+  };
+
+  // Drag and drop handlers for exercises
+  const handleExerciseDragStart = (e, index) => {
+    setDraggedExerciseIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index);
+  };
+
+  const handleExerciseDragOver = (e, index) => {
+    e.preventDefault();
+    if (draggedExerciseIndex !== null && draggedExerciseIndex !== index) {
+      setDragOverExerciseIndex(index);
+    }
+  };
+
+  const handleExerciseDragLeave = () => {
+    setDragOverExerciseIndex(null);
+  };
+
+  const handleExerciseDrop = (e, dropIndex) => {
+    e.preventDefault();
+    if (draggedExerciseIndex === null || draggedExerciseIndex === dropIndex) {
+      setDraggedExerciseIndex(null);
+      setDragOverExerciseIndex(null);
+      return;
+    }
+
+    setWorkout(prev => {
+      const newExercises = [...prev.exercises];
+      const [draggedItem] = newExercises.splice(draggedExerciseIndex, 1);
+      newExercises.splice(dropIndex, 0, draggedItem);
+      return { ...prev, exercises: newExercises };
+    });
+
+    setDraggedExerciseIndex(null);
+    setDragOverExerciseIndex(null);
+  };
+
+  const handleExerciseDragEnd = () => {
+    setDraggedExerciseIndex(null);
+    setDragOverExerciseIndex(null);
   };
 
   const handleExerciseChange = (index, field, value) => {
@@ -602,9 +648,20 @@ const WorkoutBuilder = () => {
                 const isCardio = isCardioExercise(exercise);
                 
                 return (
-                <div key={index} className="card p-4">
+                <div 
+                  key={index} 
+                  className={`card p-4 transition-all duration-200 ${
+                    draggedExerciseIndex === index ? 'opacity-50 scale-95' : ''
+                  } ${dragOverExerciseIndex === index ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
+                  draggable
+                  onDragStart={(e) => handleExerciseDragStart(e, index)}
+                  onDragOver={(e) => handleExerciseDragOver(e, index)}
+                  onDragLeave={handleExerciseDragLeave}
+                  onDrop={(e) => handleExerciseDrop(e, index)}
+                  onDragEnd={handleExerciseDragEnd}
+                >
                   <div className="flex items-start gap-3">
-                    <div className="flex items-center gap-2 text-gray-400 pt-1">
+                    <div className="flex items-center gap-2 text-gray-400 pt-1 cursor-grab active:cursor-grabbing">
                       <GripVertical className="w-4 h-4" />
                       <span className="text-sm font-medium">{index + 1}</span>
                     </div>

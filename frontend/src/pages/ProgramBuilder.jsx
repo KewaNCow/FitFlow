@@ -10,7 +10,8 @@ import {
   Calendar,
   Search,
   X,
-  Dumbbell
+  Dumbbell,
+  GripVertical
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -44,6 +45,10 @@ const ProgramBuilder = () => {
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // Drag and drop state for workouts within days
+  const [draggedWorkout, setDraggedWorkout] = useState(null);
+  const [dragOverWorkout, setDragOverWorkout] = useState(null);
 
   useEffect(() => {
     fetchWorkouts();
@@ -107,6 +112,125 @@ const ProgramBuilder = () => {
       ...prev,
       workouts: prev.workouts.filter((_, i) => i !== index)
     }));
+  };
+
+  // Drag and drop handlers for workouts
+  const handleWorkoutDragStart = (e, workoutIndex, dayOfWeek) => {
+    setDraggedWorkout({ index: workoutIndex, dayOfWeek });
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', workoutIndex);
+  };
+
+  const handleWorkoutDragOver = (e, workoutIndex, dayOfWeek) => {
+    e.preventDefault();
+    if (draggedWorkout && (draggedWorkout.index !== workoutIndex || draggedWorkout.dayOfWeek !== dayOfWeek)) {
+      setDragOverWorkout({ index: workoutIndex, dayOfWeek });
+    }
+  };
+
+  const handleWorkoutDragLeave = () => {
+    setDragOverWorkout(null);
+  };
+
+  const handleWorkoutDrop = (e, targetIndex, targetDay) => {
+    e.preventDefault();
+    if (!draggedWorkout) {
+      setDragOverWorkout(null);
+      return;
+    }
+
+    // Find the original workout in the program.workouts array
+    const dayWorkouts = program.workouts.filter(w => w.dayOfWeek === draggedWorkout.dayOfWeek);
+    const draggedItem = dayWorkouts[draggedWorkout.index];
+    
+    if (!draggedItem) {
+      setDraggedWorkout(null);
+      setDragOverWorkout(null);
+      return;
+    }
+
+    // Get the global index of the dragged item
+    const globalDraggedIndex = program.workouts.findIndex(
+      (w, i) => program.workouts.filter((ww, ii) => ii < i && ww.dayOfWeek === draggedWorkout.dayOfWeek).length === draggedWorkout.index && w.dayOfWeek === draggedWorkout.dayOfWeek
+    );
+
+    setProgram(prev => {
+      const newWorkouts = [...prev.workouts];
+      
+      // Find and remove the dragged workout
+      let dragIdx = -1;
+      let count = 0;
+      for (let i = 0; i < newWorkouts.length; i++) {
+        if (newWorkouts[i].dayOfWeek === draggedWorkout.dayOfWeek) {
+          if (count === draggedWorkout.index) {
+            dragIdx = i;
+            break;
+          }
+          count++;
+        }
+      }
+      
+      if (dragIdx === -1) return prev;
+      
+      const [removed] = newWorkouts.splice(dragIdx, 1);
+      
+      // Update the day if moving to a different day
+      removed.dayOfWeek = targetDay;
+      
+      // Find the target position
+      let targetIdx = 0;
+      count = 0;
+      for (let i = 0; i < newWorkouts.length; i++) {
+        if (newWorkouts[i].dayOfWeek === targetDay) {
+          if (count === targetIndex) {
+            targetIdx = i;
+            break;
+          }
+          count++;
+          targetIdx = i + 1;
+        }
+      }
+      
+      // If dropping in empty day or at end of day workouts
+      if (count < targetIndex || targetIndex === -1) {
+        // Find where this day's workouts end
+        let lastDayIdx = -1;
+        for (let i = newWorkouts.length - 1; i >= 0; i--) {
+          if (newWorkouts[i].dayOfWeek === targetDay) {
+            lastDayIdx = i;
+            break;
+          }
+        }
+        targetIdx = lastDayIdx >= 0 ? lastDayIdx + 1 : newWorkouts.length;
+      }
+      
+      newWorkouts.splice(targetIdx, 0, removed);
+      
+      return { ...prev, workouts: newWorkouts };
+    });
+
+    setDraggedWorkout(null);
+    setDragOverWorkout(null);
+  };
+
+  const handleWorkoutDragEnd = () => {
+    setDraggedWorkout(null);
+    setDragOverWorkout(null);
+  };
+
+  // Handle dropping on empty day area
+  const handleDayDragOver = (e, dayIndex) => {
+    e.preventDefault();
+    if (draggedWorkout) {
+      setDragOverWorkout({ index: -1, dayOfWeek: dayIndex });
+    }
+  };
+
+  const handleDayDrop = (e, dayIndex) => {
+    e.preventDefault();
+    if (!draggedWorkout) return;
+    
+    handleWorkoutDrop(e, -1, dayIndex);
   };
 
   const handleSubmit = async (e) => {
@@ -269,16 +393,45 @@ const ProgramBuilder = () => {
                     </button>
                   </div>
                   {dayWorkouts.length === 0 ? (
-                    <p className="text-sm text-gray-400">{t('programBuilder.restDay')}</p>
+                    <div
+                      className={`text-sm text-gray-400 p-3 rounded-lg transition-all ${
+                        dragOverWorkout?.index === -1 && dragOverWorkout?.dayOfWeek === index
+                          ? 'bg-primary-50 ring-2 ring-primary-400 ring-dashed'
+                          : 'bg-gray-50'
+                      }`}
+                      onDragOver={(e) => handleDayDragOver(e, index)}
+                      onDragLeave={handleWorkoutDragLeave}
+                      onDrop={(e) => handleDayDrop(e, index)}
+                    >
+                      {t('programBuilder.restDay')}
+                    </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div 
+                      className="space-y-2"
+                      onDragOver={(e) => handleDayDragOver(e, index)}
+                      onDrop={(e) => handleDayDrop(e, index)}
+                    >
                       {dayWorkouts.map((workout, wIndex) => {
                         const originalIndex = program.workouts.findIndex(
                           w => w.workoutId === workout.workoutId && w.dayOfWeek === workout.dayOfWeek
                         );
+                        const isDragging = draggedWorkout?.index === wIndex && draggedWorkout?.dayOfWeek === index;
+                        const isDragOver = dragOverWorkout?.index === wIndex && dragOverWorkout?.dayOfWeek === index;
                         return (
-                          <div key={wIndex} className="flex items-center gap-3 bg-gray-50 rounded-lg p-3">
-                            <Dumbbell className="w-4 h-4 text-primary-600" />
+                          <div 
+                            key={wIndex} 
+                            className={`flex items-center gap-3 bg-gray-50 rounded-lg p-3 transition-all duration-200 ${
+                              isDragging ? 'opacity-50 scale-95' : ''
+                            } ${isDragOver ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
+                            draggable
+                            onDragStart={(e) => handleWorkoutDragStart(e, wIndex, index)}
+                            onDragOver={(e) => handleWorkoutDragOver(e, wIndex, index)}
+                            onDragLeave={handleWorkoutDragLeave}
+                            onDrop={(e) => handleWorkoutDrop(e, wIndex, index)}
+                            onDragEnd={handleWorkoutDragEnd}
+                          >
+                            <GripVertical className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing flex-shrink-0" />
+                            <Dumbbell className="w-4 h-4 text-primary-600 flex-shrink-0" />
                             <span className="flex-1 text-sm">{workout.workoutName}</span>
                             <button
                               type="button"
