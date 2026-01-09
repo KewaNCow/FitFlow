@@ -28,7 +28,7 @@ const ExerciseLibrary = () => {
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'all');
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 20,
+    limit: 18,
     total: 0,
     pages: 1
   });
@@ -341,13 +341,13 @@ const ExerciseLibrary = () => {
                     <span className={`badge text-xs ${getCategoryColor(exercise.category)}`}>
                       {t(`common.categories.${exercise.category}`)}
                     </span>
-                    {exercise.is_custom && (
+                    {!!exercise.is_custom && (
                       <span className="badge bg-purple-100 text-purple-700">
                         {t('exercises.custom')}
                       </span>
                     )}
                   </div>
-                  {exercise.is_custom && exercise.user_id === user?.id && (
+                  {!!exercise.is_custom && exercise.user_id === user?.id && (
                     <div className="absolute top-2 right-2 flex gap-1">
                       <Link
                         to={`/exercises/${exercise.id}/edit`}
